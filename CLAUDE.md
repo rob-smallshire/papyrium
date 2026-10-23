@@ -61,6 +61,17 @@ core that plug-in packages subclass in their own tests.
 - A BBC sends CR-only line ends by default (LF then CR with `*FX6,0`);
   the FX-80 auto line feed DIP switch is modelled.
 
+### Layout
+
+A uv workspace of `packages/papyrium-*` members sharing the PEP 420
+`papyrium` namespace (never add `src/papyrium/__init__.py`). `README.md`
+lists the packages. Entry-point groups are `papyrium.transport`,
+`papyrium.language`, `papyrium.model`, `papyrium.font` and
+`papyrium.output`. Positions on the page are whole units of 1/4320 inch
+(`papyrium.core.page`). Golden captures and images for the FX-80 are in
+`packages/papyrium-model-epson-fx80/tests/golden/`; Beebium end-to-end
+tests are in `integration/beebium/` and are not part of `uv run pytest`.
+
 ## Development
 
 - Python, managed with `uv` only: `uv add`, `uv run`, `uv run pytest`.
