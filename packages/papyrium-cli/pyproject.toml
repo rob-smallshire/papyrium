@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium-cli"
+dynamic = ["version"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+description = "The papyrium command: run a virtual vintage printer and inspect its jobs."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "papyrium-core>=0.0.0",
+    "papyrium-exception>=0.0.0",
+    "papyrium-extension>=0.0.0",
+    "papyrium-transport-raw-tcp>=0.0.0",
+    "click>=8.1.7",
+    "asyoulikeit>=1.5.1",
+]
+
+[project.scripts]
+papyrium = "papyrium.cli:cli"
+
+[tool.setuptools.dynamic]
+version = { attr = "papyrium.cli.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

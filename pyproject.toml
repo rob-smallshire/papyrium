@@ -10,6 +10,7 @@
 members = ["packages/papyrium-*"]
 
 [tool.uv.sources]
+papyrium-cli = { workspace = true }
 papyrium-transport-raw-tcp = { workspace = true }
 papyrium-core = { workspace = true }
 papyrium-exception = { workspace = true }
@@ -23,6 +24,7 @@ default-groups = ["test", "lint", "workspace"]
 workspace = [
     "papyrium-core",
     "papyrium-transport-raw-tcp",
+    "papyrium-cli",
     "papyrium-exception",
     "papyrium-extension",
 ]
@@ -46,6 +48,7 @@ testpaths = [
     "packages/papyrium-extension/tests",
     "packages/papyrium-core/tests",
     "packages/papyrium-transport-raw-tcp/tests",
+    "packages/papyrium-cli/tests",
 ]
 
 [tool.ruff]
