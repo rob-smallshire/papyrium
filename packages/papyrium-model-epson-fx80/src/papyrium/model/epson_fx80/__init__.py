@@ -60,7 +60,7 @@ class EpsonFx80(PrinterModel):
         self._mechanism = EscpMechanism(
             font=dot_font,
             paper_width=_inches_option("paper-width", str(paper_width)),
-            form_length=_inches_option("form-length", str(form_length)),
+            sheet_length=_inches_option("form-length", str(form_length)),
             left_offset=inches(Fraction(1, 4)),
             columns=80,
             auto_line_feed=auto_line_feed,

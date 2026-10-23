@@ -149,7 +149,9 @@ def pages_and_layout() -> bytes:
     out += ESC + b"D\x0a\x14\x1e\x00" + b"\tTab 10\tTab 20\tTab 30" + CRLF
     out += b"Overstrike: O\x08/ and DEL: ABC\x7f\x7fx and CAN: gone\x18kept" + CRLF
     out += b"\x0c" + b"Second page, after a form feed." + CRLF
-    out += ESC + b"C\x00\x03" + b"A three inch form." + CRLF + b"\x0c" + b"Third page." + CRLF
+    # A three-inch form: the form feed moves three inches, on the same sheet.
+    out += ESC + b"C\x00\x03" + b"A three inch form starts here." + CRLF
+    out += b"\x0c" + b"The next form, three inches on." + CRLF
     return bytes(out)
 
 

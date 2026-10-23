@@ -35,7 +35,7 @@ def test_defaults_match_the_factory_switch_settings():
     mechanism = EpsonFx80(name="epson-fx80").mechanism
     assert mechanism.auto_line_feed is False
     assert mechanism.character_set is CharacterSet.USA
-    assert mechanism.form_length == 11 * 4320
+    assert mechanism.sheet_length == 11 * 4320
     assert mechanism.paper_width == 8 * 4320 + 2160
     assert mechanism.font.name == "draft-9"
 
@@ -54,7 +54,7 @@ def test_options_from_strings():
     mechanism = model.mechanism
     assert mechanism.auto_line_feed is True
     assert mechanism.character_set is CharacterSet.UK
-    assert mechanism.form_length == 12 * 4320
+    assert mechanism.sheet_length == 12 * 4320
     assert mechanism.skip_perforation_lines == 6
     assert mechanism.paper_width == 9 * 4320 + 2160
     assert model.config["character-set"] == "uk"

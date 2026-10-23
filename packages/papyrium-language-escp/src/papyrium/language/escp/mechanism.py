@@ -24,8 +24,9 @@ class EscpMechanism:
     font: DotFont
     #: Width of the paper.
     paper_width: int = inches(Fraction(17, 2))
-    #: Power-on form length: the distance from one top of form to the next.
-    form_length: int = inches(11)
+    #: Length of each fanfold sheet, perforation to perforation, which is also
+    #: the power-on form length.
+    sheet_length: int = inches(11)
     #: From the paper's left edge to the leftmost print position.
     left_offset: int = inches(Fraction(1, 4))
     #: Pica columns the head can reach; the power-on right margin.

@@ -52,15 +52,16 @@ def test_immediate_feed_keeps_the_column():
     assert dots(b"A" + ESC + b"J\x09A") == [(LEFT + 36, 0), (LEFT + PICA + 36, 180)]
 
 
-def test_form_length_in_lines_and_in_inches():
-    (page, _) = run(ESC + b"C\x0cA\x0cA")
-    assert page.height == 12 * LINE
-    (page, _) = run(ESC + b"C\x00\x03A\x0cA")
-    assert page.height == 3 * 4320
+def test_form_length_sets_how_far_a_form_feed_moves_but_not_the_sheet():
+    (page,) = run(ESC + b"C\x0cA\x0cA")
+    assert page.height == FORM
+    assert page.dots == ((LEFT + 36, 0), (LEFT + 36, 12 * LINE))
+    (page,) = run(ESC + b"C\x00\x03A\x0cA")
+    assert page.dots == ((LEFT + 36, 0), (LEFT + 36, 3 * 4320))
 
 
 def test_a_line_printed_across_the_perforation_splits_between_pages():
-    first, second = run(ESC + b"A\x05" + ESC + b"C\x01B")
+    first, second = run(b"B", sheet_length=300)
     assert first.height == 300
     assert first.dots == ((LEFT + 36, 0),)
     assert second.dots == ((LEFT + 108, 60),)
@@ -149,12 +150,21 @@ def test_vertical_tab_to_a_stop_ends_one_line_double_width():
     ]
 
 
-def test_setting_the_form_length_after_printing_sets_top_of_form_at_the_current_line():
-    first, second = run(b"A\r\n" + ESC + b"C\x02A")
-    assert first.dots == ((LEFT + 36, 0),)
-    assert first.height == FORM
-    assert second.dots == ((LEFT + 36, 0),)
-    assert second.height == 2 * LINE
+def test_setting_the_form_length_makes_the_current_line_the_top_of_form():
+    (page,) = run(b"A\r\n" + ESC + b"C\x02A\x0cA")
+    assert page.dots == ((LEFT + 36, 0), (LEFT + 36, LINE), (LEFT + 36, 3 * LINE))
+
+
+def test_a_form_feed_after_a_mid_page_reset_ejects_the_printed_sheet_only():
+    # A program that resets with ESC @ before its final form feed.
+    (page,) = run(b"A\r\n" + ESC + b"@\x0c")
+    assert page.dots == ((LEFT + 36, 0),)
+
+
+def test_initialise_restores_the_power_on_form_length():
+    # The form feed moves a whole sheet, not the two lines set before the reset.
+    first, second = run(ESC + b"C\x02" + ESC + b"@A\x0cA")
+    assert first.dots == second.dots == ((LEFT + 36, 0),)
 
 
 def test_proportional_tabs_and_backspace_use_pica_columns():

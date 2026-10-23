@@ -8,10 +8,16 @@ Characters and graphics go into a line buffer, as on the real printer, and
 are committed to the paper when the line is printed (CR, LF, FF, VT,
 ESC J, or a full line). DEL and CAN edit that buffer.
 
-Paper is continuous. Dots are kept at absolute paper positions; a page is
-complete once the head has moved past its bottom edge (or a form feed
-ejects it), so a line printed across a perforation splits between pages
-exactly as the paper would.
+Paper is continuous fanfold. A page is one sheet, perforation to
+perforation, and its length is fixed by the paper. Dots are kept at
+absolute paper positions; a page is complete once the head has moved past
+its bottom edge, so a line printed across a perforation splits between
+pages exactly as the paper would.
+
+The printer's forms are a separate matter: the top of form and form length
+are the printer's own reckoning, which form feed, vertical tabs and
+skip-over-perforation measure from, and which ESC C and ESC @ reset at the
+current line. They start aligned with the sheets but need not stay so.
 """
 
 from __future__ import annotations
@@ -87,7 +93,7 @@ class EscpInterpreter(Interpreter):
         self._page_number = 0
         self._paper_dots: list[tuple[int, int]] = []
         self._paper_text: list[TextMark] = []
-        self._page_top = 0
+        self._sheet_top = 0
         self._y = 0
         self._missing_characters: set[str] = set()
         self._glyph_cache: dict[tuple, tuple[tuple[int, int], ...]] = {}
@@ -113,8 +119,7 @@ class EscpInterpreter(Interpreter):
     # -- State ------------------------------------------------------------
 
     def _power_on(self) -> None:
-        mechanism = self._mechanism
-        self._form_length = mechanism.form_length
+        self._form_top = 0
         self._selected = True
         self._initialise()
 
@@ -135,6 +140,7 @@ class EscpInterpreter(Interpreter):
         self._character_set = mechanism.character_set
         self._high_codes_printable = mechanism.high_codes_printable
         self._line_spacing = inches(1) // 6
+        self._form_length = mechanism.sheet_length
         self._left_margin = 0
         self._right_margin = mechanism.columns * PICA_WIDTH
         self._tabs = [column * PICA_WIDTH for column in range(8, mechanism.columns, 8)]
@@ -390,23 +396,25 @@ class EscpInterpreter(Interpreter):
         self._one_line_double_width = False
         self._advance(self._line_spacing)
         if self._skip_perforation:
-            bottom = self._page_top + self._form_length - self._skip_perforation
-            if self._page_top < bottom <= self._y < self._page_top + self._form_length:
-                self._advance(self._page_top + self._form_length - self._y)
+            form_bottom = self._form_top + self._form_length
+            if form_bottom - self._skip_perforation <= self._y < form_bottom:
+                self._advance(form_bottom - self._y)
 
     def _advance(self, distance: int) -> None:
         self._y += distance
-        while self._y >= self._page_top + self._form_length:
+        while self._y >= self._form_top + self._form_length:
+            self._form_top += self._form_length
+        while self._y >= self._sheet_top + self._mechanism.sheet_length:
             self._eject_page()
 
     def _form_feed(self) -> None:
         self._print_line()
         self._x = self._left_margin
         self._one_line_double_width = False
-        self._advance(self._page_top + self._form_length - self._y)
+        self._advance(self._form_top + self._form_length - self._y)
 
     def _vertical_tab(self) -> None:
-        position = self._y - self._page_top
+        position = self._y - self._form_top
         below = [tab for tab in self._vertical_tabs if tab > position]
         if not self._vertical_tabs:
             self._line_feed()
@@ -434,7 +442,7 @@ class EscpInterpreter(Interpreter):
 
     def _eject_page(self) -> None:
         mechanism = self._mechanism
-        top, bottom = self._page_top, self._page_top + self._form_length
+        top, bottom = self._sheet_top, self._sheet_top + mechanism.sheet_length
         on_page = [(x, y) for x, y in self._paper_dots if y < bottom]
         self._paper_dots = [(x, y) for x, y in self._paper_dots if y >= bottom]
         text_on_page = [mark for mark in self._paper_text if top <= mark.y < bottom]
@@ -445,7 +453,7 @@ class EscpInterpreter(Interpreter):
             Page(
                 number=self._page_number,
                 width=mechanism.paper_width,
-                height=self._form_length,
+                height=mechanism.sheet_length,
                 dot_diameter=mechanism.dot_diameter,
                 dots=tuple(
                     (left + x, y - top)
@@ -459,17 +467,15 @@ class EscpInterpreter(Interpreter):
                 ),
             )
         )
-        self._page_top = bottom
+        self._sheet_top = bottom
 
     def _take_completed(self) -> list[Page]:
         completed, self._completed = self._completed, []
         return completed
 
     def _set_top_of_form(self) -> None:
-        """Make the current line the top of form, ejecting what is printed above it."""
-        if self._paper_dots or any(not mark.character.isspace() for mark in self._paper_text):
-            self._eject_page()
-        self._page_top = self._y
+        """Make the current line the printer's top of form; the paper does not move."""
+        self._form_top = self._y
 
     # -- Escape commands --------------------------------------------------
 
@@ -648,7 +654,6 @@ class EscpInterpreter(Interpreter):
         form_length = n * self._line_spacing
         if n == 0:
             form_length = inches((yield))
-        # The page above the new top of form keeps the length it was printed on.
         self._set_top_of_form()
         if form_length:
             self._form_length = form_length
