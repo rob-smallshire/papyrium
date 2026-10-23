@@ -51,13 +51,20 @@ def test_pages_are_the_paper_size_in_points(tmp_path):
 
 
 def test_each_distinct_dot_is_one_degenerate_round_capped_stroke(tmp_path):
-    (filepath,) = _write(tmp_path, [_letter(1, ((60, 120), (60, 120), (300, 600)))])
+    (filepath,) = _write(tmp_path, [_letter(1, ((300, 600), (60, 120), (60, 120), (90, 120)))])
     content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
     assert "1 J" in content
     assert "60 w" in content
-    assert content.count(" m ") == 2
-    assert "60 120 m 60 120 l" in content
-    assert "300 600 m 300 600 l" in content
+    assert content.count(" m ") == 3
+    # Rows in order down the page, each reached by a relative translation.
+    assert "1 0 0 1 0 120 cm\n60 0 m 60 0 l\n90 0 m 90 0 l\nS" in content
+    assert "1 0 0 1 0 480 cm\n300 0 m 300 0 l\nS" in content
+
+
+def test_dense_pages_stay_small(tmp_path):
+    dots = tuple((x, y) for y in range(0, 47520, 720) for x in range(1080, 35640, 36))
+    (filepath,) = _write(tmp_path, [_letter(1, dots)])
+    assert filepath.stat().st_size < 50_000
 
 
 def test_filename_option(tmp_path):

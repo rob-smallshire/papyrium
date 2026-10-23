@@ -32,7 +32,7 @@ class _PdfDocument(Document):
         self._pages: list[tuple[Page, bytes]] = []
 
     def add_page(self, page: Page) -> None:
-        self._pages.append((page, zlib.compress(self._content(page), 9)))
+        self._pages.append((page, zlib.compress(self._content(page), 6)))
 
     def _content(self, page: Page) -> bytes:
         height_points = Fraction(page.height, _UNITS_PER_POINT)
@@ -42,8 +42,20 @@ class _PdfDocument(Document):
             f"{scale} 0 0 -{scale} 0 {_number(height_points)} cm",
             f"1 J {page.dot_diameter} w {_number(Fraction(self._ink))} G",
         ]
-        lines.extend(f"{x} {y} m {x} {y} l" for x, y in dict.fromkeys(page.dots))
-        lines.extend(["S", "Q", ""])
+        # One row of dots at a time: translate down to the row, then give
+        # only x coordinates. Rows of text repeat, so this compresses far
+        # better than absolute coordinates. Each row is its own path because
+        # cm may not appear inside one.
+        rows: dict[int, list[int]] = {}
+        for x, y in sorted(set(page.dots), key=lambda dot: (dot[1], dot[0])):
+            rows.setdefault(y, []).append(x)
+        row_y = 0
+        for y, xs in rows.items():
+            lines.append(f"1 0 0 1 0 {y - row_y} cm")
+            row_y = y
+            lines.extend(f"{x} 0 m {x} 0 l" for x in xs)
+            lines.append("S")
+        lines.extend(["Q", ""])
         return "\n".join(lines).encode("ascii")
 
     def close(self) -> list[Path]:
@@ -115,6 +127,9 @@ class _PdfDocument(Document):
 
 class PdfOutput(Output):
     """One PDF per job, one page per printed page, every dot a vector dot.
+
+    Each dot is a zero-length stroke with round caps, which PDF draws as a
+    filled circle the width of the line.
 
     Options: ``ink`` grey level from 0 (black) to 1 (white), default 0.15;
     ``filename``, default ``job.pdf``.
