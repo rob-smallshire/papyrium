@@ -54,50 +54,70 @@ def _type_line(bbc, line):
 
 
 @pytest.fixture
-def papyrium(tmp_path):
-    """A papyrium serve process on a free loopback port; yields (port, output_dirpath)."""
-    process = subprocess.Popen(
-        [
-            sys.executable,
-            "-m",
-            "papyrium.cli",
-            "serve",
-            "--output-dir",
-            str(tmp_path),
-            "-T",
-            "host=127.0.0.1",
-            "-T",
-            "port=0",
-            "--idle-timeout",
-            "0",
-        ],
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    pattern = re.compile(r"listening for raw TCP on 127\.0\.0\.1:(\d+)")
-    port = None
-    for line in process.stderr:
-        if match := pattern.search(line):
-            port = int(match.group(1))
-            break
-    assert port is not None, "papyrium serve did not report its port"
-    try:
-        yield port, tmp_path
-    finally:
+def start_papyrium(tmp_path):
+    """Start papyrium serve with extra arguments; returns (port, output_dirpath)."""
+    processes = []
+
+    def start(*extra_args):
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "papyrium.cli",
+                "serve",
+                "--output-dir",
+                str(tmp_path),
+                "-T",
+                "host=127.0.0.1",
+                "-T",
+                "port=0",
+                *extra_args,
+            ],
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        processes.append(process)
+        pattern = re.compile(r"listening for raw TCP on 127\.0\.0\.1:(\d+)")
+        for line in process.stderr:
+            if match := pattern.search(line):
+                return int(match.group(1)), tmp_path
+        raise AssertionError("papyrium serve did not report its port")
+
+    yield start
+    for process in processes:
         process.send_signal(signal.SIGINT)
         process.wait(timeout=10)
 
 
-def _bbc_printing_to(launch_bbc, port):
-    """A Model B at the BASIC prompt, its parallel printer connected to *port*."""
+@pytest.fixture
+def papyrium(start_papyrium):
+    """papyrium serve with no idle timeout; yields (port, output_dirpath)."""
+    return start_papyrium("--idle-timeout", "0")
+
+
+def _bbc_printing_to(launch_bbc, port, *, line_feeds=True):
+    """A Model B at the BASIC prompt, its parallel printer connected to *port*.
+
+    With *line_feeds* the MOS sends LF to the printer (*FX6,0); otherwise it
+    keeps its default and sends CR alone.
+    """
     bbc = launch_bbc(extra_args=["--tcp-printer", f"host=127.0.0.1:port={port}"])
     bbc.wait_until_ready()
     printer = bbc.extensions[TcpPrinter]
     _wait_until(lambda: printer.get_status().connected, "the printer to connect")
     _wait_until(lambda: ">" in _screen(bbc), "the BASIC prompt")
-    _type_line(bbc, "*FX6,0")
+    if line_feeds:
+        _type_line(bbc, "*FX6,0")
     _type_line(bbc, "*FX5,1")
     return bbc
+
+
+def _pdf_text(output_dirpath):
+    from pypdf import PdfReader
+
+    pdf_filepath = output_dirpath / "job-0001" / "job.pdf"
+    _wait_until(pdf_filepath.exists, "the job's PDF")
+    return [page.extract_text() for page in PdfReader(pdf_filepath).pages]
 
 
 def _wait_for_capture(output_dirpath, length):
@@ -136,9 +156,9 @@ def test_bbc_print_with_fx6_0_is_captured_as_hello_lf_cr(launch_bbc, papyrium):
     assert record["end_reason"] is None
 
 
-def test_bbc_text_styles_print_as_an_fx80_page(launch_bbc, papyrium):
-    """Escape sequences sent with VDU 1 drive the FX-80 emulation to a page."""
-    port, output_dirpath = papyrium
+def test_bbc_text_styles_print_as_an_fx80_page(launch_bbc, start_papyrium):
+    """Escape sequences sent with VDU 1 drive the FX-80 emulation to a page and a PDF."""
+    port, output_dirpath = start_papyrium("--idle-timeout", "1")
     bbc = _bbc_printing_to(launch_bbc, port)
     _type_line(
         bbc,
@@ -155,6 +175,40 @@ def test_bbc_text_styles_print_as_an_fx80_page(launch_bbc, papyrium):
 
     with Image.open(page_filepath) as image:
         assert [image.tobytes()] == _fx80_page_images(expected)
+
+    (text,) = _pdf_text(output_dirpath)
+    assert "PAPYRIUM ON A BBC MICRO" in text
+    assert "ITALIC FROM BBC BASIC" in text
+
+
+LISTING_PROGRAM = [
+    '10 PRINT "HELLO"',
+    "20 GOTO 10",
+]
+
+
+def test_bbc_listing_with_cr_only_needs_auto_line_feed(launch_bbc, start_papyrium):
+    """At *FX6,10 the BBC sends CR alone; the FX-80's auto line feed switch copes."""
+    port, output_dirpath = start_papyrium("-M", "auto-line-feed=yes", "--idle-timeout", "1")
+    bbc = _bbc_printing_to(launch_bbc, port, line_feeds=False)
+    for line in LISTING_PROGRAM:
+        _type_line(bbc, line)
+    _type_line(bbc, "VDU 2")
+    _type_line(bbc, "LIST")  # LIST must begin its line.
+    _type_line(bbc, f"VDU 3:PRINT {MARKER_EXPR}")
+    _wait_until(lambda: MARKER in _screen(bbc), "the listing to finish")
+
+    capture_filepath = output_dirpath / "job-0001" / "capture.prn"
+    _wait_until(capture_filepath.exists, "the capture")
+    (text,) = _pdf_text(output_dirpath)
+    data = capture_filepath.read_bytes()
+    assert b"\n" not in data
+    assert b'   10 PRINT "HELLO"\r   20 GOTO 10\r' in data
+    lines = [line.strip() for line in text.splitlines()]
+    assert '10 PRINT "HELLO"' in lines
+    assert "20 GOTO 10" in lines
+    record = json.loads((output_dirpath / "job-0001" / "job.json").read_text())
+    assert record["printer"] == {"model": "epson-fx80", "options": {"auto-line-feed": "yes"}}
 
 
 SCREEN_DUMP_PROGRAM = [
