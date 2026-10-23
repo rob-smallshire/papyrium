@@ -51,3 +51,17 @@ def test_pages_with_the_same_marks_are_equal():
 
 def test_a_page_without_marks_is_blank():
     assert Page(number=1, width=100, height=100, dot_diameter=6).is_blank
+
+
+def test_text_marks_describe_content_without_making_a_page_printed():
+    from papyrium.core.page import TextMark
+
+    page = Page(
+        number=1,
+        width=100,
+        height=100,
+        dot_diameter=6,
+        text=(TextMark(x=0, y=0, width=10, height=20, character=" "),),
+    )
+    assert page.is_blank
+    assert page.text[0].character == " "

@@ -7,9 +7,10 @@ graphics densities (1/60 to 1/240 inch), line feeds in 1/72 and 1/216 inch,
 condensed columns (7/1440 inch) and Diablo 630 steps (1/120 and 1/48 inch).
 So the same bytes always give the same marks, with no rounding.
 
-A page holds *dots*, each a single strike of one pin, all of one diameter.
-Glyph and path marks, for daisywheels and plotters, join the model when
-those printers do.
+A page holds *dots*, each a single strike of one pin, all of one diameter,
+and *text*: which character was printed in which cell, so outputs can make
+the page searchable and tests can compare content. Glyph and path marks,
+for daisywheels and plotters, join the model when those printers do.
 """
 
 from __future__ import annotations
@@ -21,6 +22,20 @@ from fractions import Fraction
 UNITS_PER_INCH = 4320
 
 Dot = tuple[int, int]
+
+
+@dataclass(frozen=True)
+class TextMark:
+    """A character printed in a cell: the cell's top-left corner and size.
+
+    Text marks describe content; the dots are what is visible.
+    """
+
+    x: int
+    y: int
+    width: int
+    height: int
+    character: str
 
 
 def units_from_fraction(length_inches: Fraction | int) -> int:
@@ -46,7 +61,7 @@ class Page:
 
     *number* counts pages within a job from 1. *dots* are the centres of the
     dots struck, in the order they were struck, each *dot_diameter* units
-    across.
+    across. *text* records the characters printed, in printing order.
     """
 
     number: int
@@ -54,6 +69,7 @@ class Page:
     height: int
     dot_diameter: int
     dots: tuple[Dot, ...] = ()
+    text: tuple[TextMark, ...] = ()
 
     @property
     def width_inches(self) -> Fraction:

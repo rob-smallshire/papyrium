@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 
 from papyrium.core.dotfont import Glyph
 from papyrium.core.model import Interpreter
-from papyrium.core.page import Page, inches
+from papyrium.core.page import Page, TextMark, inches
 from papyrium.language.escp.charsets import CharacterSet, character_for
 from papyrium.language.escp.mechanism import EscpMechanism
 
@@ -74,6 +74,7 @@ class _Entry:
 
     x_before: int
     dots: list[tuple[int, int]] = field(default_factory=list)
+    text: list[TextMark] = field(default_factory=list)
 
 
 class EscpInterpreter(Interpreter):
@@ -85,6 +86,7 @@ class EscpInterpreter(Interpreter):
         self._completed: list[Page] = []
         self._page_number = 0
         self._paper_dots: list[tuple[int, int]] = []
+        self._paper_text: list[TextMark] = []
         self._page_top = 0
         self._y = 0
         self._missing_characters: set[str] = set()
@@ -104,7 +106,7 @@ class EscpInterpreter(Interpreter):
 
     def finish(self) -> list[Page]:
         self._print_line()
-        while self._paper_dots:
+        while self._paper_dots or any(not mark.character.isspace() for mark in self._paper_text):
             self._eject_page()
         return self._take_completed()
 
@@ -226,10 +228,21 @@ class EscpInterpreter(Interpreter):
             self._advance(self._line_spacing)
         dots = self._character_dots(code, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
+        entry.text.append(self._text_mark(code, width))
         if self._underline:
             entry.dots.extend(self._underline_dots(width))
         self._line.append(entry)
         self._x += width
+
+    def _text_mark(self, code: int, width: int) -> TextMark:
+        character = " " if code < 0x20 else character_for(code, self._character_set)
+        height = self._font.rows * self._mechanism.pin_pitch
+        y = self._y
+        if self._script is not None:
+            height = self._font.rows * SCRIPT_ROW_PITCH
+            if self._script == "subscript":
+                y += 4 * self._mechanism.pin_pitch
+        return TextMark(x=self._x, y=y, width=width, height=height, character=character)
 
     def _glyph(self, code: int) -> Glyph:
         if self._user_set_selected and code in self._user_glyphs:
@@ -357,6 +370,7 @@ class EscpInterpreter(Interpreter):
     def _print_line(self) -> None:
         for entry in self._line:
             self._paper_dots.extend(entry.dots)
+            self._paper_text.extend(entry.text)
         self._line.clear()
 
     def _carriage_return(self) -> None:
@@ -417,6 +431,8 @@ class EscpInterpreter(Interpreter):
         top, bottom = self._page_top, self._page_top + self._form_length
         on_page = [(x, y) for x, y in self._paper_dots if y < bottom]
         self._paper_dots = [(x, y) for x, y in self._paper_dots if y >= bottom]
+        text_on_page = [mark for mark in self._paper_text if mark.y < bottom]
+        self._paper_text = [mark for mark in self._paper_text if mark.y >= bottom]
         self._page_number += 1
         left = mechanism.left_offset
         self._completed.append(
@@ -430,6 +446,11 @@ class EscpInterpreter(Interpreter):
                     for x, y in on_page
                     if 0 <= left + x < mechanism.paper_width and y >= top
                 ),
+                text=tuple(
+                    TextMark(left + mark.x, mark.y - top, mark.width, mark.height, mark.character)
+                    for mark in text_on_page
+                    if left + mark.x < mechanism.paper_width
+                ),
             )
         )
         self._page_top = bottom
@@ -439,7 +460,7 @@ class EscpInterpreter(Interpreter):
         return completed
 
     def _set_top_of_form(self) -> None:
-        if not any(y >= self._page_top for _, y in self._paper_dots):
+        if not self._paper_dots and not self._paper_text:
             self._page_top = self._y
 
     # -- Escape commands --------------------------------------------------
