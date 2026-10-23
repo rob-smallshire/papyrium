@@ -109,3 +109,102 @@ class TransportConformance:
             pass
         received = [chunk async for chunk in transport]
         assert received == []
+
+
+def _sample_pages():
+    from papyrium.core.page import Page
+
+    return [
+        Page(number=1, width=4320, height=4320, dot_diameter=60, dots=((300, 300), (420, 300))),
+        Page(number=2, width=4320, height=4320, dot_diameter=60, dots=((2160, 2160),)),
+    ]
+
+
+class OutputConformance:
+    """The contract every :class:`~papyrium.core.output.Output` must satisfy.
+
+    The checks take a pytest ``tmp_path`` argument, so subclasses must be
+    collected by pytest.
+    """
+
+    def make_output(self):
+        """Return a fresh output to exercise. Override this."""
+        raise NotImplementedError
+
+    def _render(self, dirpath, pages):
+        dirpath.mkdir(parents=True, exist_ok=True)
+        document = self.make_output().open_document(dirpath)
+        for page in pages:
+            document.add_page(page)
+        return document.close()
+
+    def test_kind_is_output(self):
+        assert type(self.make_output()).kind() == "output"
+
+    def test_writes_files_inside_the_job_directory(self, tmp_path):
+        filepaths = self._render(tmp_path, _sample_pages())
+        assert filepaths
+        for filepath in filepaths:
+            assert filepath.parent == tmp_path
+            assert filepath.is_file()
+            assert filepath.stat().st_size > 0
+
+    def test_no_pages_writes_no_files(self, tmp_path):
+        assert self._render(tmp_path, []) == []
+        assert list(tmp_path.iterdir()) == []
+
+    def test_same_pages_give_identical_files(self, tmp_path):
+        first = self._render(tmp_path / "first", _sample_pages())
+        second = self._render(tmp_path / "second", _sample_pages())
+        assert [path.name for path in first] == [path.name for path in second]
+        for first_filepath, second_filepath in zip(first, second):
+            assert first_filepath.read_bytes() == second_filepath.read_bytes()
+
+
+class PrinterModelConformance:
+    """The contract every :class:`~papyrium.core.model.PrinterModel` must satisfy."""
+
+    def make_model(self):
+        """Return a model to exercise. Override this."""
+        raise NotImplementedError
+
+    def sample_job(self) -> bytes:
+        """Return bytes that print at least two pages. Override this."""
+        raise NotImplementedError
+
+    def _pages(self, chunks):
+        interpreter = self.make_model().create_interpreter()
+        pages = []
+        for chunk in chunks:
+            pages.extend(interpreter.feed(chunk))
+        pages.extend(interpreter.finish())
+        return pages
+
+    def test_kind_is_model(self):
+        assert type(self.make_model()).kind() == "model"
+
+    def test_sample_job_prints_pages(self):
+        pages = self._pages([self.sample_job()])
+        assert len(pages) >= 2
+        assert any(not page.is_blank for page in pages)
+
+    def test_pages_are_numbered_from_one(self):
+        pages = self._pages([self.sample_job()])
+        assert [page.number for page in pages] == list(range(1, len(pages) + 1))
+
+    def test_pages_do_not_depend_on_chunking(self):
+        data = self.sample_job()
+        whole = self._pages([data])
+        bytewise = self._pages([data[i : i + 1] for i in range(len(data))])
+        assert whole == bytewise
+
+    def test_interpreters_start_afresh(self):
+        assert self._pages([self.sample_job()]) == self._pages([self.sample_job()])
+
+    def test_no_bytes_print_no_pages(self):
+        assert self._pages([]) == []
+
+    def test_dots_lie_on_the_page(self):
+        for page in self._pages([self.sample_job()]):
+            for x, y in page.dots:
+                assert 0 <= x < page.width and 0 <= y < page.height, (page.number, x, y)
