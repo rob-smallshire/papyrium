@@ -79,6 +79,11 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   wheel-only dependencies so Windows installs are painless.
 - No platform-specific code in the core; platform specifics only in host
   printer output.
+- Tests: `uv run pytest` (the default suite); `uv run pytest oracles/escapy`
+  (EscaPy oracle, needs uvx); the Beebium end-to-end tests with the command
+  in `integration/beebium/test_beebium_printing.py` (needs a Beebium build).
+  Refresh golden images with `PAPYRIUM_UPDATE_GOLDEN=1 uv run pytest` and
+  look at them before committing.
 - **asyncio** for everything that waits: transports, the spooler and its
   bounded buffer (backpressure), timers, the management API, the serve
   loop. Languages, models and outputs are synchronous, deterministic
