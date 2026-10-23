@@ -1,0 +1,9 @@
+   10 REM Papyrium test listing
+   20 MODE 7
+   30 PRINT "HELLO, WORLD"
+   40 FOR I% = 1 TO 10
+   50   PRINT I%, I% * I%, SQR(I%)
+   60 NEXT
+   70 VDU 2: PRINT "PRINTED": VDU 3
+   80 END
+
