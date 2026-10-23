@@ -208,3 +208,44 @@ class PrinterModelConformance:
         for page in self._pages([self.sample_job()]):
             for x, y in page.dots:
                 assert 0 <= x < page.width and 0 <= y < page.height, (page.number, x, y)
+
+
+#: The printable ASCII characters every dot font must cover.
+PRINTABLE_ASCII = frozenset(chr(code) for code in range(0x20, 0x7F))
+
+
+class DotFontConformance:
+    """The contract every :class:`~papyrium.core.dotfont.DotFont` must satisfy.
+
+    Set :attr:`allows_adjacent_dots` to True in a subclass for a font made
+    for a head that can strike a pin in successive columns.
+    """
+
+    allows_adjacent_dots = False
+
+    def make_font(self):
+        """Return the font to exercise. Override this."""
+        raise NotImplementedError
+
+    def test_kind_is_font(self):
+        assert type(self.make_font()).kind() == "font"
+
+    def test_covers_printable_ascii(self):
+        missing = PRINTABLE_ASCII - self.make_font().characters()
+        assert not missing, sorted(missing)
+
+    def test_dots_lie_within_the_matrix(self):
+        font = self.make_font()
+        for character in font.characters():
+            for column, row in font.glyph(character).dots:
+                assert 0 <= column < font.columns and 0 <= row < font.rows, character
+
+    def test_no_horizontally_adjacent_dots(self):
+        if self.allows_adjacent_dots:
+            return
+        font = self.make_font()
+        offenders = [c for c in font.characters() if font.glyph(c).has_adjacent_dots]
+        assert not offenders, sorted(offenders)
+
+    def test_space_is_blank(self):
+        assert not self.make_font().glyph(" ").dots
