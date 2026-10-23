@@ -68,6 +68,18 @@ core that plug-in packages subclass in their own tests.
   wheel-only dependencies so Windows installs are painless.
 - No platform-specific code in the core; platform specifics only in host
   printer output.
+- **asyncio** for everything that waits: transports, the spooler and its
+  bounded buffer (backpressure), timers, the management API, the serve
+  loop. Languages, models and outputs are synchronous, deterministic
+  functions of the captured bytes, run off the event loop by the server,
+  so replay is identical whatever delivered the bytes.
+- Packages follow the oaknut family (`/Users/rjs/Code/oaknut/packages`):
+  `papyrium-exception` (error hierarchy, exit codes, `handled_errors`),
+  `papyrium-extension` (entry-point axes), a conformance suite per axis.
+- **CLI** with Click, following `oaknut-econet-host` and `oaknut-disc`: a
+  root group whose commands run inside `handled_errors` with `--debug`,
+  `use_plain_help`, and asyoulikeit `@report_output` on every command
+  that reports something, so it gets pretty, TSV and JSON output.
 
 ## Practices
 

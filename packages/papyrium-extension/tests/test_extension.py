@@ -7,6 +7,7 @@ not-found error path.
 """
 
 import pytest
+from papyrium.exception import ConfigurationError, PapyriumException
 from papyrium.extension import (
     Extension,
     ExtensionError,
@@ -71,10 +72,11 @@ class TestNotFound:
             extension("widget", "papyrium.widget", "does-not-exist")
         assert "does-not-exist" in str(exc_info.value)
 
-    def test_extension_error_is_a_papyrium_error(self):
-        from papyrium.extension import PapyriumError
-
-        assert issubclass(ExtensionError, PapyriumError)
+    def test_extension_error_is_a_configuration_error(self):
+        # A mis-installed plug-in is a setup problem, not bad data, so it
+        # carries the configuration exit code, not a traceback.
+        assert issubclass(ExtensionError, ConfigurationError)
+        assert issubclass(ExtensionError, PapyriumException)
 
 
 class TestTextHelpers:

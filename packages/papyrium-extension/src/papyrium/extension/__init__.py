@@ -36,6 +36,7 @@ import stevedore
 import stevedore.driver
 import stevedore.exception
 import stevedore.extension
+from papyrium.exception import ConfigurationError
 from papyrium.extension._text import first_line, normalize_name, strip_lines
 
 __version__ = "0.0.0"
@@ -44,8 +45,6 @@ __version__ = "0.0.0"
 NAMESPACE_PREFIX = "papyrium"
 
 __all__ = [
-    "PapyriumError",
-    "ConfigurationError",
     "Extension",
     "ExtensionError",
     "namespace_for",
@@ -59,14 +58,6 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-
-
-class PapyriumError(Exception):
-    """Base class for every error Papyrium raises deliberately."""
-
-
-class ConfigurationError(PapyriumError):
-    """The environment or configuration is wrong, not the input data."""
 
 
 def namespace_for(kind: str) -> str:
@@ -159,7 +150,7 @@ class ExtensionError(ConfigurationError):
 
     A plug-in that is missing, mis-registered, or fails at import time
     is an environment or setup problem rather than bad input or a library
-    bug, hence a :class:`ConfigurationError`.
+    bug, hence a :class:`~papyrium.exception.ConfigurationError`.
     """
 
 

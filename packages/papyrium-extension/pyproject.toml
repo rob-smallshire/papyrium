@@ -10,6 +10,7 @@ description = "Entry-point plug-in framework shared by every extensible axis of 
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "papyrium-exception>=0.0.0",
     "stevedore>=5.0",
 ]
 
