@@ -119,3 +119,14 @@ def test_cancel_clears_the_line():
 
 def test_dots_beyond_the_paper_are_not_printed():
     assert dots(b"A", paper_width=1100) == []
+
+
+def test_wrapping_ends_one_line_double_width():
+    # A double-width character fills a two-column line; the next wraps to
+    # a new line and prints at normal width, as does the one after.
+    assert dots(ESC + b"Q\x02\x0eAAA") == [
+        (LEFT + 72, 0),
+        (LEFT + 108, 0),
+        (LEFT + 36, LINE),
+        (LEFT + PICA + 36, LINE),
+    ]

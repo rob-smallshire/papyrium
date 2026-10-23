@@ -223,9 +223,11 @@ class EscpInterpreter(Interpreter):
             code = 0x20
         width, step, offset, glyph_key = self._character_layout(code)
         if self._x + width > self._right_margin:
+            # A full line prints and the carriage returns, as for CR LF.
             self._print_line()
             self._x = self._left_margin
-            self._advance(self._line_spacing)
+            self._advance_line()
+            width, step, offset, glyph_key = self._character_layout(code)
         dots = self._character_dots(code, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(code, width))
