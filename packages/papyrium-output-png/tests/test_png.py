@@ -55,3 +55,8 @@ def test_a_dot_is_ink_at_its_centre_and_paper_beyond_its_radius(tmp_path):
 def test_blank_page_is_all_paper(tmp_path):
     with Image.open(_render(tmp_path, _page(()), paper=250)) as image:
         assert image.getextrema() == (250, 250)
+
+
+def test_no_temporary_files_are_left_behind(tmp_path):
+    _render(tmp_path, _page(()))
+    assert [path.name for path in tmp_path.iterdir()] == ["page-0001.png"]

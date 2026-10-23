@@ -70,3 +70,8 @@ def test_page_size_that_is_not_whole_points(tmp_path):
     (filepath,) = _write(tmp_path, [page])
     box = PdfReader(filepath).pages[0].mediabox
     assert float(box.width) == pytest.approx(100 / 60, abs=1e-4)
+
+
+def test_no_temporary_files_are_left_behind(tmp_path):
+    _write(tmp_path, [_letter(1)])
+    assert [path.name for path in tmp_path.iterdir()] == ["job.pdf"]

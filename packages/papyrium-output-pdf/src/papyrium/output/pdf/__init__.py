@@ -49,7 +49,10 @@ class _PdfDocument(Document):
     def close(self) -> list[Path]:
         if not self._pages:
             return []
-        self._filepath.write_bytes(self._serialise())
+        # Written aside and renamed into place, so a reader never sees a partial file.
+        temporary_filepath = self._filepath.with_name(self._filepath.name + ".tmp")
+        temporary_filepath.write_bytes(self._serialise())
+        temporary_filepath.replace(self._filepath)
         return [self._filepath]
 
     def _serialise(self) -> bytes:

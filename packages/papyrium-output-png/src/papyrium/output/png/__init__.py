@@ -22,7 +22,11 @@ class _PngDocument(Document):
 
     def add_page(self, page: Page) -> None:
         filepath = self._dirpath / f"page-{page.number:04d}.png"
-        self._output.render(page).save(filepath, format="PNG", dpi=(self._output.dpi,) * 2)
+        # Written aside and renamed into place, so a reader never sees a partial image.
+        temporary_filepath = filepath.with_name(filepath.name + ".tmp")
+        image = self._output.render(page)
+        image.save(temporary_filepath, format="PNG", dpi=(self._output.dpi,) * 2)
+        temporary_filepath.replace(filepath)
         self._filepaths.append(filepath)
 
     def close(self) -> list[Path]:
