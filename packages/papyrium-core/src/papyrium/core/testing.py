@@ -7,6 +7,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 
 from papyrium.core.channel import ChunkChannel
+from papyrium.core.dotfont import DotFont, Glyph, parse_dot_font
 from papyrium.core.model import Interpreter, PrinterModel
 from papyrium.core.output import Document, Output
 from papyrium.core.page import Page
@@ -136,3 +137,25 @@ class JsonOutput(Output):
 
     def open_document(self, dirpath: Path) -> Document:
         return _JsonDocument(dirpath, self._filename, self.documents)
+
+
+class MemoryDotFont(DotFont):
+    """A dot font built from text in the dot font format, for exact tests."""
+
+    def __init__(self, name: str, *, text: str, **kwargs) -> None:
+        super().__init__(name=name, **kwargs)
+        self._data = parse_dot_font(text)
+
+    @property
+    def rows(self) -> int:
+        return self._data.rows
+
+    @property
+    def columns(self) -> int:
+        return self._data.columns
+
+    def glyph(self, character: str) -> Glyph | None:
+        return self._data.glyphs.get(character)
+
+    def characters(self) -> frozenset[str]:
+        return frozenset(self._data.glyphs)

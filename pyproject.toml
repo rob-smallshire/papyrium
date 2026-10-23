@@ -10,6 +10,7 @@
 members = ["packages/papyrium-*"]
 
 [tool.uv.sources]
+papyrium-language-escp = { workspace = true }
 papyrium-font-draft-9 = { workspace = true }
 papyrium-output-png = { workspace = true }
 papyrium-cli = { workspace = true }
@@ -29,6 +30,7 @@ workspace = [
     "papyrium-cli",
     "papyrium-output-png",
     "papyrium-font-draft-9",
+    "papyrium-language-escp",
     "papyrium-exception",
     "papyrium-extension",
 ]
@@ -55,6 +57,7 @@ testpaths = [
     "packages/papyrium-cli/tests",
     "packages/papyrium-output-png/tests",
     "packages/papyrium-font-draft-9/tests",
+    "packages/papyrium-language-escp/tests",
 ]
 
 [tool.ruff]
