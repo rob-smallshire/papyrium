@@ -57,7 +57,6 @@ def test_record_describes_an_open_job(tmp_path):
         "started_at": "2026-10-23T12:00:00+00:00",
         "ended_at": None,
         "end_reason": None,
-        "byte_count": 0,
     }
 
 
@@ -70,7 +69,6 @@ def test_record_describes_a_closed_job(tmp_path):
     record = _record(job)
     assert record["ended_at"] == "2026-10-23T12:00:05+00:00"
     assert record["end_reason"] == "idle"
-    assert record["byte_count"] == 3
     assert job.closed
 
 
@@ -97,6 +95,13 @@ def test_records_lists_jobs_in_number_order(tmp_path):
     assert records[2].end_reason is None
     assert records[2].ended_at is None
     assert records[2].dirpath == open_job.dirpath
+
+
+def test_record_of_an_open_job_counts_the_bytes_captured_so_far(tmp_path):
+    store = JobStore(tmp_path)
+    job = store.create_job(transport_name="raw-tcp")
+    job.append(b"HELLO")
+    assert store.records()[0].byte_count == 5
 
 
 def test_records_of_a_missing_directory_is_empty(tmp_path):

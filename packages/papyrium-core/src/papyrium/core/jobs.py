@@ -45,7 +45,11 @@ class JobEndReason(enum.Enum):
 
 @dataclass(frozen=True)
 class JobRecord:
-    """A job as described by its record file."""
+    """A job as described by its record file and its capture.
+
+    The byte count is the size of the capture, which is complete up to the
+    last byte received even while the job is open.
+    """
 
     number: int
     dirpath: Path
@@ -68,7 +72,7 @@ class JobRecord:
             started_at=datetime.fromisoformat(record["started_at"]),
             ended_at=None if ended_at is None else datetime.fromisoformat(ended_at),
             end_reason=None if end_reason is None else JobEndReason(end_reason),
-            byte_count=record["byte_count"],
+            byte_count=(dirpath / CAPTURE_FILENAME).stat().st_size,
         )
 
 
@@ -136,7 +140,6 @@ class JobCapture:
             "started_at": self._started_at.isoformat(),
             "ended_at": None if self._ended_at is None else self._ended_at.isoformat(),
             "end_reason": None if self._end_reason is None else self._end_reason.value,
-            "byte_count": self._byte_count,
         }
         record_filepath = self._dirpath / JOB_RECORD_FILENAME
         temporary_filepath = record_filepath.with_suffix(".tmp")
