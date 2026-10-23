@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium-extension"
+dynamic = ["version"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+description = "Entry-point plug-in framework shared by every extensible axis of Papyrium."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "stevedore>=5.0",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "papyrium.extension.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

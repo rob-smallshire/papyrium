@@ -1,0 +1,50 @@
+# Papyrium workspace root.
+#
+# A virtual uv workspace: it ships no distribution of its own. It stitches
+# the packages/papyrium-* members into one development environment.
+#
+# All members contribute to a single PEP 420 implicit namespace package
+# (`papyrium`). No member ever ships src/papyrium/__init__.py.
+
+[tool.uv.workspace]
+members = ["packages/papyrium-*"]
+
+[tool.uv.sources]
+papyrium-extension = { workspace = true }
+
+[tool.uv]
+default-groups = ["test", "lint", "workspace"]
+
+[dependency-groups]
+# Installs every papyrium-* member editable in development.
+workspace = [
+    "papyrium-extension",
+]
+test = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+]
+lint = [
+    "ruff>=0.16",
+]
+
+[tool.pytest.ini_options]
+# importlib mode is required for PEP 420 namespace packages; the default
+# prepend mode makes sibling packages in the same namespace collide.
+minversion = "8.0"
+addopts = ["--import-mode=importlib"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = [
+    "packages/papyrium-extension/tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**/*.py" = ["F401", "E501"]
