@@ -110,7 +110,17 @@ core that plug-in packages subclass in their own tests.
   included), commercial software or its output. Test captures come from
   BASIC programs this project writes itself. Fonts are self-designed or
   permissively licensed, kept as swappable data.
-- EscaPy (PyPI `pyscape`, AGPL-3.0) may be run as an external comparison
-  oracle; no code is incorporated without Rob's licence decision.
+- **Own implementations, others as oracles.** Papyrium's languages are
+  implemented from public documentation (printer manuals, specifications),
+  not from other implementations' source. Existing interpreters (EscaPy,
+  PostScript via Ghostscript, hp2xx, and so on) are used as test oracles:
+  run as separate processes, never imported, never distributed, never
+  read as a basis for our code. Compare layout and behaviour, not pixels,
+  where an oracle renders differently (EscaPy uses outline fonts).
+- Ghostscript, if used for a PostScript model, runs as a subprocess the
+  user installs; never link `libgs`. Any plug-in that imports AGPL code is
+  a separately distributed package and needs Rob's licence decision.
+- Fonts (dot fonts, and outline fonts for daisywheel print wheels) must
+  be our own design or carry a licence that permits redistribution.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask
   beebium-architect about Beebium's behaviour.
