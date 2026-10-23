@@ -109,3 +109,10 @@ def test_text_layer_is_invisible(tmp_path):
 def test_text_layer_can_be_switched_off(tmp_path):
     (filepath,) = _write(tmp_path, [_text_page("HELLO")], text=False)
     assert "HELLO" not in PdfReader(filepath).pages[0].extract_text()
+
+
+def test_dots_are_scaled_exactly_to_points(tmp_path):
+    (filepath,) = _write(tmp_path, [_letter(1, ((60, 60),))])
+    content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
+    scale = content.splitlines()[1].split()[0]
+    assert abs(float(scale) * 47520 - 792) < 1e-4

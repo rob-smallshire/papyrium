@@ -1,6 +1,6 @@
 """ESC/P paper and carriage motion: lines, pages, tabs, margins, editing."""
 
-from helpers import ESC, LEFT, LINE, PICA, dots, mechanism, run
+from helpers import ESC, FORM, LEFT, LINE, PICA, dots, mechanism, run
 
 from papyrium.language.escp import EscpInterpreter
 
@@ -129,4 +129,40 @@ def test_wrapping_ends_one_line_double_width():
         (LEFT + 108, 0),
         (LEFT + 36, LINE),
         (LEFT + PICA + 36, LINE),
+    ]
+
+
+def test_a_zero_form_length_is_ignored():
+    (page,) = run(ESC + b"3\x00" + ESC + b"C\x05A\n")
+    assert page.height == FORM
+
+
+def test_tab_stops_are_measured_from_the_left_margin():
+    assert dots(ESC + b"l\x0a\tA") == [(LEFT + 18 * PICA + 36, 0)]
+
+
+def test_vertical_tab_to_a_stop_ends_one_line_double_width():
+    assert dots(ESC + b"B\x02\x00\x0eA\x0bA") == [
+        (LEFT + 72, 0),
+        (LEFT + 108, 0),
+        (LEFT + 36, 2 * LINE),
+    ]
+
+
+def test_setting_the_form_length_after_printing_sets_top_of_form_at_the_current_line():
+    first, second = run(b"A\r\n" + ESC + b"C\x02A")
+    assert first.dots == ((LEFT + 36, 0),)
+    assert first.height == FORM
+    assert second.dots == ((LEFT + 36, 0),)
+    assert second.height == 2 * LINE
+
+
+def test_proportional_tabs_and_backspace_use_pica_columns():
+    assert dots(ESC + b"p\x01" + ESC + b"D\x02\x00\tA") == [(LEFT + 2 * PICA + 36, 0)]
+
+
+def test_margins_in_condensed_emphasized_use_pica_columns():
+    assert dots(b"\x0f" + ESC + b"E" + ESC + b"l\x02A") == [
+        (LEFT + 2 * PICA + 36, 0),
+        (LEFT + 2 * PICA + 54, 0),
     ]

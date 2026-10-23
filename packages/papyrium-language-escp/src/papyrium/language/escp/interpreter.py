@@ -413,18 +413,22 @@ class EscpInterpreter(Interpreter):
         elif below:
             self._print_line()
             self._x = self._left_margin
+            self._one_line_double_width = False
             self._advance(below[0] - position)
         else:
             self._form_feed()
 
     def _horizontal_tab(self) -> None:
-        following = [tab for tab in self._tabs if tab > self._x]
+        # Tab stops are measured from the left margin.
+        following = [
+            self._left_margin + tab for tab in self._tabs if self._left_margin + tab > self._x
+        ]
         if following and following[0] <= self._right_margin:
             self._line.append(_Entry(self._x))
             self._x = following[0]
 
     def _backspace(self) -> None:
-        width = self._character_layout(0x20)[0]
+        width = self._tab_unit()
         self._line.append(_Entry(self._x))
         self._x = max(self._left_margin, self._x - width)
 
@@ -433,7 +437,7 @@ class EscpInterpreter(Interpreter):
         top, bottom = self._page_top, self._page_top + self._form_length
         on_page = [(x, y) for x, y in self._paper_dots if y < bottom]
         self._paper_dots = [(x, y) for x, y in self._paper_dots if y >= bottom]
-        text_on_page = [mark for mark in self._paper_text if mark.y < bottom]
+        text_on_page = [mark for mark in self._paper_text if top <= mark.y < bottom]
         self._paper_text = [mark for mark in self._paper_text if mark.y >= bottom]
         self._page_number += 1
         left = mechanism.left_offset
@@ -462,8 +466,10 @@ class EscpInterpreter(Interpreter):
         return completed
 
     def _set_top_of_form(self) -> None:
-        if not self._paper_dots and not self._paper_text:
-            self._page_top = self._y
+        """Make the current line the top of form, ejecting what is printed above it."""
+        if self._paper_dots or any(not mark.character.isspace() for mark in self._paper_text):
+            self._eject_page()
+        self._page_top = self._y
 
     # -- Escape commands --------------------------------------------------
 
@@ -630,7 +636,7 @@ class EscpInterpreter(Interpreter):
 
     def _esc_horizontal_tabs(self) -> ArgumentReader:
         columns = yield from self._read_stops(32)
-        width = self._character_layout(0x20)[0]
+        width = self._tab_unit()
         self._tabs = [column * width for column in columns]
 
     def _esc_vfu_channel(self) -> ArgumentReader:
@@ -639,13 +645,15 @@ class EscpInterpreter(Interpreter):
 
     def _esc_form_length(self) -> ArgumentReader:
         n = yield
+        form_length = n * self._line_spacing
         if n == 0:
-            inch_count = yield
-            if inch_count:
-                self._form_length = inches(inch_count)
-        elif n:
-            self._form_length = n * self._line_spacing
+            form_length = inches((yield))
+        # The page above the new top of form keeps the length it was printed on.
         self._set_top_of_form()
+        if form_length:
+            self._form_length = form_length
+        else:
+            logger.debug("ignoring a zero form length")
 
     def _esc_skip_perforation(self) -> ArgumentReader:
         self._skip_perforation = (yield) * self._line_spacing
@@ -653,9 +661,15 @@ class EscpInterpreter(Interpreter):
     def _column_width(self) -> int:
         if self._elite:
             return ELITE_WIDTH
-        if self._condensed:
+        if self._condensed and not self._emphasized:
             return CONDENSED_WIDTH
         return PICA_WIDTH
+
+    def _tab_unit(self) -> int:
+        """The column width tabs and backspace count in: pica in proportional mode."""
+        if self._proportional:
+            return PICA_WIDTH
+        return self._character_layout(0x20)[0]
 
     def _esc_right_margin(self) -> ArgumentReader:
         n = yield

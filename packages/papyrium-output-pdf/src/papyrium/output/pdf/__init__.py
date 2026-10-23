@@ -76,7 +76,8 @@ class _PdfDocument(Document):
 
     def _content(self, page: Page) -> bytes:
         height_points = Fraction(page.height, _UNITS_PER_POINT)
-        scale = _number(Fraction(1, _UNITS_PER_POINT))
+        # Ten decimal places: four would misplace dots by over a point on a page.
+        scale = f"{1 / _UNITS_PER_POINT:.10f}"
         lines = self._text_content(page, height_points) if self._text else []
         lines += [
             "q",
