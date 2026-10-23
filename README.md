@@ -131,4 +131,5 @@ The FX-80's golden tests replay the captures in
 `packages/papyrium-model-epson-fx80/tests/golden/` and compare every page
 with a pinned image. The end-to-end tests that drive a real Beebium BBC
 Micro are in `integration/beebium/`; their module docstring gives the
-command to run them.
+command to run them. `oracles/` compares Papyrium with independent
+interpreters run as separate programs: `uv run pytest oracles/escapy`.
