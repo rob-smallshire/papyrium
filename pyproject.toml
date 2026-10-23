@@ -10,6 +10,7 @@
 members = ["packages/papyrium-*"]
 
 [tool.uv.sources]
+papyrium-core = { workspace = true }
 papyrium-exception = { workspace = true }
 papyrium-extension = { workspace = true }
 
@@ -19,6 +20,7 @@ default-groups = ["test", "lint", "workspace"]
 [dependency-groups]
 # Installs every papyrium-* member editable in development.
 workspace = [
+    "papyrium-core",
     "papyrium-exception",
     "papyrium-extension",
 ]
@@ -40,6 +42,7 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = [
     "packages/papyrium-exception/tests",
     "packages/papyrium-extension/tests",
+    "packages/papyrium-core/tests",
 ]
 
 [tool.ruff]
