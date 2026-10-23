@@ -4,11 +4,23 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Mapping
+from typing import Any, Protocol
 
 from papyrium.core.jobs import JobCapture, JobEndReason, JobStore
 from papyrium.core.transport import Transport
 
 logger = logging.getLogger(__name__)
+
+
+class SpoolerListener(Protocol):
+    """Told of each job's start, its captured bytes, and its end, in order."""
+
+    def job_started(self, job: JobCapture) -> None: ...
+
+    def bytes_captured(self, job: JobCapture, chunk: bytes) -> None: ...
+
+    def job_ended(self, job: JobCapture) -> None: ...
 
 
 class Spooler:
@@ -19,7 +31,9 @@ class Spooler:
     language: an idle timeout and an explicit request. A disconnect never
     ends a job; the transport does not even report one.
 
-    *idle_timeout_seconds* of zero disables the idle rule.
+    *idle_timeout_seconds* of zero disables the idle rule. *printer_setup*
+    is recorded with each job so its capture can be replayed. A *listener*
+    hears of each job and of every chunk once it is in the capture.
     """
 
     def __init__(
@@ -28,8 +42,12 @@ class Spooler:
         job_store: JobStore,
         *,
         idle_timeout_seconds: float,
+        printer_setup: Mapping[str, Any] | None = None,
+        listener: SpoolerListener | None = None,
     ) -> None:
         self._transport = transport
+        self._printer_setup = printer_setup
+        self._listener = listener
         self._job_store = job_store
         self._idle_timeout_seconds = idle_timeout_seconds
         self._current_job: JobCapture | None = None
@@ -54,8 +72,14 @@ class Spooler:
 
     def _receive(self, chunk: bytes) -> None:
         if self._current_job is None:
-            self._current_job = self._job_store.create_job(transport_name=self._transport.name)
+            self._current_job = self._job_store.create_job(
+                transport_name=self._transport.name, printer_setup=self._printer_setup
+            )
+            if self._listener is not None:
+                self._listener.job_started(self._current_job)
         self._current_job.append(chunk)
+        if self._listener is not None:
+            self._listener.bytes_captured(self._current_job, chunk)
         self._restart_idle_timer()
 
     def _restart_idle_timer(self) -> None:
@@ -76,4 +100,6 @@ class Spooler:
             return None
         self._current_job = None
         job.close(reason)
+        if self._listener is not None:
+            self._listener.job_ended(job)
         return job

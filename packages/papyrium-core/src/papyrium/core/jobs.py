@@ -6,10 +6,11 @@ import enum
 import json
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,8 @@ class JobRecord:
     ended_at: datetime | None
     end_reason: JobEndReason | None
     byte_count: int
+    #: How the printer was set up for the job, for replay; None if not recorded.
+    printer_setup: dict[str, Any] | None = None
 
     @classmethod
     def read(cls, dirpath: Path) -> JobRecord:
@@ -73,6 +76,7 @@ class JobRecord:
             ended_at=None if ended_at is None else datetime.fromisoformat(ended_at),
             end_reason=None if end_reason is None else JobEndReason(end_reason),
             byte_count=(dirpath / CAPTURE_FILENAME).stat().st_size,
+            printer_setup=record.get("printer"),
         )
 
 
@@ -84,10 +88,19 @@ class JobCapture:
     dies.
     """
 
-    def __init__(self, number: int, dirpath: Path, *, transport_name: str, clock: Clock) -> None:
+    def __init__(
+        self,
+        number: int,
+        dirpath: Path,
+        *,
+        transport_name: str,
+        printer_setup: Mapping[str, Any] | None,
+        clock: Clock,
+    ) -> None:
         self._number = number
         self._dirpath = dirpath
         self._transport_name = transport_name
+        self._printer_setup = None if printer_setup is None else dict(printer_setup)
         self._clock = clock
         self._started_at = clock()
         self._ended_at: datetime | None = None
@@ -137,6 +150,7 @@ class JobCapture:
         record = {
             "number": self._number,
             "transport": self._transport_name,
+            "printer": self._printer_setup,
             "started_at": self._started_at.isoformat(),
             "ended_at": None if self._ended_at is None else self._ended_at.isoformat(),
             "end_reason": None if self._end_reason is None else self._end_reason.value,
@@ -162,12 +176,20 @@ class JobStore:
     def output_dirpath(self) -> Path:
         return self._output_dirpath
 
-    def create_job(self, *, transport_name: str) -> JobCapture:
+    def create_job(
+        self, *, transport_name: str, printer_setup: Mapping[str, Any] | None = None
+    ) -> JobCapture:
+        """Start the next job.
+
+        *printer_setup* records how the printer was configured (its model
+        and options), so the capture can be replayed to the same pages.
+        """
         number = self._last_number() + 1
         job = JobCapture(
             number,
             self._output_dirpath / job_dirname(number),
             transport_name=transport_name,
+            printer_setup=printer_setup,
             clock=self._clock,
         )
         logger.info("job %d started in %s", number, job.dirpath)

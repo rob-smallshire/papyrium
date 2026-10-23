@@ -125,3 +125,52 @@ async def test_zero_idle_timeout_never_ends_a_job(tmp_path):
         await asyncio.sleep(QUIET)
         assert spooler.current_job is not None
     await asyncio.wait_for(task, 1.0)
+
+
+class _Recorder:
+    def __init__(self):
+        self.events = []
+
+    def job_started(self, job):
+        self.events.append(("start", job.number))
+
+    def bytes_captured(self, job, chunk):
+        self.events.append(("bytes", job.number, chunk))
+
+    def job_ended(self, job):
+        self.events.append(("end", job.number))
+
+
+async def test_listener_hears_jobs_and_bytes_in_order(tmp_path):
+    transport = MemoryTransport(name="memory")
+    recorder = _Recorder()
+    spooler = Spooler(transport, JobStore(tmp_path), idle_timeout_seconds=0, listener=recorder)
+    async with transport:
+        task = asyncio.create_task(spooler.run())
+        await transport.feed(b"ONE")
+        await _settle()
+        spooler.end_job()
+        await transport.feed(b"TWO")
+        await _settle()
+    await asyncio.wait_for(task, 1.0)
+    assert recorder.events == [
+        ("start", 1),
+        ("bytes", 1, b"ONE"),
+        ("end", 1),
+        ("start", 2),
+        ("bytes", 2, b"TWO"),
+        ("end", 2),
+    ]
+
+
+async def test_printer_setup_is_recorded_with_each_job(tmp_path):
+    transport = MemoryTransport(name="memory")
+    setup = {"model": "byte-dot", "options": {}}
+    store = JobStore(tmp_path)
+    spooler = Spooler(transport, store, idle_timeout_seconds=0, printer_setup=setup)
+    async with transport:
+        task = asyncio.create_task(spooler.run())
+        await transport.feed(b"X")
+        await _settle()
+    await asyncio.wait_for(task, 1.0)
+    assert store.records()[0].printer_setup == setup

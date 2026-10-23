@@ -54,6 +54,7 @@ def test_record_describes_an_open_job(tmp_path):
     assert _record(job) == {
         "number": 1,
         "transport": "raw-tcp",
+        "printer": None,
         "started_at": "2026-10-23T12:00:00+00:00",
         "ended_at": None,
         "end_reason": None,
@@ -115,3 +116,11 @@ def test_an_unreadable_record_is_skipped_with_a_warning(tmp_path, caplog):
     (tmp_path / "job-0002" / JOB_RECORD_FILENAME).write_text("{not json")
     assert [record.number for record in store.records()] == [1]
     assert "job-0002" in caplog.text
+
+
+def test_printer_setup_is_recorded_for_replay(tmp_path):
+    setup = {"model": "epson-fx80", "options": {"auto-line-feed": "yes"}}
+    store = JobStore(tmp_path)
+    job = store.create_job(transport_name="raw-tcp", printer_setup=setup)
+    assert _record(job)["printer"] == setup
+    assert store.records()[0].printer_setup == setup
