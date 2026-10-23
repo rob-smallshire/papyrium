@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium-transport-raw-tcp"
+dynamic = ["version"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+description = "Raw TCP (port 9100, JetDirect style) transport for Papyrium."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "papyrium-core>=0.0.0",
+]
+
+[project.entry-points."papyrium.transport"]
+raw-tcp = "papyrium.transport.raw_tcp:RawTcpTransport"
+
+[tool.setuptools.dynamic]
+version = { attr = "papyrium.transport.raw_tcp.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

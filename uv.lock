@@ -7,6 +7,7 @@ members = [
     "papyrium-core",
     "papyrium-exception",
     "papyrium-extension",
+    "papyrium-transport-raw-tcp",
 ]
 
 [manifest.dependency-groups]
@@ -19,6 +20,7 @@ workspace = [
     { name = "papyrium-core", editable = "packages/papyrium-core" },
     { name = "papyrium-exception", editable = "packages/papyrium-exception" },
     { name = "papyrium-extension", editable = "packages/papyrium-extension" },
+    { name = "papyrium-transport-raw-tcp", editable = "packages/papyrium-transport-raw-tcp" },
 ]
 
 [[package]]
@@ -94,6 +96,16 @@ requires-dist = [
     { name = "papyrium-exception", editable = "packages/papyrium-exception" },
     { name = "stevedore", specifier = ">=5.0" },
 ]
+
+[[package]]
+name = "papyrium-transport-raw-tcp"
+source = { editable = "packages/papyrium-transport-raw-tcp" }
+dependencies = [
+    { name = "papyrium-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "papyrium-core", editable = "packages/papyrium-core" }]
 
 [[package]]
 name = "pluggy"
