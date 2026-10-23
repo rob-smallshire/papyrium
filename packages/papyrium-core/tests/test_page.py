@@ -3,6 +3,7 @@
 from fractions import Fraction
 
 import pytest
+
 from papyrium.core.page import UNITS_PER_INCH, Page, inches, units_from_fraction
 
 

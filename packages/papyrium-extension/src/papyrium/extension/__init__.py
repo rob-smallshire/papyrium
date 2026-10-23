@@ -36,6 +36,7 @@ import stevedore
 import stevedore.driver
 import stevedore.exception
 import stevedore.extension
+
 from papyrium.exception import ConfigurationError
 from papyrium.extension._text import first_line, normalize_name, strip_lines
 

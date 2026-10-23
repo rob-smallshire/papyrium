@@ -3,6 +3,7 @@
 import asyncio
 
 import pytest
+
 from papyrium.core.channel import ChannelClosedError, ChunkChannel
 
 

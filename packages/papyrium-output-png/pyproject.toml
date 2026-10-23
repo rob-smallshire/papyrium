@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium-output-png"
+dynamic = ["version"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+description = "PNG output for Papyrium: one raster image per page, dots drawn as dots."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "papyrium-core>=0.0.0",
+    "pillow>=10.0",
+]
+
+[project.entry-points."papyrium.output"]
+png = "papyrium.output.png:PngOutput"
+
+[tool.setuptools.dynamic]
+version = { attr = "papyrium.output.png.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

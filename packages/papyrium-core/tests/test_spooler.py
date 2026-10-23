@@ -3,6 +3,7 @@
 import asyncio
 
 import pytest
+
 from papyrium.core.jobs import CAPTURE_FILENAME, JobEndReason, JobStore
 from papyrium.core.spooler import Spooler
 from papyrium.core.testing import MemoryTransport

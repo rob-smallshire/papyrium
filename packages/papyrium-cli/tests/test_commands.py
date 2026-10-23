@@ -4,6 +4,7 @@ import json
 
 import pytest
 from click.testing import CliRunner
+
 from papyrium.cli import cli
 from papyrium.core.jobs import JobEndReason, JobStore
 

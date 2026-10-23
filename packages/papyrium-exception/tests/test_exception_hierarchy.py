@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from exit_codes import ExitCode
+
 from papyrium.exception import (
     ConfigurationError,
     DataError,

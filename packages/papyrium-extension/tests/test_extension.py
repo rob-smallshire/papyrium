@@ -7,6 +7,7 @@ not-found error path.
 """
 
 import pytest
+
 from papyrium.exception import ConfigurationError, PapyriumException
 from papyrium.extension import (
     Extension,

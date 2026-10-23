@@ -10,6 +10,7 @@
 members = ["packages/papyrium-*"]
 
 [tool.uv.sources]
+papyrium-output-png = { workspace = true }
 papyrium-cli = { workspace = true }
 papyrium-transport-raw-tcp = { workspace = true }
 papyrium-core = { workspace = true }
@@ -25,6 +26,7 @@ workspace = [
     "papyrium-core",
     "papyrium-transport-raw-tcp",
     "papyrium-cli",
+    "papyrium-output-png",
     "papyrium-exception",
     "papyrium-extension",
 ]
@@ -49,6 +51,7 @@ testpaths = [
     "packages/papyrium-core/tests",
     "packages/papyrium-transport-raw-tcp/tests",
     "packages/papyrium-cli/tests",
+    "packages/papyrium-output-png/tests",
 ]
 
 [tool.ruff]
@@ -60,3 +63,6 @@ select = ["E", "F", "W", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**/*.py" = ["F401", "E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["papyrium"]

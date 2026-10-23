@@ -1,6 +1,7 @@
 """Transport.from_config: building a transport from string options."""
 
 import pytest
+
 from papyrium.core.transport import Transport
 from papyrium.exception import ConfigurationError
 

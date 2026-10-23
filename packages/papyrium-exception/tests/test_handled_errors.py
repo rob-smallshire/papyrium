@@ -6,6 +6,7 @@ import signal
 
 import pytest
 from exit_codes import ExitCode
+
 from papyrium.exception import (
     ConfigurationError,
     DataError,

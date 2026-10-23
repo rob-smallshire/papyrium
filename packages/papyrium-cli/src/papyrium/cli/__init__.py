@@ -18,6 +18,7 @@ from asyoulikeit.cli import (
     list_reports_command,
     report_output,
 )
+
 from papyrium.cli.help import use_plain_help
 from papyrium.core.jobs import JobStore
 from papyrium.core.spooler import Spooler
