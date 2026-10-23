@@ -10,6 +10,7 @@
 members = ["packages/papyrium-*"]
 
 [tool.uv.sources]
+papyrium-font-draft-9 = { workspace = true }
 papyrium-output-png = { workspace = true }
 papyrium-cli = { workspace = true }
 papyrium-transport-raw-tcp = { workspace = true }
@@ -27,6 +28,7 @@ workspace = [
     "papyrium-transport-raw-tcp",
     "papyrium-cli",
     "papyrium-output-png",
+    "papyrium-font-draft-9",
     "papyrium-exception",
     "papyrium-extension",
 ]
@@ -52,6 +54,7 @@ testpaths = [
     "packages/papyrium-transport-raw-tcp/tests",
     "packages/papyrium-cli/tests",
     "packages/papyrium-output-png/tests",
+    "packages/papyrium-font-draft-9/tests",
 ]
 
 [tool.ruff]

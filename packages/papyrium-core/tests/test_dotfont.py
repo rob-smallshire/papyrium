@@ -5,6 +5,8 @@ import pytest
 from papyrium.core.dotfont import Glyph, parse_dot_font
 from papyrium.exception import DataError
 
+POUND_SIGN = chr(0x00A3)
+
 _FONT_TEXT = """\
 # A two-glyph test font.
 rows 3
@@ -25,12 +27,12 @@ U+00A3 pound sign
 def test_parse_reads_dimensions_and_glyphs():
     font = parse_dot_font(_FONT_TEXT)
     assert (font.rows, font.columns) == (3, 5)
-    assert sorted(font.glyphs) == ["A", "£"]
+    assert sorted(font.glyphs) == ["A", POUND_SIGN]
     assert font.glyphs["A"].dots == frozenset({(2, 0), (1, 1), (3, 1), (0, 2), (4, 2)})
 
 
 def test_glyph_extent():
-    glyph = parse_dot_font(_FONT_TEXT).glyphs["£"]
+    glyph = parse_dot_font(_FONT_TEXT).glyphs[POUND_SIGN]
     assert (glyph.leftmost, glyph.rightmost) == (0, 4)
     assert Glyph(frozenset()).leftmost is None
 

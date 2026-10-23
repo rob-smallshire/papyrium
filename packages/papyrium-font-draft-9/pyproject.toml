@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium-font-draft-9"
+dynamic = ["version"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+description = "draft-9, a 9-pin dot-matrix font in the style of 1980s printers, designed for Papyrium."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "papyrium-core>=0.0.0",
+]
+
+[project.entry-points."papyrium.font"]
+draft-9 = "papyrium.font.draft_9:Draft9Font"
+
+[tool.setuptools.dynamic]
+version = { attr = "papyrium.font.draft_9.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"papyrium.font.draft_9" = ["glyphs.txt"]
