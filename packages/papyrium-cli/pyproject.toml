@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "papyrium-cli"
 dynamic = ["version"]
 authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
-description = "The papyrium command: run a virtual vintage printer and inspect its jobs."
+description = "The papyrium command: run a virtual vintage printer, replay its jobs and inspect them."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -14,6 +14,9 @@ dependencies = [
     "papyrium-exception>=0.0.0",
     "papyrium-extension>=0.0.0",
     "papyrium-transport-raw-tcp>=0.0.0",
+    "papyrium-model-epson-fx80>=0.0.0",
+    "papyrium-output-png>=0.0.0",
+    "papyrium-output-pdf>=0.0.0",
     "click>=8.1.7",
     "asyoulikeit>=1.5.1",
 ]

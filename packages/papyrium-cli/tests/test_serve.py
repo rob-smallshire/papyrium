@@ -62,4 +62,10 @@ def test_serve_captures_a_job_and_closes_it_on_shutdown(tmp_path):
     assert process.returncode == 0
     record = json.loads((tmp_path / "job-0001" / "job.json").read_text())
     assert record["end_reason"] == "shutdown"
+    assert record["printer"] == {"model": "epson-fx80", "options": {}}
     assert not (tmp_path / "job-0002").exists()
+    # The form feed ejected page 1; nothing followed it, so there is no page 2.
+    job_dirpath = tmp_path / "job-0001"
+    assert (job_dirpath / "page-0001.png").is_file()
+    assert not (job_dirpath / "page-0002.png").exists()
+    assert (job_dirpath / "job.pdf").is_file()

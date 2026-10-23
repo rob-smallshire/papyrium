@@ -69,3 +69,89 @@ def test_serve_rejects_a_malformed_transport_option(run, tmp_path):
     result = run("serve", "--output-dir", str(tmp_path), "-T", "port")
     assert result.exit_code != 0
     assert "KEY=VALUE" in result.output
+
+
+@pytest.mark.parametrize(
+    "command, name",
+    [
+        ("list-models", "epson-fx80"),
+        ("list-languages", "escp"),
+        ("list-fonts", "draft-9"),
+        ("list-outputs", "pdf"),
+    ],
+)
+def test_axis_listings(run, command, name):
+    result = run(command, "--as", "json")
+    assert result.exit_code == 0
+    assert name in result.output
+
+
+def test_describe_model_lists_its_options(run):
+    result = run("describe-model", "epson-fx80")
+    assert result.exit_code == 0
+    assert "auto-line-feed" in result.output
+
+
+def test_render_a_capture_file_writes_pages_beside_it(run, tmp_path):
+    capture_filepath = tmp_path / "hello.prn"
+    capture_filepath.write_bytes(b"HELLO\r\n\x0cWORLD\r\n")
+    result = run("render", str(capture_filepath), "--as", "json")
+    assert result.exit_code == 0, result.output
+    names = sorted(path.name for path in tmp_path.iterdir())
+    assert names == ["hello.prn", "job.pdf", "page-0001.png", "page-0002.png"]
+
+
+def test_render_selected_outputs_with_options(run, tmp_path):
+    capture_filepath = tmp_path / "hello.prn"
+    capture_filepath.write_bytes(b"HELLO\r\n")
+    out_dirpath = tmp_path / "out"
+    result = run(
+        "render",
+        str(capture_filepath),
+        "-o",
+        "png",
+        "-O",
+        "png.dpi=72",
+        "--output-dir",
+        str(out_dirpath),
+    )
+    assert result.exit_code == 0, result.output
+    assert sorted(path.name for path in out_dirpath.iterdir()) == ["page-0001.png"]
+
+
+def test_render_a_job_uses_its_recorded_printer_setup(run, tmp_path):
+    store = JobStore(tmp_path)
+    job = store.create_job(
+        transport_name="raw-tcp",
+        printer_setup={"model": "epson-fx80", "options": {"auto-line-feed": "yes"}},
+    )
+    job.append(b"A\rB\r")
+    job.close(JobEndReason.REQUESTED)
+    result = run("render", str(job.dirpath), "-o", "png")
+    assert result.exit_code == 0, result.output
+    from papyrium.model.epson_fx80 import EpsonFx80
+
+    auto = EpsonFx80(name="m", auto_line_feed=True).create_interpreter()
+    (expected,) = auto.feed(b"A\rB\r") + auto.finish()
+    from PIL import Image
+
+    from papyrium.output.png import PngOutput
+
+    with Image.open(job.dirpath / "page-0001.png") as image:
+        assert image.tobytes() == PngOutput(name="png").render(expected).tobytes()
+
+
+def test_render_rejects_options_for_unselected_outputs(run, tmp_path):
+    capture_filepath = tmp_path / "x.prn"
+    capture_filepath.write_bytes(b"X")
+    result = run("render", str(capture_filepath), "-o", "png", "-O", "pdf.ink=0")
+    assert result.exit_code == 78
+    assert "pdf" in result.output
+
+
+def test_render_an_unknown_model_is_a_configuration_error(run, tmp_path):
+    capture_filepath = tmp_path / "x.prn"
+    capture_filepath.write_bytes(b"X")
+    result = run("render", str(capture_filepath), "--model", "teletype")
+    assert result.exit_code == 78
+    assert "teletype" in result.output
