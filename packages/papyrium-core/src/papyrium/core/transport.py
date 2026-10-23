@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
+from typing import Any
 
+from papyrium.core.options import construct
 from papyrium.extension import Extension
 
 
@@ -32,6 +34,15 @@ class Transport(Extension):
     @classmethod
     def _kind(cls) -> str:
         return "transport"
+
+    @classmethod
+    def from_config(cls, *, name: str, config: Mapping[str, Any]) -> Transport:
+        """Build a transport from options, which may be strings from a command line.
+
+        The default maps each option to the constructor's keyword parameter
+        of the same name; see :func:`papyrium.core.options.construct`.
+        """
+        return construct(cls, name=name, config=config)
 
     @abstractmethod
     async def open(self) -> None:

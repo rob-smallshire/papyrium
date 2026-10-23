@@ -79,3 +79,34 @@ def test_closing_twice_keeps_the_first_reason(tmp_path):
     job.close(JobEndReason.IDLE)
     job.close(JobEndReason.SHUTDOWN)
     assert _record(job)["end_reason"] == "idle"
+
+
+def test_records_lists_jobs_in_number_order(tmp_path):
+    clock = _Clock()
+    store = JobStore(tmp_path, clock=clock)
+    for _ in range(2):
+        job = store.create_job(transport_name="raw-tcp")
+        job.append(b"AB")
+        job.close(JobEndReason.REQUESTED)
+    open_job = store.create_job(transport_name="raw-tcp")
+    records = store.records()
+    assert [record.number for record in records] == [1, 2, 3]
+    assert records[0].byte_count == 2
+    assert records[0].end_reason is JobEndReason.REQUESTED
+    assert records[0].started_at == clock.now
+    assert records[2].end_reason is None
+    assert records[2].ended_at is None
+    assert records[2].dirpath == open_job.dirpath
+
+
+def test_records_of_a_missing_directory_is_empty(tmp_path):
+    assert JobStore(tmp_path / "absent").records() == []
+
+
+def test_an_unreadable_record_is_skipped_with_a_warning(tmp_path, caplog):
+    store = JobStore(tmp_path)
+    store.create_job(transport_name="memory").close(JobEndReason.REQUESTED)
+    (tmp_path / "job-0002").mkdir()
+    (tmp_path / "job-0002" / JOB_RECORD_FILENAME).write_text("{not json")
+    assert [record.number for record in store.records()] == [1]
+    assert "job-0002" in caplog.text

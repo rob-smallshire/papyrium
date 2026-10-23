@@ -7,6 +7,7 @@ import json
 import logging
 import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -40,6 +41,35 @@ class JobEndReason(enum.Enum):
     REQUESTED = "requested"
     #: The printer instance shut down.
     SHUTDOWN = "shutdown"
+
+
+@dataclass(frozen=True)
+class JobRecord:
+    """A job as described by its record file."""
+
+    number: int
+    dirpath: Path
+    transport_name: str
+    started_at: datetime
+    ended_at: datetime | None
+    end_reason: JobEndReason | None
+    byte_count: int
+
+    @classmethod
+    def read(cls, dirpath: Path) -> JobRecord:
+        """Read the record in the job directory *dirpath*."""
+        record = json.loads((dirpath / JOB_RECORD_FILENAME).read_text())
+        ended_at = record["ended_at"]
+        end_reason = record["end_reason"]
+        return cls(
+            number=record["number"],
+            dirpath=dirpath,
+            transport_name=record["transport"],
+            started_at=datetime.fromisoformat(record["started_at"]),
+            ended_at=None if ended_at is None else datetime.fromisoformat(ended_at),
+            end_reason=None if end_reason is None else JobEndReason(end_reason),
+            byte_count=record["byte_count"],
+        )
 
 
 class JobCapture:
@@ -140,12 +170,28 @@ class JobStore:
         logger.info("job %d started in %s", number, job.dirpath)
         return job
 
-    def _last_number(self) -> int:
+    def records(self) -> list[JobRecord]:
+        """The records of every job in the store, in job number order.
+
+        A job whose record cannot be read is left out, with a warning
+        saying why.
+        """
+        records = []
+        for _, dirpath in self._job_dirpaths():
+            try:
+                records.append(JobRecord.read(dirpath))
+            except (OSError, ValueError, KeyError) as error:
+                logger.warning("skipping %s: unreadable job record: %s", dirpath, error)
+        return records
+
+    def _job_dirpaths(self) -> list[tuple[int, Path]]:
         if not self._output_dirpath.is_dir():
-            return 0
-        numbers = (
-            int(match.group(1))
+            return []
+        return sorted(
+            (int(match.group(1)), child)
             for child in self._output_dirpath.iterdir()
             if (match := _JOB_DIRNAME_PATTERN.match(child.name)) and child.is_dir()
         )
-        return max(numbers, default=0)
+
+    def _last_number(self) -> int:
+        return max((number for number, _ in self._job_dirpaths()), default=0)
