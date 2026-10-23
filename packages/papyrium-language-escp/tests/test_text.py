@@ -48,20 +48,22 @@ def test_double_strike_repeats_each_dot_one_216th_inch_lower():
     ]
 
 
-def test_double_width_doubles_columns():
+def test_double_width_doubles_columns_and_strikes_each_dot_twice():
     assert dots(ESC + b"W\x01AA" + ESC + b"W0A") == [
         (LEFT + 72, 0),
+        (LEFT + 108, 0),
         (LEFT + 864 + 72, 0),
+        (LEFT + 864 + 108, 0),
         (LEFT + 1728 + 36, 0),
     ]
 
 
 def test_one_line_double_width_ends_at_the_line_feed():
-    assert dots(b"\x0eA\nA") == [(LEFT + 72, 0), (LEFT + 36, LINE)]
+    assert dots(b"\x0eA\nA") == [(LEFT + 72, 0), (LEFT + 108, 0), (LEFT + 36, LINE)]
 
 
 def test_dc4_cancels_one_line_double_width():
-    assert dots(b"\x0eA\x14A") == [(LEFT + 72, 0), (LEFT + 864 + 36, 0)]
+    assert dots(b"\x0eA\x14A") == [(LEFT + 72, 0), (LEFT + 108, 0), (LEFT + 864 + 36, 0)]
 
 
 def test_italic_leans_rows_above_the_baseline_right():
@@ -96,7 +98,12 @@ def test_proportional_width_follows_the_glyph():
 
 def test_master_select_sets_every_style_at_once():
     # Bit 3 emphasized, bit 5 double width.
-    assert dots(ESC + b"!\x28A") == [(LEFT + 72, 0), (LEFT + 72 + 36, 0)]
+    assert dots(ESC + b"!\x28A") == [
+        (LEFT + 72, 0),
+        (LEFT + 108, 0),
+        (LEFT + 108, 0),
+        (LEFT + 144, 0),
+    ]
 
 
 def test_uk_character_set_prints_pound_for_hash():

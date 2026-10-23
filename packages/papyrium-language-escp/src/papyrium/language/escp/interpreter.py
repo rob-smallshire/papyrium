@@ -245,7 +245,7 @@ class EscpInterpreter(Interpreter):
 
     def _character_layout(self, code: int) -> tuple[int, int, int, tuple]:
         """Width, column step, column offset and cache key of a character."""
-        double = 2 if (self._double_width or self._one_line_double_width) else 1
+        double = 2 if self._is_double_width() else 1
         glyph_source = (
             ("user", code)
             if self._user_set_selected and code in self._user_glyphs
@@ -304,11 +304,17 @@ class EscpInterpreter(Interpreter):
             else:
                 dy = row * pin_pitch
             passes = [(dx, dy)]
-            if self._emphasized:
+            if self._is_double_width():
+                # Enlarged characters strike every dot twice, side by side.
                 passes.append((dx + step // 2, dy))
+            if self._emphasized:
+                passes.extend([(x + step // 2, y) for x, y in passes])
             if self._double_strike:
                 passes.extend([(x, y + DOUBLE_STRIKE_OFFSET) for x, y in passes])
             yield from passes
+
+    def _is_double_width(self) -> bool:
+        return self._double_width or self._one_line_double_width
 
     def _underline_dots(self, width: int) -> list[tuple[int, int]]:
         y = self._y + (self._mechanism_rows() - 1) * self._mechanism.pin_pitch
