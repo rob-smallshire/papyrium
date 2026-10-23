@@ -82,3 +82,30 @@ def test_page_size_that_is_not_whole_points(tmp_path):
 def test_no_temporary_files_are_left_behind(tmp_path):
     _write(tmp_path, [_letter(1)])
     assert [path.name for path in tmp_path.iterdir()] == ["job.pdf"]
+
+
+def _text_page(text, y=0):
+    from papyrium.core.page import TextMark
+
+    marks = tuple(
+        TextMark(x=1080 + 432 * index, y=y, width=432, height=540, character=character)
+        for index, character in enumerate(text)
+    )
+    return Page(number=1, width=36720, height=47520, dot_diameter=60, dots=((60, 60),), text=marks)
+
+
+def test_text_layer_makes_the_page_searchable(tmp_path):
+    (filepath,) = _write(tmp_path, [_text_page("HELLO (1) \\ " + chr(0x00A3) + "9")])
+    extracted = PdfReader(filepath).pages[0].extract_text()
+    assert "HELLO (1) \\ " + chr(0x00A3) + "9" in extracted
+
+
+def test_text_layer_is_invisible(tmp_path):
+    (filepath,) = _write(tmp_path, [_text_page("HELLO")])
+    content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
+    assert "3 Tr" in content
+
+
+def test_text_layer_can_be_switched_off(tmp_path):
+    (filepath,) = _write(tmp_path, [_text_page("HELLO")], text=False)
+    assert "HELLO" not in PdfReader(filepath).pages[0].extract_text()

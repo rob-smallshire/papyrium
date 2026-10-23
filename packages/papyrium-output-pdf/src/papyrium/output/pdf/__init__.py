@@ -7,7 +7,7 @@ from fractions import Fraction
 from pathlib import Path
 
 from papyrium.core.output import Document, Output
-from papyrium.core.page import UNITS_PER_INCH, Page
+from papyrium.core.page import UNITS_PER_INCH, Page, TextMark
 
 __version__ = "0.0.0"
 
@@ -15,6 +15,45 @@ __all__ = ["PdfOutput"]
 
 #: Page units per PDF point (1/72 inch).
 _UNITS_PER_POINT = UNITS_PER_INCH // 72
+
+
+#: Courier's advance width as a fraction of its size.
+_COURIER_ADVANCE = Fraction(3, 5)
+
+#: The baseline of a text cell, as a fraction of the cell's height down from its top.
+_BASELINE = Fraction(7, 9)
+
+
+def _pdf_string(text: str) -> str:
+    """A PDF literal string in WinAnsiEncoding; unencodable characters become '?'."""
+    encoded = text.encode("cp1252", errors="replace")
+    parts = []
+    for byte in encoded:
+        if byte in b"()\\":
+            parts.append("\\" + chr(byte))
+        elif 0x20 <= byte < 0x7F:
+            parts.append(chr(byte))
+        else:
+            parts.append(f"\\{byte:03o}")
+    return "(" + "".join(parts) + ")"
+
+
+def _text_runs(marks: tuple[TextMark, ...]) -> list[list[TextMark]]:
+    """Group marks into runs printed side by side in cells of one size."""
+    runs: list[list[TextMark]] = []
+    for mark in marks:
+        if runs:
+            last = runs[-1][-1]
+            if (
+                mark.y == last.y
+                and mark.width == last.width
+                and mark.height == last.height
+                and mark.x == last.x + last.width
+            ):
+                runs[-1].append(mark)
+                continue
+        runs.append([mark])
+    return runs
 
 
 def _number(value: Fraction | float) -> str:
@@ -26,9 +65,10 @@ def _number(value: Fraction | float) -> str:
 
 
 class _PdfDocument(Document):
-    def __init__(self, filepath: Path, ink: float) -> None:
+    def __init__(self, filepath: Path, ink: float, text: bool) -> None:
         self._filepath = filepath
         self._ink = ink
+        self._text = text
         self._pages: list[tuple[Page, bytes]] = []
 
     def add_page(self, page: Page) -> None:
@@ -37,7 +77,8 @@ class _PdfDocument(Document):
     def _content(self, page: Page) -> bytes:
         height_points = Fraction(page.height, _UNITS_PER_POINT)
         scale = _number(Fraction(1, _UNITS_PER_POINT))
-        lines = [
+        lines = self._text_content(page, height_points) if self._text else []
+        lines += [
             "q",
             f"{scale} 0 0 -{scale} 0 {_number(height_points)} cm",
             f"1 J {page.dot_diameter} w {_number(Fraction(self._ink))} G",
@@ -58,6 +99,24 @@ class _PdfDocument(Document):
         lines.extend(["Q", ""])
         return "\n".join(lines).encode("ascii")
 
+    def _text_content(self, page: Page, height_points: Fraction) -> list[str]:
+        """Invisible text (render mode 3) in each cell, so the page can be searched."""
+        if not page.text:
+            return []
+        lines = ["BT", "3 Tr"]
+        for run in _text_runs(page.text):
+            first = run[0]
+            size = Fraction(first.height, _UNITS_PER_POINT)
+            width = Fraction(first.width, _UNITS_PER_POINT)
+            baseline = Fraction(first.y, _UNITS_PER_POINT) + size * _BASELINE
+            lines.append(f"/F1 {_number(size)} Tf")
+            lines.append(f"{_number(100 * width / (size * _COURIER_ADVANCE))} Tz")
+            x = Fraction(first.x, _UNITS_PER_POINT)
+            lines.append(f"1 0 0 1 {_number(x)} {_number(height_points - baseline)} Tm")
+            lines.append(_pdf_string("".join(mark.character for mark in run)) + " Tj")
+        lines.append("ET")
+        return lines
+
     def close(self) -> list[Path]:
         if not self._pages:
             return []
@@ -76,6 +135,9 @@ class _PdfDocument(Document):
 
         catalog_number = add(b"")  # Filled in once the page tree number is known.
         pages_number = add(b"")
+        font_number = add(
+            b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>"
+        )
         page_numbers = []
         for page, stream in self._pages:
             contents_number = add(
@@ -95,7 +157,8 @@ class _PdfDocument(Document):
             page_numbers.append(
                 add(
                     f"<< /Type /Page /Parent {pages_number} 0 R /MediaBox [{media_box}] "
-                    f"/Contents {contents_number} 0 R /Resources << >> >>".encode("ascii")
+                    f"/Contents {contents_number} 0 R "
+                    f"/Resources << /Font << /F1 {font_number} 0 R >> >> >>".encode("ascii")
                 )
             )
         kids = " ".join(f"{number} 0 R" for number in page_numbers)
@@ -132,13 +195,23 @@ class PdfOutput(Output):
     filled circle the width of the line.
 
     Options: ``ink`` grey level from 0 (black) to 1 (white), default 0.15;
-    ``filename``, default ``job.pdf``.
+    ``text``, invisible text under the dots so the document can be searched
+    and copied from, default yes; ``filename``, default ``job.pdf``.
     """
 
-    def __init__(self, name: str, *, ink: float = 0.15, filename: str = "job.pdf", **kwargs):
+    def __init__(
+        self,
+        name: str,
+        *,
+        ink: float = 0.15,
+        text: bool = True,
+        filename: str = "job.pdf",
+        **kwargs,
+    ):
         super().__init__(name=name, **kwargs)
         self._ink = ink
+        self._text = text
         self._filename = filename
 
     def open_document(self, dirpath: Path) -> Document:
-        return _PdfDocument(dirpath / self._filename, self._ink)
+        return _PdfDocument(dirpath / self._filename, self._ink, self._text)
