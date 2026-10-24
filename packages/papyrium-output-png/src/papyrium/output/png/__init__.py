@@ -6,7 +6,7 @@ import math
 from functools import cache
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
 from papyrium.core.output import Document, Output
 from papyrium.core.page import UNITS_PER_INCH, Page
@@ -16,17 +16,21 @@ __version__ = "0.0.0"
 
 __all__ = ["PngOutput"]
 
-#: Dot centres are placed to 1/SUBPIXELS of a pixel.
+# Everything is drawn antialiased: each shape is pasted through a mask of
+# the share of each pixel it covers, so shapes a pixel or two across keep
+# their form and edges fall between pixels.
+
+#: Disc centres are placed to 1/SUBPIXELS of a pixel.
 SUBPIXELS = 8
-#: Each pixel's coverage by a dot is measured on a SUPERSAMPLE-square grid.
+#: Each pixel's coverage by a disc is measured on a SUPERSAMPLE-square grid.
 SUPERSAMPLE = 16
 
 
 @cache
-def _dot_stamp(diameter: float, x_eighths: int, y_eighths: int) -> tuple[Image.Image, int]:
-    """A mask of how much of each pixel a dot covers, and its margin.
+def _disc_stamp(diameter: float, x_eighths: int, y_eighths: int) -> tuple[Image.Image, int]:
+    """A mask of how much of each pixel a disc covers, and its margin.
 
-    The dot is *diameter* pixels across, centred *x_eighths* and
+    The disc is *diameter* pixels across, centred *x_eighths* and
     *y_eighths* of a pixel (in SUBPIXELS) right of and below the top-left
     corner of the stamp's centre pixel, which is *margin* pixels in from
     the stamp's top-left corner.
@@ -39,6 +43,36 @@ def _dot_stamp(diameter: float, x_eighths: int, y_eighths: int) -> tuple[Image.I
     large = Image.new("L", (size * SUPERSAMPLE,) * 2, 0)
     ImageDraw.Draw(large).ellipse((cx - radius, cy - radius, cx + radius, cy + radius), fill=255)
     return large.reduce(SUPERSAMPLE), margin
+
+
+def _paste_disc(image: Image.Image, colour, x: float, y: float, diameter: float) -> None:
+    """Paint a disc *diameter* pixels across, centred at pixel coordinates *x*, *y*."""
+    column, x_eighths = divmod(round(x * SUBPIXELS), SUBPIXELS)
+    row, y_eighths = divmod(round(y * SUBPIXELS), SUBPIXELS)
+    stamp, margin = _disc_stamp(diameter, x_eighths, y_eighths)
+    image.paste(colour, (column - margin, row - margin), mask=stamp)
+
+
+def _coverage(start: float, end: float) -> tuple[int, bytes]:
+    """The first pixel a span from *start* to *end* touches, and its share of each, 0-255."""
+    first, last = math.floor(start), max(math.ceil(end), math.floor(start) + 1)
+    shares = bytes(
+        round(255 * max(0.0, min(end, pixel + 1) - max(start, pixel)))
+        for pixel in range(first, last)
+    )
+    return first, shares
+
+
+def _paste_rectangle(image: Image.Image, colour, x0: float, y0: float, x1: float, y1: float):
+    """Paint a rectangle with corners at pixel coordinates (*x0*, *y0*) and (*x1*, *y1*)."""
+    column, across = _coverage(x0, x1)
+    row, down = _coverage(y0, y1)
+    size = (len(across), len(down))
+    mask = ImageChops.multiply(
+        Image.frombytes("L", (len(across), 1), across).resize(size, Image.Resampling.NEAREST),
+        Image.frombytes("L", (1, len(down)), down).resize(size, Image.Resampling.NEAREST),
+    )
+    image.paste(colour, (column, row, column + size[0], row + size[1]), mask=mask)
 
 
 class _PngDocument(Document):
@@ -93,26 +127,20 @@ class PngOutput(Output):
         else:
             image = Image.new("L", size, self._paper)
             ink = self._ink
-        draw = ImageDraw.Draw(image)
         for feature in features:
             if isinstance(feature, Circle):
-                r = feature.diameter * scale / 2
-                cx, cy = feature.x * scale, feature.y * scale
-                draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=feature.colour)
+                x, y = feature.x * scale, feature.y * scale
+                _paste_disc(image, feature.colour, x, y, feature.diameter * scale)
             else:
-                x0, y0 = feature.x * scale, feature.y * scale
-                x1 = (feature.x + feature.width) * scale
-                y1 = (feature.y + feature.height) * scale
-                # At least a pixel, so fine rules and perforations show at low resolution.
-                draw.rectangle(
-                    (x0, y0, max(x1, x0 + 1) - 1, max(y1, y0 + 1) - 1), fill=feature.colour
+                _paste_rectangle(
+                    image,
+                    feature.colour,
+                    feature.x * scale,
+                    feature.y * scale,
+                    (feature.x + feature.width) * scale,
+                    (feature.y + feature.height) * scale,
                 )
-        # Each dot is stamped with the share of each pixel it covers, so a dot
-        # only a pixel or two across stays round.
         diameter = page.dot_diameter * scale
         for x, y in dict.fromkeys(page.dots):
-            column, x_eighths = divmod(round(x * scale * SUBPIXELS), SUBPIXELS)
-            row, y_eighths = divmod(round(y * scale * SUBPIXELS), SUBPIXELS)
-            stamp, margin = _dot_stamp(diameter, x_eighths, y_eighths)
-            image.paste(ink, (column - margin, row - margin), mask=stamp)
+            _paste_disc(image, ink, x * scale, y * scale, diameter)
         return image

@@ -121,3 +121,49 @@ def test_overlapping_dots_are_darker_where_they_overlap(tmp_path):
     page = _page(((inches(1), y), (inches(1) + 12, y)), dot_diameter=60)
     with Image.open(_render(tmp_path, page, ink=0, paper=255)) as image:
         assert image.getpixel((361, 180)) == 0
+
+
+def _stationery_page(name):
+    from papyrium.core.stationery import stationery_named
+
+    return Page(
+        number=1,
+        width=inches(9) + inches(1) // 2,
+        height=inches(2),
+        dot_diameter=60,
+        stationery=stationery_named(name),
+    )
+
+
+def _blend(colour, share):
+    return tuple(round(255 + (c - 255) * share) for c in colour)
+
+
+def _close(a, b):
+    return all(abs(x - y) <= 1 for x, y in zip(a, b))
+
+
+def test_a_band_edge_across_a_pixel_tints_it_by_the_share_covered(tmp_path):
+    from papyrium.core.stationery import GREEN_BAND
+
+    # At 75 dpi the first band starts 37.5 pixels down.
+    with Image.open(_render(tmp_path, _stationery_page("green-bar"), dpi=75)) as image:
+        assert _close(image.getpixel((200, 37)), _blend(GREEN_BAND, 0.5))
+        assert image.getpixel((200, 38)) == GREEN_BAND
+
+
+def test_a_rule_thinner_than_a_pixel_is_a_pale_line(tmp_path):
+    from papyrium.core.stationery import GREEN_RULE
+
+    # At 72 dpi a 1/144 inch rule is half a pixel; the first starts 34 pixels down.
+    with Image.open(_render(tmp_path, _stationery_page("music-ruled"), dpi=72)) as image:
+        assert _close(image.getpixel((200, 34)), _blend(GREEN_RULE, 0.5))
+
+
+def test_a_feed_hole_has_a_soft_edge(tmp_path):
+    from papyrium.core.stationery import HOLE_COLOUR
+
+    with Image.open(_render(tmp_path, _stationery_page("fanfold"), dpi=72)) as image:
+        colours = {colour for _, colour in image.crop((0, 0, 36, 36)).getcolors()}
+        assert HOLE_COLOUR in colours and (255, 255, 255) in colours
+        assert len(colours) > 3
