@@ -92,6 +92,12 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   in `integration/beebium/test_beebium_printing.py` (needs a Beebium build).
   Refresh golden images with `PAPYRIUM_UPDATE_GOLDEN=1 uv run pytest` and
   look at them before committing.
+- **Generated READMEs.** `README.md`, the printer models' READMEs and
+  `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
+  templates (`scripts/readme-templates/`, `packages/*/readme/`), running
+  `scripts/readme-examples/` against the workspace. Edit the templates,
+  never the READMEs; the pre-commit hook (`uv run pre-commit install`)
+  regenerates them and fails the commit until they are staged.
 - **asyncio** for everything that waits: transports, the spooler and its
   bounded buffer (backpressure), timers, the management API, the serve
   loop. Languages, models and outputs are synchronous, deterministic

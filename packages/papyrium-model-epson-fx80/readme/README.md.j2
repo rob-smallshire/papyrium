@@ -1,0 +1,30 @@
+{% import "package.md.j2" as common -%}
+{{ common.generated_notice() }}
+# papyrium-model-epson-fx80
+
+The Epson FX-80, an 80-column 9-pin dot-matrix printer of the early 1980s,
+for Papyrium. It speaks ESC/P through `papyrium-language-escp` and prints
+with a Papyrium dot font (`draft-9` by default) in place of Epson's
+character ROM, which is not copied.
+
+Registered as `epson-fx80` on the `papyrium.model` axis. The options model
+the printer's DIP switches and paper:
+
+{{ options_table("epson-fx80", {
+    "auto-line-feed": 'Each carriage return also feeds a line (a BBC Micro left at `*FX6,10` sends CR alone and needs this)',
+    "character-set": 'Power-on international set: usa, france, germany, uk, denmark, sweden, italy, spain, japan',
+    "form-length": 'Form length in inches',
+    "skip-perforation": 'Skip one inch over the perforation',
+    "high-codes-printable": 'Print codes 128-159 rather than obey them as controls',
+    "condensed": 'Power on in condensed mode',
+    "slashed-zero": 'Print zero with a slash',
+    "emphasized": 'Power on printing emphasized',
+    "software-select": 'Obey DC1 and DC3; otherwise the printer is always selected',
+    "user-defined-characters": 'The RAM holds user-defined characters; `no` makes it a buffer and `ESC %` is ignored',
+    "paper-width": 'Paper width in inches, tear-off strips included; the line is centred on it',
+    "top-offset": 'Inches from the perforation to the top of the first line, where the paper was wound before switching on',
+    "stationery": 'The paper: `fanfold` (plain, with tear-off strips), `sheet` (no strips), `green-bar`, `blue-bar`, `music-ruled`',
+    "font": "The dot font standing in for the character ROM: an installed font's name, or the path of a dot font file",
+}, defaults={"paper-width": "`9.5`, or `8.5` for `sheet`"}) }}
+
+{{ common.licence() }}

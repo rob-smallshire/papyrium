@@ -35,11 +35,11 @@ class BrotherM1109(PrinterModel):
     1-9), slashed-zero (no, switch 2-6 off), near-letter-quality (no,
     switch 1-10: power on in NLQ), paper-width in inches (8.5: a Letter cut
     sheet, or 9.5 for stationery with tear-off strips), top-offset in
-    inches (1/2), stationery (sheet: no tear-off strips;
-    fanfold and the listing papers with the PF-50 pin feed unit), and font
-    (m1109-draft, Brother's characters reconstructed from printed output),
-    and nlq-font (m1109-nlq, its near letter quality characters, likewise).
-    The line is centred across the paper.
+    inches (1/2), stationery (sheet: no tear-off strips; fanfold and the
+    listing papers with the PF-50 pin feed unit), font (m1109-draft,
+    Brother's characters reconstructed from printed output) and nlq-font
+    (m1109-nlq, its near letter quality characters, likewise). The line is
+    centred across the paper.
     """
 
     def __init__(

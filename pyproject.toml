@@ -25,7 +25,7 @@ papyrium-exception = { workspace = true }
 papyrium-extension = { workspace = true }
 
 [tool.uv]
-default-groups = ["test", "lint", "workspace"]
+default-groups = ["test", "lint", "readme", "workspace"]
 
 [dependency-groups]
 # Installs every papyrium-* member editable in development.
@@ -51,6 +51,10 @@ test = [
 ]
 lint = [
     "ruff>=0.16",
+]
+readme = [
+    "jinja2>=3.1.6",
+    "pre-commit>=4.7.0",
 ]
 
 [tool.pytest.ini_options]

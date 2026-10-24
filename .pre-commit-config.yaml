@@ -1,0 +1,38 @@
+# Pre-commit hooks for the Papyrium workspace. Install with:
+#     uv run pre-commit install
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+
+      - id: namespace-init-guard
+        name: No src/papyrium/__init__.py in any package
+        entry: scripts/check_no_namespace_init.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: render-readmes
+        name: Render the generated READMEs
+        entry: uv run python scripts/render_readme.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        description: |
+          README.md, the printer models' READMEs and docs/images/ are
+          generated from the templates in scripts/readme-templates/ and
+          packages/*/readme/, running scripts/readme-examples/ against the
+          workspace's own code. A change that alters them is rewritten here,
+          and pre-commit fails the commit so the result can be checked and
+          staged.

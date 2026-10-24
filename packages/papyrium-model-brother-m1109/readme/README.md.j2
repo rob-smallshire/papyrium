@@ -1,0 +1,32 @@
+{% import "package.md.j2" as common -%}
+{{ common.generated_notice() }}
+# papyrium-model-brother-m1109
+
+The Brother M-1109, a 9-pin dot-matrix printer of 1985, for Papyrium. In
+its Mode I, the factory setting, it is Epson FX-80 compatible, and it
+speaks ESC/P through `papyrium-language-escp`. Its IBM personality, Mode
+II, is not modelled. `docs/brother-m1109.md` records the behaviour
+followed and how it differs from the FX-80.
+
+Registered as `brother-m1109` on the `papyrium.model` axis. The options
+model the printer's DIP switches and paper:
+
+{{ options_table("brother-m1109", {
+    "auto-line-feed": 'Each carriage return also feeds a line (switch 2-9)',
+    "character-set": 'Power-on international set: any of the twelve `ESC R` sets, by name or number',
+    "form-length": 'Form length in inches (switch 2-1 gives 11 or 12)',
+    "skip-perforation": 'Skip one inch over the perforation (switch 1-9)',
+    "slashed-zero": 'Print zero with a slash (switch 2-6 off)',
+    "near-letter-quality": 'Power on printing near letter quality (switch 1-10)',
+    "paper-width": 'Paper width in inches; the line is centred on it',
+    "top-offset": 'Inches from the top of the sheet to the top of the first line',
+    "stationery": 'The paper: `sheet` (a cut sheet), or with the PF-50 pin feed unit `fanfold`, `green-bar`, `blue-bar`, `music-ruled`',
+    "nlq-font": "The near letter quality characters: an 18 x 24 dot font's name or file",
+    "font": "The dot font standing in for the character ROM: an installed font's name, or the path of a dot font file",
+}, defaults={"paper-width": "`8.5`, or `9.5` with tear-off strips"}) }}
+
+Near letter quality prints from the `nlq-font`, two passes 1/216 inch
+apart on a 1/240 inch grid. Characters it has no NLQ form for, downloaded
+characters and scripts print in draft struck twice, as on the printer.
+
+{{ common.licence() }}
