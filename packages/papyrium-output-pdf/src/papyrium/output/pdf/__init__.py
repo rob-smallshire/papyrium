@@ -20,6 +20,10 @@ _UNITS_PER_POINT = UNITS_PER_INCH // 72
 #: Courier's advance width as a fraction of its size.
 _COURIER_ADVANCE = Fraction(3, 5)
 
+#: How far a cubic Bezier's control points sit along the tangent, as a
+#: fraction of the radius, to approximate a quarter circle.
+_KAPPA = Fraction(5523, 10000)
+
 #: The baseline of a text cell, as a fraction of the cell's height down from its top.
 _BASELINE = Fraction(7, 9)
 
@@ -74,6 +78,20 @@ class _PdfDocument(Document):
     def add_page(self, page: Page) -> None:
         self._pages.append((page, zlib.compress(self._content(page), 6)))
 
+    @staticmethod
+    def _dot_drawing(diameter: int) -> bytes:
+        """A filled circle about the origin, in page units, built from four Beziers."""
+        r = Fraction(diameter, 2)
+        k = r * _KAPPA
+        points = [
+            (r, k, k, r, 0, r),
+            (-k, r, -r, k, -r, 0),
+            (-r, -k, -k, -r, 0, -r),
+            (k, -r, r, -k, r, 0),
+        ]
+        curves = [" ".join(_number(value) for value in curve) + " c" for curve in points]
+        return "\n".join([f"{_number(r)} 0 m", *curves, "f", ""]).encode("ascii")
+
     def _content(self, page: Page) -> bytes:
         height_points = Fraction(page.height, _UNITS_PER_POINT)
         # Ten decimal places: four would misplace dots by over a point on a page.
@@ -82,21 +100,21 @@ class _PdfDocument(Document):
         lines += [
             "q",
             f"{scale} 0 0 -{scale} 0 {_number(height_points)} cm",
-            f"1 J {page.dot_diameter} w {_number(Fraction(self._ink))} G",
+            f"{_number(Fraction(self._ink))} g",
         ]
-        # One row of dots at a time: translate down to the row, then give
-        # only x coordinates. Rows of text repeat, so this compresses far
-        # better than absolute coordinates. Each row is its own path because
-        # cm may not appear inside one.
+        # Each dot places the form /D, a filled circle. Some renderers drop
+        # zero-length strokes at small scales, so dots are not drawn as round
+        # caps. One row of dots at a time: translate to the row's first dot,
+        # then from dot to dot. Rows of text repeat, so this compresses far
+        # better than absolute coordinates.
         rows: dict[int, list[int]] = {}
         for x, y in sorted(set(page.dots), key=lambda dot: (dot[1], dot[0])):
             rows.setdefault(y, []).append(x)
-        row_y = 0
         for y, xs in rows.items():
-            lines.append(f"1 0 0 1 0 {y - row_y} cm")
-            row_y = y
-            lines.extend(f"{x} 0 m {x} 0 l" for x in xs)
-            lines.append("S")
+            lines += ["q", f"1 0 0 1 {xs[0]} {y} cm", "/D Do"]
+            for previous, x in zip(xs, xs[1:]):
+                lines += [f"1 0 0 1 {x - previous} 0 cm", "/D Do"]
+            lines.append("Q")
         lines.extend(["Q", ""])
         return "\n".join(lines).encode("ascii")
 
@@ -140,7 +158,17 @@ class _PdfDocument(Document):
             b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>"
         )
         page_numbers = []
+        dot_numbers: dict[int, int] = {}
         for page, stream in self._pages:
+            if page.dot_diameter not in dot_numbers:
+                drawing = self._dot_drawing(page.dot_diameter)
+                bound = _number(Fraction(page.dot_diameter, 2))
+                dot_numbers[page.dot_diameter] = add(
+                    f"<< /Type /XObject /Subtype /Form /BBox [-{bound} -{bound} {bound} {bound}] "
+                    f"/Length {len(drawing)} >>\nstream\n".encode("ascii")
+                    + drawing
+                    + b"\nendstream"
+                )
             contents_number = add(
                 b"<< /Length %d /Filter /FlateDecode >>\nstream\n" % len(stream)
                 + stream
@@ -159,7 +187,8 @@ class _PdfDocument(Document):
                 add(
                     f"<< /Type /Page /Parent {pages_number} 0 R /MediaBox [{media_box}] "
                     f"/Contents {contents_number} 0 R "
-                    f"/Resources << /Font << /F1 {font_number} 0 R >> >> >>".encode("ascii")
+                    f"/Resources << /Font << /F1 {font_number} 0 R >> "
+                    f"/XObject << /D {dot_numbers[page.dot_diameter]} 0 R >> >> >>".encode("ascii")
                 )
             )
         kids = " ".join(f"{number} 0 R" for number in page_numbers)
@@ -192,8 +221,8 @@ class _PdfDocument(Document):
 class PdfOutput(Output):
     """One PDF per job, one page per printed page, every dot a vector dot.
 
-    Each dot is a zero-length stroke with round caps, which PDF draws as a
-    filled circle the width of the line.
+    Each dot is a placement of one small form, a filled circle the
+    diameter of a printed dot.
 
     Options: ``ink`` grey level from 0 (black) to 1 (white), default 0.15;
     ``text``, invisible text under the dots so the document can be searched

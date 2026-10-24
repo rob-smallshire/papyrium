@@ -50,15 +50,26 @@ def test_pages_are_the_paper_size_in_points(tmp_path):
     assert (float(box.width), float(box.height)) == (612.0, 792.0)
 
 
-def test_each_distinct_dot_is_one_degenerate_round_capped_stroke(tmp_path):
+def test_each_distinct_dot_is_one_placement_of_a_dot_form(tmp_path):
     (filepath,) = _write(tmp_path, [_letter(1, ((300, 600), (60, 120), (60, 120), (90, 120)))])
     content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
-    assert "1 J" in content
-    assert "60 w" in content
-    assert content.count(" m ") == 3
-    # Rows in order down the page, each reached by a relative translation.
-    assert "1 0 0 1 0 120 cm\n60 0 m 60 0 l\n90 0 m 90 0 l\nS" in content
-    assert "1 0 0 1 0 480 cm\n300 0 m 300 0 l\nS" in content
+    assert content.count("/D Do") == 3
+    # Rows in order down the page; within a row, each dot is reached by a
+    # relative translation from the one before.
+    assert "q\n1 0 0 1 60 120 cm\n/D Do\n1 0 0 1 30 0 cm\n/D Do\nQ" in content
+    assert "q\n1 0 0 1 300 600 cm\n/D Do\nQ" in content
+
+
+def test_the_dot_is_a_filled_circle_the_diameter_of_a_printed_dot(tmp_path):
+    # A filled path, not a zero-length stroke, which some renderers drop at
+    # small scales and so draw thumbnails blank.
+    (filepath,) = _write(tmp_path, [_letter(1, ((60, 60),))])
+    form = PdfReader(filepath).pages[0]["/Resources"]["/XObject"]["/D"].get_object()
+    assert form["/Subtype"] == "/Form"
+    assert [float(value) for value in form["/BBox"]] == [-30, -30, 30, 30]
+    drawing = form.get_data().decode("ascii")
+    assert drawing.startswith("30 0 m") and drawing.count(" c") == 4
+    assert drawing.rstrip().endswith("f")
 
 
 def test_dense_pages_stay_small(tmp_path):
