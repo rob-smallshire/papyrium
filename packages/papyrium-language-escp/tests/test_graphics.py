@@ -31,8 +31,8 @@ def test_nine_pin_graphics_reach_the_ninth_pin():
 
 
 def test_graphics_beyond_the_right_margin_are_discarded():
-    data = ESC + b"Q\x01" + ESC + b"K\x07\x00" + b"\x80" * 7
-    assert dots(data) == [(LEFT + 72 * column, 0) for column in range(6)]
+    data = ESC + b"Q\x02" + ESC + b"K\x0d\x00" + b"\x80" * 13
+    assert dots(data) == [(LEFT + 72 * column, 0) for column in range(12)]
 
 
 def test_graphics_count_uses_both_bytes():

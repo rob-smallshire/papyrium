@@ -143,7 +143,8 @@ def international() -> bytes:
 
 def pages_and_layout() -> bytes:
     out = bytearray(ESC + b"@")
-    out += ESC + b"l\x05" + ESC + b"Q\x32"
+    # New margins apply from the next carriage return.
+    out += ESC + b"l\x05" + ESC + b"Q\x32" + b"\r"
     out += b"Margins at columns 5 and 50 wrap this long line of text automatically "
     out += b"when it reaches the right margin, as the printer would." + CRLF
     out += ESC + b"D\x0a\x14\x1e\x00" + b"\tTab 10\tTab 20\tTab 30" + CRLF

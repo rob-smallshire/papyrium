@@ -144,8 +144,9 @@ class EscpInterpreter(Interpreter):
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
-        self._right_margin = mechanism.columns * PICA_WIDTH
-        self._tabs = [column * PICA_WIDTH for column in range(8, mechanism.columns, 8)]
+        # None until ESC Q sets one: the power-on margin depends on the pitch.
+        self._right_margin: int | None = None
+        self._tabs = self._default_tabs()
         self._vertical_tabs: list[int] = []
         self._skip_perforation = mechanism.skip_perforation_lines * self._line_spacing
         self._graphics_modes = {"K": 0, "L": 1, "Y": 2, "Z": 3}
@@ -230,7 +231,7 @@ class EscpInterpreter(Interpreter):
             # A printable high code (ESC 6) for a control position has no glyph.
             code = 0x20
         width, step, offset, glyph_key = self._character_layout(code)
-        if self._x + width > self._right_margin:
+        if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
             self._print_line()
             self._x = self._left_margin
@@ -358,7 +359,7 @@ class EscpInterpreter(Interpreter):
         entry = _Entry(self._x)
         for index, pattern in enumerate(columns):
             x = self._x + index * step
-            if x >= self._right_margin:
+            if x >= self._right_limit(text=False):
                 break
             pins = 9 if nine_pin else 8
             for pin in range(pins):
@@ -366,7 +367,7 @@ class EscpInterpreter(Interpreter):
                     entry.dots.append((x, self._y + pin * pin_pitch))
         self._line.append(entry)
         self._print_line()
-        self._x = min(self._x + len(columns) * step, self._right_margin)
+        self._x = min(self._x + len(columns) * step, self._right_limit(text=False))
 
     def _read_graphics(self, mode: int) -> ArgumentReader:
         low = yield
@@ -442,7 +443,7 @@ class EscpInterpreter(Interpreter):
             self._left_margin + tab for tab in self._tabs if self._left_margin + tab > self._x
         ]
         self._print_line()
-        if following and following[0] <= self._right_margin:
+        if following and following[0] <= self._right_limit(text=True):
             self._x = following[0]
 
     def _backspace(self) -> None:
@@ -689,21 +690,42 @@ class EscpInterpreter(Interpreter):
             return PICA_WIDTH
         return self._character_layout(0x20)[0]
 
+    def _default_tabs(self) -> list[int]:
+        """Every eight pica columns from the left margin."""
+        return [column * PICA_WIDTH for column in range(8, self._mechanism.columns, 8)]
+
+    def _right_limit(self, *, text: bool) -> int:
+        """The right margin; at power on, condensed text stops short of it."""
+        if self._right_margin is not None:
+            return self._right_margin
+        full_width = self._mechanism.columns * PICA_WIDTH
+        if text and self._column_width() == CONDENSED_WIDTH:
+            return min(full_width, self._mechanism.condensed_columns * CONDENSED_WIDTH)
+        return full_width
+
+    def _narrowest_line(self) -> int:
+        """The least room between the margins: 2 pica, 3 elite or 4 condensed columns."""
+        width = self._column_width()
+        columns = {ELITE_WIDTH: 3, CONDENSED_WIDTH: 4}.get(width, 2)
+        return columns * width
+
     def _esc_right_margin(self) -> ArgumentReader:
         n = yield
         self._cancel()
         right = n * self._column_width()
-        if self._left_margin < right <= self._mechanism.columns * PICA_WIDTH:
+        full_width = self._mechanism.columns * PICA_WIDTH
+        if self._left_margin + self._narrowest_line() <= right <= full_width:
             self._right_margin = right
+            self._tabs = self._default_tabs()
 
     def _esc_left_margin(self) -> ArgumentReader:
         n = yield
         self._cancel()
         left = n * self._column_width()
-        if left < self._right_margin:
+        # The head stays put; the margin applies from the next carriage return.
+        if left + self._narrowest_line() <= self._right_limit(text=False):
             self._left_margin = left
-            if self._x < left:
-                self._x = left
+            self._tabs = self._default_tabs()
 
     def _esc_character_set(self) -> ArgumentReader:
         n = yield

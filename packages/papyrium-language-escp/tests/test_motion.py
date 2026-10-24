@@ -90,8 +90,8 @@ def test_horizontal_tab_stops_can_be_set():
     assert dots(ESC + b"D\x03\x00\tA") == [(LEFT + 3 * PICA + 36, 0)]
 
 
-def test_left_margin():
-    assert dots(ESC + b"l\x0aA\nA") == [(LEFT + 10 * PICA + 36, 0), (LEFT + 10 * PICA + 36, LINE)]
+def test_left_margin_takes_effect_at_the_next_carriage_return():
+    assert dots(ESC + b"l\x0aA\rA") == [(LEFT + 36, 0), (LEFT + 10 * PICA + 36, 0)]
 
 
 def test_right_margin_wraps_the_line():
@@ -139,7 +139,36 @@ def test_a_zero_form_length_is_ignored():
 
 
 def test_tab_stops_are_measured_from_the_left_margin():
-    assert dots(ESC + b"l\x0a\tA") == [(LEFT + 18 * PICA + 36, 0)]
+    assert dots(ESC + b"l\x0a\r\tA") == [(LEFT + 18 * PICA + 36, 0)]
+
+
+def test_setting_a_margin_restores_the_default_tabs():
+    assert dots(ESC + b"D\x03\x00" + ESC + b"Q\x50\tA") == [(LEFT + 8 * PICA + 36, 0)]
+    assert dots(ESC + b"D\x03\x00" + ESC + b"l\x00\tA") == [(LEFT + 8 * PICA + 36, 0)]
+
+
+def test_right_margin_must_leave_two_pica_columns():
+    # A one-column line is refused; the power-on margin stays.
+    assert dots(ESC + b"l\x0a" + ESC + b"Q\x0b\r" + b" " * 20 + b"A") == [
+        (LEFT + 30 * PICA + 36, 0)
+    ]
+    assert dots(ESC + b"l\x0a" + ESC + b"Q\x0c\rAAA") == [
+        (LEFT + 10 * PICA + 36, 0),
+        (LEFT + 11 * PICA + 36, 0),
+        (LEFT + 10 * PICA + 36, LINE),
+    ]
+
+
+def test_left_margin_must_leave_two_columns_before_the_right():
+    assert dots(ESC + b"l\x4f\rA") == [(LEFT + 36, 0)]
+    assert dots(ESC + b"l\x4e\rA") == [(LEFT + 78 * PICA + 36, 0)]
+
+
+def test_compressed_lines_hold_132_characters_at_the_power_on_margin():
+    condensed = 252
+    (wrapped,) = [dot for dot in dots(b"\x0f" + b" " * 132 + b"A")]
+    assert wrapped == (LEFT + 21, LINE)
+    assert dots(b"\x0f" + ESC + b"Q\x89" + b" " * 136 + b"A") == [(LEFT + 136 * condensed + 21, 0)]
 
 
 def test_vertical_tab_to_a_stop_ends_one_line_double_width():
@@ -172,7 +201,7 @@ def test_proportional_tabs_and_backspace_use_pica_columns():
 
 
 def test_margins_in_condensed_emphasized_use_pica_columns():
-    assert dots(b"\x0f" + ESC + b"E" + ESC + b"l\x02A") == [
+    assert dots(b"\x0f" + ESC + b"E" + ESC + b"l\x02\rA") == [
         (LEFT + 2 * PICA + 36, 0),
         (LEFT + 2 * PICA + 54, 0),
     ]

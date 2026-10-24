@@ -31,6 +31,8 @@ class EscpMechanism:
     left_offset: int = inches(Fraction(1, 4))
     #: Pica columns the head can reach; the power-on right margin.
     columns: int = 80
+    #: Condensed characters in a line at the power-on right margin.
+    condensed_columns: int = 132
     #: Vertical distance between adjacent pins.
     pin_pitch: int = inches(Fraction(1, 72))
     #: Diameter of a printed dot.
