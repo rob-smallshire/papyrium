@@ -220,9 +220,7 @@ class EscpInterpreter(Interpreter):
             return True
         if byte & 0x80:
             return self._high_codes_printable
-        return (
-            code != DEL and self._low_codes_printable and code not in self._mechanism.controls
-        )
+        return code != DEL and self._low_codes_printable and code not in self._mechanism.controls
 
     def _control(self, code: int) -> ArgumentReader:
         if code == ESC:

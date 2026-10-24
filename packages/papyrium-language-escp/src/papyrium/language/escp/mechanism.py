@@ -10,7 +10,6 @@ from papyrium.core.page import inches
 from papyrium.core.stationery import Stationery
 from papyrium.language.escp.charsets import CharacterSet
 
-
 #: The codes the FX-80 always obeys as controls, even when ESC I makes the
 #: other low codes print: BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1-DC4, CAN, ESC.
 FX_CONTROLS = frozenset({7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 24, 27})

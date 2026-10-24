@@ -11,11 +11,22 @@ from papyrium.model.brother_m1109 import BrotherM1109
 ESC = b"\x1b"
 
 SAMPLE_JOB = (
-    ESC + b"@"
-    + ESC + b'E10 PRINT "HELLO"' + ESC + b"F\r\n"
-    + ESC + b"x\x01Near letter quality" + ESC + b"x\x00\r\n"
-    + ESC + b"M\x0fCondensed elite\x12" + ESC + b"P\r\n"
-    + ESC + b"*\x07\x08\x00\x01\x02\x04\x08\x10\x20\x40\x80\r\n"
+    ESC
+    + b"@"
+    + ESC
+    + b'E10 PRINT "HELLO"'
+    + ESC
+    + b"F\r\n"
+    + ESC
+    + b"x\x01Near letter quality"
+    + ESC
+    + b"x\x00\r\n"
+    + ESC
+    + b"M\x0fCondensed elite\x12"
+    + ESC
+    + b"P\r\n"
+    + ESC
+    + b"*\x07\x08\x00\x01\x02\x04\x08\x10\x20\x40\x80\r\n"
     + b"\x0c"
     + b"Second page\r\n"
 )
