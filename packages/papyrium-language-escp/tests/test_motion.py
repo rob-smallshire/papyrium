@@ -176,3 +176,29 @@ def test_margins_in_condensed_emphasized_use_pica_columns():
         (LEFT + 2 * PICA + 36, 0),
         (LEFT + 2 * PICA + 54, 0),
     ]
+
+
+def test_reset_discards_the_unprinted_line():
+    assert dots(b"A\r\nA" + ESC + b"@") == [(LEFT + 36, 0)]
+
+
+def test_graphics_print_the_line_before_them_and_themselves_at_once():
+    # Text before graphics, and the graphics, survive a reset; text after does not.
+    assert dots(b"A" + ESC + b"K\x01\x00\x80A" + ESC + b"@") == [
+        (LEFT + 36, 0),
+        (LEFT + PICA, 0),
+    ]
+
+
+def test_commands_that_flush_the_buffer_protect_text_from_cancel():
+    for command in (b"\x08", b"\t", b"\x0f", ESC + b"4", ESC + b"R\x00"):
+        assert dots(b"A" + command + b"\x18")[0] == (LEFT + 36, 0), command
+
+
+def test_underline_does_not_flush_the_buffer():
+    assert run(b"A" + ESC + b"-\x00\x18") == []
+
+
+def test_margin_commands_cancel_the_buffered_text():
+    assert run(b"A" + ESC + b"Q\x28") == []
+    assert run(b"A" + ESC + b"l\x01") == []

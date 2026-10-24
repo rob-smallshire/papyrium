@@ -147,7 +147,10 @@ def pages_and_layout() -> bytes:
     out += b"Margins at columns 5 and 50 wrap this long line of text automatically "
     out += b"when it reaches the right margin, as the printer would." + CRLF
     out += ESC + b"D\x0a\x14\x1e\x00" + b"\tTab 10\tTab 20\tTab 30" + CRLF
-    out += b"Overstrike: O\x08/ and DEL: ABC\x7f\x7fx and CAN: gone\x18kept" + CRLF
+    out += b"Overstrike: O\x08/" + CRLF
+    out += b"DEL: ABC\x7f\x7fx" + CRLF
+    # CAN discards the whole unprinted line, so only "kept" prints, at the margin.
+    out += b"CAN: gone\x18kept" + CRLF
     out += b"\x0c" + b"Second page, after a form feed." + CRLF
     # A three-inch form: the form feed moves three inches, on the same sheet.
     out += ESC + b"C\x00\x03" + b"A three inch form starts here." + CRLF

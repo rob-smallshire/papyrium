@@ -4,9 +4,11 @@ Written from the published FX-series command descriptions. Bytes are
 consumed one at a time by a generator-based state machine, so the pages
 produced never depend on how the stream was chunked.
 
-Characters and graphics go into a line buffer, as on the real printer, and
-are committed to the paper when the line is printed (CR, LF, FF, VT,
-ESC J, or a full line). DEL and CAN edit that buffer.
+Characters go into a line buffer, as on the real printer, and are
+committed to the paper when the line is printed (CR, LF, FF, VT, ESC J, or
+a full line) or the buffer is flushed (BS, HT, SI, ESC 4, ESC R, and every
+graphics command, whose dots are committed at once). DEL, CAN, ESC Q,
+ESC l and ESC @ discard what is still in the buffer.
 
 Paper is continuous fanfold. A page is one sheet, perforation to
 perforation, and its length is fixed by the paper. Dots are kept at
@@ -189,6 +191,7 @@ class EscpInterpreter(Interpreter):
         elif code == SO:
             self._one_line_double_width = True
         elif code == SI:
+            self._print_line()
             self._condensed = True
         elif code == DC2:
             self._condensed = False
@@ -197,8 +200,7 @@ class EscpInterpreter(Interpreter):
         elif code == DC3:
             self._selected = False
         elif code == CAN:
-            self._line.clear()
-            self._x = self._left_margin
+            self._cancel()
         elif code == DEL:
             if self._line:
                 self._x = self._line.pop().x_before
@@ -352,6 +354,7 @@ class EscpInterpreter(Interpreter):
             logger.debug("ignoring graphics in unknown density %d", mode)
             return
         pin_pitch = self._mechanism.pin_pitch
+        self._print_line()
         entry = _Entry(self._x)
         for index, pattern in enumerate(columns):
             x = self._x + index * step
@@ -362,6 +365,7 @@ class EscpInterpreter(Interpreter):
                 if pattern & (1 << (pins - 1 - pin)):
                     entry.dots.append((x, self._y + pin * pin_pitch))
         self._line.append(entry)
+        self._print_line()
         self._x = min(self._x + len(columns) * step, self._right_margin)
 
     def _read_graphics(self, mode: int) -> ArgumentReader:
@@ -380,6 +384,12 @@ class EscpInterpreter(Interpreter):
             self._paper_dots.extend(entry.dots)
             self._paper_text.extend(entry.text)
         self._line.clear()
+
+    def _cancel(self) -> None:
+        """Discard the text in the buffer, returning the head to where it began."""
+        if self._line:
+            self._x = self._line[0].x_before
+            self._line.clear()
 
     def _carriage_return(self) -> None:
         self._print_line()
@@ -431,13 +441,13 @@ class EscpInterpreter(Interpreter):
         following = [
             self._left_margin + tab for tab in self._tabs if self._left_margin + tab > self._x
         ]
+        self._print_line()
         if following and following[0] <= self._right_margin:
-            self._line.append(_Entry(self._x))
             self._x = following[0]
 
     def _backspace(self) -> None:
         width = self._tab_unit()
-        self._line.append(_Entry(self._x))
+        self._print_line()
         self._x = max(self._left_margin, self._x - width)
 
     def _eject_page(self) -> None:
@@ -508,7 +518,7 @@ class EscpInterpreter(Interpreter):
             "3": self._esc_line_spacing_216,
             "A": self._esc_line_spacing_72,
             "J": self._esc_immediate_feed,
-            "4": setter("_italic", True),
+            "4": self._esc_italic,
             "5": setter("_italic", False),
             "6": setter("_high_codes_printable", True),
             "7": setter("_high_codes_printable", False),
@@ -622,8 +632,11 @@ class EscpInterpreter(Interpreter):
         self._print_line()
         self._advance(n * DOUBLE_STRIKE_OFFSET)
 
-    def _esc_initialise(self) -> None:
+    def _esc_italic(self) -> None:
         self._print_line()
+        self._italic = True
+
+    def _esc_initialise(self) -> None:
         self._initialise()
         self._set_top_of_form()
 
@@ -678,12 +691,14 @@ class EscpInterpreter(Interpreter):
 
     def _esc_right_margin(self) -> ArgumentReader:
         n = yield
+        self._cancel()
         right = n * self._column_width()
         if self._left_margin < right <= self._mechanism.columns * PICA_WIDTH:
             self._right_margin = right
 
     def _esc_left_margin(self) -> ArgumentReader:
         n = yield
+        self._cancel()
         left = n * self._column_width()
         if left < self._right_margin:
             self._left_margin = left
@@ -692,6 +707,7 @@ class EscpInterpreter(Interpreter):
 
     def _esc_character_set(self) -> ArgumentReader:
         n = yield
+        self._print_line()
         try:
             self._character_set = CharacterSet(n)
         except ValueError:
