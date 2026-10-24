@@ -29,10 +29,14 @@ def _inches_option(option: str, value: str) -> int:
 class EpsonFx80(PrinterModel):
     """Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P.
 
-    Options model its DIP switches and paper: auto-line-feed (no),
-    character-set (usa), form-length in inches (11), skip-perforation (no),
-    high-codes-printable (no), condensed (no), paper-width in inches (8.5),
-    and font (draft-9), the dot font standing in for Epson's character ROM.
+    Options model its DIP switches, at their factory settings by default,
+    and its paper: auto-line-feed (no, switch 2-4), character-set (usa,
+    switches 1-6 to 1-8), skip-perforation (no, switch 2-3), condensed (no,
+    switch 1-1), emphasized (no, switch 1-5), software-select (no, switch
+    2-1 off: obey DC1 and DC3), user-defined-characters (yes, switch 1-4
+    off), high-codes-printable (no: power on as if ESC 6 were sent),
+    form-length in inches (11), paper-width in inches (8.5), and font
+    (draft-9), the dot font standing in for Epson's character ROM.
     """
 
     def __init__(
@@ -45,6 +49,9 @@ class EpsonFx80(PrinterModel):
         skip_perforation: bool = False,
         high_codes_printable: bool = False,
         condensed: bool = False,
+        emphasized: bool = False,
+        software_select: bool = False,
+        user_defined_characters: bool = True,
         paper_width: str = "8.5",
         font: str = "draft-9",
         **kwargs,
@@ -68,6 +75,11 @@ class EpsonFx80(PrinterModel):
             skip_perforation_lines=_SKIP_PERFORATION_LINES if skip_perforation else 0,
             high_codes_printable=high_codes_printable,
             condensed=condensed,
+            emphasized=emphasized,
+            software_select=software_select,
+            user_defined_characters=user_defined_characters,
+            # The FX-80 feeds down a row to underline below the descenders.
+            underline_row=9,
         )
 
     @property

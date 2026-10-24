@@ -38,6 +38,13 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.sheet_length == 11 * 4320
     assert mechanism.paper_width == 8 * 4320 + 2160
     assert mechanism.font.name == "draft-9"
+    assert mechanism.software_select is False
+    assert mechanism.emphasized is False
+    assert mechanism.user_defined_characters is True
+
+
+def test_underlines_below_the_descenders():
+    assert EpsonFx80(name="epson-fx80").mechanism.underline_row == 9
 
 
 def test_options_from_strings():
@@ -49,6 +56,9 @@ def test_options_from_strings():
             "form-length": "12",
             "skip-perforation": "yes",
             "paper-width": "9.5",
+            "software-select": "yes",
+            "emphasized": "yes",
+            "user-defined-characters": "no",
         },
     )
     mechanism = model.mechanism
@@ -58,6 +68,9 @@ def test_options_from_strings():
     assert mechanism.skip_perforation_lines == 6
     assert mechanism.paper_width == 9 * 4320 + 2160
     assert model.config["character-set"] == "uk"
+    assert mechanism.software_select is True
+    assert mechanism.emphasized is True
+    assert mechanism.user_defined_characters is False
 
 
 def test_character_set_by_number():

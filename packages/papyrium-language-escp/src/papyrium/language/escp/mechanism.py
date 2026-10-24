@@ -47,5 +47,13 @@ class EscpMechanism:
     high_codes_printable: bool = False
     #: Power on in condensed mode.
     condensed: bool = False
+    #: Power on printing emphasized.
+    emphasized: bool = False
+    #: Obey DC1 and DC3; otherwise the printer is always selected.
+    software_select: bool = False
+    #: The RAM holds user-defined characters rather than serving as a buffer.
+    user_defined_characters: bool = True
+    #: The dot row the underline prints on: 8 is the ninth pin, 9 one row below it.
+    underline_row: int = 8
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None

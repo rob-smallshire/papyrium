@@ -273,3 +273,14 @@ def test_underline_does_not_flush_the_buffer():
 def test_margin_commands_cancel_the_buffered_text():
     assert run(b"A" + ESC + b"Q\x28") == []
     assert run(b"A" + ESC + b"l\x01") == []
+
+
+def test_reverse_feed_moves_back_up_the_sheet_without_a_carriage_return():
+    assert dots(b"\n\nA" + ESC + b"j\x12A") == [
+        (LEFT + 36, 2 * LINE),
+        (LEFT + PICA + 36, 2 * LINE - 360),
+    ]
+
+
+def test_reverse_feed_stops_at_the_top_of_the_sheet():
+    assert dots(b"A" + ESC + b"j\xffA") == [(LEFT + 36, 0), (LEFT + PICA + 36, 0)]

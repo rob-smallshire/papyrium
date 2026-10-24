@@ -155,7 +155,7 @@ class EscpInterpreter(Interpreter):
         self._elite = False
         self._condensed = mechanism.condensed
         self._proportional = False
-        self._emphasized = False
+        self._emphasized = mechanism.emphasized
         self._double_strike = False
         self._double_width = False
         self._one_line_double_width = False
@@ -166,6 +166,7 @@ class EscpInterpreter(Interpreter):
         self._character_set = mechanism.character_set
         self._high_codes_printable = mechanism.high_codes_printable
         self._low_codes_printable = False
+        self._immediate = False
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
@@ -237,7 +238,7 @@ class EscpInterpreter(Interpreter):
         elif code == DC4:
             self._one_line_double_width = False
         elif code == DC3:
-            self._selected = False
+            self._selected = not self._mechanism.software_select
         elif code == CAN:
             self._cancel()
         elif code == DEL:
@@ -284,6 +285,8 @@ class EscpInterpreter(Interpreter):
             entry.dots.extend(self._underline_dots(width))
         self._line.append(entry)
         self._x += width
+        if self._immediate:
+            self._print_line()
 
     @staticmethod
     def _rom_character(location: int) -> str:
@@ -409,11 +412,8 @@ class EscpInterpreter(Interpreter):
         return self._double_width or self._one_line_double_width
 
     def _underline_dots(self, width: int) -> list[tuple[int, int]]:
-        y = self._y + (self._mechanism_rows() - 1) * self._mechanism.pin_pitch
+        y = self._y + self._mechanism.underline_row * self._mechanism.pin_pitch
         return [(self._x + x, y) for x in range(0, width, PROPORTIONAL_STEP)]
-
-    def _mechanism_rows(self) -> int:
-        return self._font.rows
 
     # -- Bit-image graphics -----------------------------------------------
 
@@ -619,7 +619,8 @@ class EscpInterpreter(Interpreter):
             "U": self._esc_skip_argument,
             "W": self._esc_double_width,
             "b": self._esc_vertical_tab_channel,
-            "i": self._esc_skip_argument,
+            "i": self._esc_immediate,
+            "j": self._esc_reverse_feed,
             "p": self._esc_proportional,
             "s": self._esc_skip_argument,
         }
@@ -641,7 +642,10 @@ class EscpInterpreter(Interpreter):
     def _esc_select_user_set(self) -> ArgumentReader:
         n = yield
         yield  # The FX-80 takes a second argument, always 0.
-        self._user_set_selected = bool(n & 1)
+        if self._mechanism.user_defined_characters:
+            self._user_set_selected = bool(n & 1)
+        else:
+            logger.debug("ignoring ESC %%: the RAM is switched to serve as a buffer")
 
     def _esc_define_user_characters(self) -> ArgumentReader:
         yield  # Always 0.
@@ -721,6 +725,19 @@ class EscpInterpreter(Interpreter):
     def _esc_italic(self) -> None:
         self._print_line()
         self._italic = True
+
+    def _esc_immediate(self) -> ArgumentReader:
+        self._immediate = self._flag((yield))
+        if self._immediate:
+            self._print_line()
+
+    def _esc_reverse_feed(self) -> ArgumentReader:
+        """Feed back up the paper, but never past the top of the sheet in the printer."""
+        n = yield
+        self._print_line()
+        self._y = max(self._sheet_top, self._y - n * DOUBLE_STRIKE_OFFSET)
+        while self._y < self._form_top:
+            self._form_top -= self._form_length
 
     def _esc_initialise(self) -> None:
         self._initialise()

@@ -180,8 +180,41 @@ def test_code_255_is_delete_unless_high_codes_print():
     assert dots(b"AA\xffB") == [(LEFT + 36, 0), (LEFT + PICA + 36, 0), (LEFT + PICA + 108, 360)]
 
 
-def test_dc3_deselects_until_dc1():
-    assert dots(b"A\x13AAA\x11A") == [(LEFT + 36, 0), (LEFT + PICA + 36, 0)]
+def test_dc3_deselects_until_dc1_when_software_select_is_switched_on():
+    data = b"A\x13AAA\x11A"
+    assert dots(data, software_select=True) == [(LEFT + 36, 0), (LEFT + PICA + 36, 0)]
+
+
+def test_dc1_and_dc3_are_ignored_when_the_printer_is_always_selected():
+    assert dots(b"A\x13A") == [(LEFT + 36, 0), (LEFT + PICA + 36, 0)]
+
+
+def test_emphasized_can_be_the_power_on_weight():
+    # Emphasized from power on, and again after a reset.
+    assert dots(b"A\r" + ESC + b"F" + ESC + b"@A", emphasized=True) == [
+        (LEFT + 36, 0),
+        (LEFT + 54, 0),
+        (LEFT + 36, 0),
+        (LEFT + 54, 0),
+    ]
+
+
+def test_user_defined_characters_need_the_ram():
+    data = ESC + b"&\x00AA\x80" + b"\x00" * 11 + ESC + b"%\x01\x00A"
+    assert dots(data, user_defined_characters=False) == [(LEFT + 36, 0)]
+
+
+def test_underline_can_print_below_the_descenders():
+    (first, *_) = dots(ESC + b"-\x01A", underline_row=9)[1:]
+    assert first == (LEFT, 540)
+
+
+def test_immediate_mode_prints_each_character_as_it_arrives():
+    assert dots(ESC + b"i\x01AB\x18") == [
+        (LEFT + 36, 0),
+        (LEFT + PICA + 36, 0),
+        (LEFT + PICA + 108, 360),
+    ]
 
 
 def test_initialise_restores_power_on_settings():
