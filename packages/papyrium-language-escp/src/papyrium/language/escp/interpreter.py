@@ -91,6 +91,19 @@ class _Entry:
     text: list[TextMark] = field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class _UserCharacter:
+    """A character defined with ESC &: its dots and its proportional columns."""
+
+    glyph: Glyph
+    first_column: int
+    last_column: int
+
+
+#: Where a character's dots come from: the ROM, the user RAM, or nowhere.
+_BLANK = ("blank",)
+
+
 class EscpInterpreter(Interpreter):
     """Interprets ESC/P for a 9-pin printer described by an :class:`EscpMechanism`."""
 
@@ -168,7 +181,9 @@ class EscpInterpreter(Interpreter):
         self._vertical_tabs = self._vertical_tab_channels[0]
         self._skip_perforation = mechanism.skip_perforation_lines * self._line_spacing
         self._graphics_modes = {"K": 0, "L": 1, "Y": 2, "Z": 3}
-        self._user_glyphs: dict[int, Glyph] = {}
+        # The user RAM: 256 locations, empty until defined or copied from the ROM.
+        self._ram: dict[int, _UserCharacter] = {}
+        self._ram_holds_rom = False
         self._user_set_selected = False
         self._x = self._left_margin
         self._line: list[_Entry] = []
@@ -252,7 +267,9 @@ class EscpInterpreter(Interpreter):
 
     def _character(self, byte: int) -> None:
         location = self._location(byte)
-        italic = self._italic or location >= 0x80
+        # The ROM keeps italic characters at 128-255; the RAM has its own there.
+        from_rom = self._glyph_source(location)[0] == "rom"
+        italic = self._italic or (from_rom and location >= 0x80)
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
@@ -275,7 +292,9 @@ class EscpInterpreter(Interpreter):
         return " " if location == DEL else character_at(location)
 
     def _text_mark(self, location: int, width: int) -> TextMark:
-        character = self._rom_character(location)
+        # A user-defined character is recorded as the ROM character it replaces.
+        blank = self._glyph_source(location) == _BLANK
+        character = " " if blank else self._rom_character(location)
         height = self._font.rows * self._mechanism.pin_pitch
         y = self._y
         if self._script is not None:
@@ -284,10 +303,20 @@ class EscpInterpreter(Interpreter):
                 y += 4 * self._mechanism.pin_pitch
         return TextMark(x=self._x, y=y, width=width, height=height, character=character)
 
+    def _glyph_source(self, location: int) -> tuple:
+        """Where the dots for *location* come from, as a cache key."""
+        if not self._user_set_selected or (self._ram_holds_rom and location not in self._ram):
+            return ("rom", location & 0x7F)
+        if location in self._ram:
+            return ("ram", location)
+        return _BLANK
+
     def _glyph(self, location: int) -> Glyph:
-        code = location & 0x7F
-        if self._user_set_selected and code in self._user_glyphs:
-            return self._user_glyphs[code]
+        source = self._glyph_source(location)
+        if source[0] == "ram":
+            return self._ram[location].glyph
+        if source == _BLANK:
+            return Glyph(frozenset())
         character = self._rom_character(location)
         glyph = self._font.glyph(character)
         if glyph is None:
@@ -300,15 +329,15 @@ class EscpInterpreter(Interpreter):
     def _character_layout(self, location: int) -> tuple[int, int, int, tuple]:
         """Width, column step, column offset and cache key of a character."""
         double = 2 if self._is_double_width() else 1
-        code = location & 0x7F
-        glyph_source = (
-            ("user", code)
-            if self._user_set_selected and code in self._user_glyphs
-            else ("rom", code)
-        )
+        glyph_source = self._glyph_source(location)
         if self._is_proportional():
             glyph = self._glyph(location)
-            if glyph.leftmost is None:
+            if glyph_source[0] == "ram":
+                # The attribute byte gives the columns to print.
+                user_character = self._ram[location]
+                columns = user_character.last_column - user_character.first_column + 1
+                offset = -user_character.first_column
+            elif glyph.leftmost is None:
                 columns, offset = PROPORTIONAL_SPACE_COLUMNS, 0
             else:
                 columns = glyph.rightmost - glyph.leftmost + 3
@@ -334,7 +363,7 @@ class EscpInterpreter(Interpreter):
         dots = self._glyph_cache.get(key)
         if dots is None:
             dots = tuple(self._style_dots(self._glyph(location), step, offset, italic))
-            if glyph_source[0] != "user":
+            if glyph_source[0] != "ram":
                 self._glyph_cache[key] = dots
         return dots
 
@@ -618,11 +647,15 @@ class EscpInterpreter(Interpreter):
         yield  # Always 0.
         first = yield
         last = yield
-        for code in range(first, last + 1):
+        for location in range(first, last + 1):
             attribute = yield
             columns = []
+            fired = 0
             for _ in range(11):
-                columns.append((yield))
+                # The head never fires a pin in two adjacent columns.
+                pattern = (yield) & ~fired
+                fired = pattern
+                columns.append(pattern)
             top_row = 0 if attribute & 0x80 else 1
             dots = frozenset(
                 (column, top_row + bit)
@@ -630,12 +663,15 @@ class EscpInterpreter(Interpreter):
                 for bit in range(8)
                 if pattern & (0x80 >> bit)
             )
-            self._user_glyphs[code & 0x7F] = Glyph(dots)
+            self._ram[location] = _UserCharacter(
+                Glyph(dots), first_column=(attribute >> 4) & 0x07, last_column=attribute & 0x0F
+            )
 
     def _esc_copy_rom(self) -> ArgumentReader:
         for _ in range(3):
             yield
-        self._user_glyphs.clear()
+        self._ram.clear()
+        self._ram_holds_rom = True
 
     def _esc_graphics(self) -> ArgumentReader:
         mode = yield

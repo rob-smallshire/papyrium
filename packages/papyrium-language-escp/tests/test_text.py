@@ -214,6 +214,52 @@ def test_copy_rom_discards_user_definitions():
     assert dots(definition + ESC + b":\x00\x00\x00" + ESC + b"%\x01\x00A") == [(LEFT + 36, 0)]
 
 
+def _define(location, attribute, columns):
+    """ESC & for one character at *location*."""
+    return ESC + b"&\x00" + bytes([location, location, attribute]) + columns.ljust(11, b"\x00")
+
+
+RAM = ESC + b"%\x01\x00"
+
+
+def test_undefined_ram_characters_print_blank():
+    assert dots(_define(ord("B"), 0x80, b"\x80") + RAM + b"AB") == [(LEFT + PICA, 0)]
+
+
+def test_copying_the_rom_fills_the_ram_before_definitions():
+    data = ESC + b":\x00\x00\x00" + _define(ord("B"), 0x80, b"\x80") + RAM + b"AB"
+    assert dots(data) == [(LEFT + 36, 0), (LEFT + PICA, 0)]
+
+
+def test_ram_high_locations_are_characters_of_their_own():
+    data = _define(0xC1, 0x80, b"\x80") + RAM
+    assert dots(data + b"\xc1") == [(LEFT, 0)]
+    assert run(data + b"A") == []
+
+
+def test_user_defined_characters_never_fire_a_pin_in_adjacent_columns():
+    assert dots(_define(ord("A"), 0x80, b"\x80\x80\x80") + RAM + b"A") == [
+        (LEFT, 0),
+        (LEFT + 72, 0),
+    ]
+
+
+def test_attribute_gives_the_proportional_columns():
+    # Columns 2 to 5: four columns wide, starting at the dot in column 2.
+    data = _define(ord("A"), 0x80 | (2 << 4) | 5, b"\x00\x00\x80") + RAM + ESC + b"p\x01AA"
+    assert dots(data) == [(LEFT, 0), (LEFT + 18, 0), (LEFT + 144, 0), (LEFT + 162, 0)]
+
+
+def test_national_codes_print_the_ram_location_they_point_to():
+    # Spain prints location 8 for code 93.
+    data = _define(8, 0x80, b"\x80") + RAM + ESC + b"R\x07]"
+    assert dots(data) == [(LEFT, 0)]
+
+
+def test_reset_erases_user_defined_characters():
+    assert run(_define(ord("A"), 0x80, b"\x80") + ESC + b"@" + RAM + b"A") == []
+
+
 def test_missing_glyph_prints_nothing_but_advances():
     assert dots(b"zA") == [(LEFT + PICA + 36, 0)]
 
