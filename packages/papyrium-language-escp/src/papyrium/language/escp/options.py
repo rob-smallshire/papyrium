@@ -37,18 +37,32 @@ def character_set_option(value: str) -> CharacterSet:
         raise ConfigurationError(f"unknown character set {value!r}") from error
 
 
-def nine_row_font(name: str) -> DotFont:
-    """The installed dot font called *name*, or the dot font file at the path
-    *name*, which must be nine rows high."""
+def _dot_font(name: str) -> DotFont:
+    """The installed dot font called *name*, or the dot font file at the path *name*."""
     if name.endswith(".txt") or "/" in name or "\\" in name:
         try:
-            font = FileDotFont(name=Path(name).stem, filepath=Path(name))
+            return FileDotFont(name=Path(name).stem, filepath=Path(name))
         except (OSError, DataError) as error:
             raise ConfigurationError(f"cannot read the font file {name}: {error}") from error
-    else:
-        font = create_extension("font", namespace_for("font"), name)
-    if not isinstance(font, DotFont) or font.rows != 9:
+    font = create_extension("font", namespace_for("font"), name)
+    if not isinstance(font, DotFont):
+        raise ConfigurationError(f"{name!r} is not a dot font")
+    return font
+
+
+def nine_row_font(name: str) -> DotFont:
+    """The dot font *name* (see :func:`_dot_font`), which must be nine rows high."""
+    font = _dot_font(name)
+    if font.rows != 9:
         raise ConfigurationError(f"font {name!r} is not a 9-row dot font")
+    return font
+
+
+def nlq_font(name: str) -> DotFont:
+    """The near letter quality font *name*: 18 rows (two passes) by 24 columns."""
+    font = _dot_font(name)
+    if (font.rows, font.columns) != (18, 24):
+        raise ConfigurationError(f"font {name!r} is not an 18 x 24 NLQ font")
     return font
 
 

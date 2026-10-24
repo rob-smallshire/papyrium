@@ -16,4 +16,5 @@ international characters of the ESC/P national sets and a slashed zero
 font text format.
 
 Registered as `m1109-draft` on the `papyrium.font` axis; the
-`brother-m1109` model prints with it by default.
+`brother-m1109` model prints with it by default, and with
+`m1109-nlq` in near letter quality.

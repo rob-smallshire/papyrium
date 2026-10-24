@@ -22,3 +22,13 @@ def test_a_font_file_by_path(tmp_path):
 def test_a_missing_font_file_is_a_configuration_error(tmp_path):
     with pytest.raises(ConfigurationError, match="nothing.txt"):
         nine_row_font(str(tmp_path / "nothing.txt"))
+
+
+def test_an_nlq_font_must_be_18_rows_by_24_columns(tmp_path):
+    from papyrium.language.escp.options import nlq_font
+
+    with pytest.raises(ConfigurationError, match="18 x 24"):
+        nlq_font("draft-9")
+    font_filepath = tmp_path / "nlq.txt"
+    font_filepath.write_text("rows 18\ncolumns 24\n")
+    assert nlq_font(str(font_filepath)).rows == 18

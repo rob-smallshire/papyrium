@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from papyrium.core.model import Interpreter, PrinterModel
-from papyrium.language.escp import EscpInterpreter, EscpMechanism
-from papyrium.language.escp.options import character_set_option, nine_row_font, paper_options
+from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 
 __version__ = "0.0.0"
 
@@ -37,7 +36,8 @@ class BrotherM1109(PrinterModel):
     switch 1-10: power on in NLQ), paper-width in inches (8.5: a Letter cut
     sheet), top-offset in inches (0), stationery (sheet: no tear-off strips;
     fanfold and the listing papers with the PF-50 pin feed unit), and font
-    (m1109-draft, Brother's characters reconstructed from printed output).
+    (m1109-draft, Brother's characters reconstructed from printed output),
+    and nlq-font (m1109-nlq, its near letter quality characters, likewise).
     The line is centred across the paper.
     """
 
@@ -55,12 +55,14 @@ class BrotherM1109(PrinterModel):
         top_offset: str = "0",
         stationery: str = "sheet",
         font: str = "m1109-draft",
+        nlq_font: str = "m1109-nlq",
         **kwargs,
     ) -> None:
         super().__init__(name=name, **kwargs)
         self._mechanism = EscpMechanism(
-            font=nine_row_font(font),
-            **paper_options(
+            font=options.nine_row_font(font),
+            nlq_font=options.nlq_font(nlq_font),
+            **options.paper_options(
                 paper_width=paper_width,
                 form_length=form_length,
                 top_offset=top_offset,
@@ -69,7 +71,7 @@ class BrotherM1109(PrinterModel):
             columns=80,
             condensed_columns=136,
             auto_line_feed=auto_line_feed,
-            character_set=character_set_option(character_set),
+            character_set=options.character_set_option(character_set),
             skip_perforation_lines=_SKIP_PERFORATION_LINES if skip_perforation else 0,
             slashed_zero=slashed_zero,
             near_letter_quality=near_letter_quality,

@@ -59,6 +59,7 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.near_letter_quality is False
     assert mechanism.software_select is False
     assert mechanism.font.name == "m1109-draft"
+    assert mechanism.nlq_font.name == "m1109-nlq"
 
 
 def test_paper_is_a_letter_cut_sheet_with_the_line_centred():

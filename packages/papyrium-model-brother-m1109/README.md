@@ -20,7 +20,9 @@ model the printer's DIP switches and paper:
 | `paper-width` | `8.5` | Paper width in inches; the line is centred on it |
 | `top-offset` | `0` | Inches from the top of the sheet to the top of the first line |
 | `stationery` | `sheet` | The paper: `sheet` (a cut sheet), or with the PF-50 pin feed unit `fanfold`, `green-bar`, `blue-bar`, `music-ruled` |
+| `nlq-font` | `m1109-nlq` | The near letter quality characters: an 18 x 24 dot font's name or file |
 | `font` | `m1109-draft` | The dot font standing in for the character ROM: an installed font's name, or the path of a dot font file |
 
-Near letter quality prints each character struck twice, 1/216 inch
-apart, which is how the printer prints characters it has no NLQ form for.
+Near letter quality prints from the `nlq-font`, two passes 1/216 inch
+apart on a 1/240 inch grid. Characters it has no NLQ form for, downloaded
+characters and scripts print in draft struck twice, as on the printer.

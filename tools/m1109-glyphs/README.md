@@ -23,6 +23,12 @@ row) whose rendering best matches the scans.
 6. `build_font.py` places each fitted shape in the 9 x 11 matrix and
    writes the font.
 
+The near letter quality characters (`packages/papyrium-font-m1109-nlq`)
+come from the one NLQ sample, on page 74: `nlq.py` fits each character in
+its own cell on the 18 x 24 NLQ grid, with a cost per dot so the pattern
+stays sparse, and `build_nlq_font.py` aligns the sample lines by their
+baselines and writes the font.
+
 Run them with numpy and scipy alongside the workspace, from this
 directory, for example:
 

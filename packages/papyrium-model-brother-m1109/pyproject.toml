@@ -13,6 +13,7 @@ dependencies = [
     "papyrium-core>=0.0.0",
     "papyrium-extension>=0.0.0",
     "papyrium-font-m1109-draft>=0.0.0",
+    "papyrium-font-m1109-nlq>=0.0.0",
     "papyrium-language-escp>=0.0.0",
 ]
 
