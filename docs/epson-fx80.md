@@ -11,7 +11,7 @@ and are kept, uncommitted, in `docs/local/`.
 | Switch | Factory | Meaning |
 |---|---|---|
 | 1-1 | off | Power on in pica (on: condensed) |
-| 1-2 | off | Plain zero (on: slashed zero) |
+| 1-2 | off | Plain zero (on: slashed zero; the font's U+0030 U+0338 glyph) |
 | 1-3 | off | Paper-out sensor active |
 | 1-4 | off | The 2K RAM holds user-defined characters (on: a text buffer) |
 | 1-5 | off | Single strike (on: emphasized by default; beats 1-1) |

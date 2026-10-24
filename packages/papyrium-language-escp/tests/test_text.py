@@ -308,3 +308,16 @@ def test_msb_control_applies_to_every_byte_received():
 
 def test_msb_zero_keeps_graphics_off_the_top_pin():
     assert run(ESC + b"=" + ESC + b"K\x01\x00\x80") == []
+
+
+def test_zero_prints_plain_by_default():
+    assert dots(b"0") == [(LEFT + 36, 60)]
+
+
+def test_the_slashed_zero_switch_prints_the_slashed_variant():
+    assert dots(b"0", slashed_zero=True) == [(LEFT + 36, 2 * 60)]
+
+
+def test_the_slashed_zero_is_still_text_zero():
+    (page,) = run(b"0", slashed_zero=True)
+    assert [mark.character for mark in page.text] == ["0"]

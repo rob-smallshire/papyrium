@@ -16,6 +16,7 @@ the printer's DIP switches and paper:
 | `skip-perforation` | `no` | Skip one inch over the perforation |
 | `high-codes-printable` | `no` | Print codes 128-159 rather than obey them as controls |
 | `condensed` | `no` | Power on in condensed mode |
+| `slashed-zero` | `no` | Print zero with a slash |
 | `emphasized` | `no` | Power on printing emphasized |
 | `software-select` | `no` | Obey DC1 and DC3; otherwise the printer is always selected |
 | `user-defined-characters` | `yes` | The RAM holds user-defined characters; `no` makes it a buffer and `ESC %` is ignored |

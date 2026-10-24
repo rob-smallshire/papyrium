@@ -14,6 +14,9 @@ Each glyph starts with its Unicode code point (anything after it on the line
 is a comment) and continues with exactly ``rows`` lines of ``columns``
 characters, ``#`` for a dot and ``.`` for none. Row 0 is the top pin.
 Comment and blank lines may appear between glyphs, not within one.
+
+A variant of a character is named by a sequence of code points, the
+character and a combining mark: ``U+0030 U+0338`` is a slashed zero.
 """
 
 from __future__ import annotations
@@ -26,7 +29,12 @@ from dataclasses import dataclass, field
 from papyrium.exception import DataError
 from papyrium.extension import Extension
 
-_CODE_POINT_PATTERN = re.compile(r"^U\+([0-9A-Fa-f]{4,6})\b")
+_CODE_POINTS_PATTERN = re.compile(r"^U\+[0-9A-Fa-f]{4,6}(?:\s+U\+[0-9A-Fa-f]{4,6})*\b")
+
+
+def code_points(character: str) -> str:
+    """*character*, which may be a sequence, in U+ notation."""
+    return " ".join(f"U+{ord(c):04X}" for c in character)
 
 
 @dataclass(frozen=True)
@@ -81,18 +89,18 @@ def parse_dot_font(text: str) -> DotFontData:
         if words[0] in ("rows", "columns") and len(words) == 2 and words[1].isdigit():
             settings[words[0]] = int(words[1])
             continue
-        match = _CODE_POINT_PATTERN.match(line)
+        match = _CODE_POINTS_PATTERN.match(line)
         if match is None:
             raise DataError(f"line {number}: expected a setting or a code point, got {line!r}")
         if "rows" not in settings or "columns" not in settings:
             raise DataError(f"line {number}: rows and columns must be set before any glyph")
-        character = chr(int(match.group(1), 16))
+        character = "".join(chr(int(word[2:], 16)) for word in match.group().split())
         if character in glyphs:
-            raise DataError(f"line {number}: U+{ord(character):04X} is defined twice")
+            raise DataError(f"line {number}: {code_points(character)} is defined twice")
         rows, columns = settings["rows"], settings["columns"]
         bitmap = [line.rstrip() for line in lines[index : index + rows]]
         if len(bitmap) != rows:
-            raise DataError(f"line {number}: U+{ord(character):04X} needs {rows} rows")
+            raise DataError(f"line {number}: {code_points(character)} needs {rows} rows")
         dots = set()
         for row, bitmap_line in enumerate(bitmap):
             bitmap_number = index + row + 1
@@ -133,7 +141,10 @@ class DotFont(Extension):
 
     @abstractmethod
     def glyph(self, character: str) -> Glyph | None:
-        """The glyph for *character*, or None if the font has none."""
+        """The glyph for *character*, or None if the font has none.
+
+        *character* may be a sequence naming a variant, such as a slashed zero.
+        """
 
     @abstractmethod
     def characters(self) -> frozenset[str]:

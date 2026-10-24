@@ -63,3 +63,9 @@ def test_capitals_sit_on_row_6_and_descenders_reach_row_8():
     font = Draft9Font(name="draft-9")
     assert max(row for _, row in font.glyph("H").dots) == 6
     assert max(row for _, row in font.glyph("g").dots) == 8
+
+
+def test_has_a_slashed_zero():
+    font = Draft9Font(name="draft-9")
+    slashed = font.glyph("0\u0338")
+    assert slashed is not None and slashed.dots != font.glyph("0").dots

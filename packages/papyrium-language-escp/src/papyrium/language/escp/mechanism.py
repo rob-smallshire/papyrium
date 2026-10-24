@@ -48,6 +48,8 @@ class EscpMechanism:
     skip_perforation_lines: int = 0
     #: Print codes 128-159 as italic characters rather than obey them as controls.
     high_codes_printable: bool = False
+    #: Print zero slashed, using the font's U+0030 U+0338 glyph.
+    slashed_zero: bool = False
     #: Power on in condensed mode.
     condensed: bool = False
     #: Power on printing emphasized.

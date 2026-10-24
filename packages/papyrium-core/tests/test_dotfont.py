@@ -31,6 +31,11 @@ def test_parse_reads_dimensions_and_glyphs():
     assert font.glyphs["A"].dots == frozenset({(2, 0), (1, 1), (3, 1), (0, 2), (4, 2)})
 
 
+def test_a_glyph_may_be_named_by_a_sequence_of_code_points():
+    font = parse_dot_font("rows 1\ncolumns 3\nU+0030 U+0338 slashed zero\n.#.\n")
+    assert font.glyphs["0\u0338"].dots == frozenset({(1, 0)})
+
+
 def test_glyph_extent():
     glyph = parse_dot_font(_FONT_TEXT).glyphs[POUND_SIGN]
     assert (glyph.leftmost, glyph.rightmost) == (0, 4)
@@ -48,7 +53,8 @@ def test_glyph_reports_horizontally_adjacent_dots():
         ("rows 3\ncolumns 5\nU+0041\n..#..\n", "rows"),
         ("rows 1\ncolumns 5\nU+0041\n..#\n", "columns"),
         ("rows 1\ncolumns 3\nU+0041\n.x.\n", "'x'"),
-        ("rows 1\ncolumns 3\nU+0041\n...\nU+0041\n...\n", "twice"),
+        ("rows 1\ncolumns 3\nU+0041\n...\nU+0041\n...\n", "U\\+0041 is defined twice"),
+        ("rows 1\ncolumns 3\nU+0030 U+0338\n...\nU+0030 U+0338\n...\n", "U\\+0030 U\\+0338"),
         ("columns 3\nU+0041\n...\n", "rows"),
         ("rows 1\ncolumns 3\nfoo\n", "foo"),
     ],

@@ -37,6 +37,7 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.character_set is CharacterSet.USA
     assert mechanism.sheet_length == 11 * 4320
     assert mechanism.top_offset == 0
+    assert mechanism.slashed_zero is False
     assert mechanism.font.name == "draft-9"
     assert mechanism.software_select is False
     assert mechanism.emphasized is False
@@ -73,6 +74,7 @@ def test_options_from_strings():
             "skip-perforation": "yes",
             "paper-width": "10",
             "top-offset": "0.25",
+            "slashed-zero": "yes",
             "software-select": "yes",
             "emphasized": "yes",
             "user-defined-characters": "no",
@@ -85,6 +87,7 @@ def test_options_from_strings():
     assert mechanism.skip_perforation_lines == 6
     assert mechanism.paper_width == 10 * 4320
     assert mechanism.top_offset == 4320 // 4
+    assert mechanism.slashed_zero is True
     assert model.config["character-set"] == "uk"
     assert mechanism.software_select is True
     assert mechanism.emphasized is True

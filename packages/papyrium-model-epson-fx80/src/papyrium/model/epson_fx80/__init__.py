@@ -35,9 +35,9 @@ class EpsonFx80(PrinterModel):
     Options model its DIP switches, at their factory settings by default,
     and its paper: auto-line-feed (no, switch 2-4), character-set (usa,
     switches 1-6 to 1-8), skip-perforation (no, switch 2-3), condensed (no,
-    switch 1-1), emphasized (no, switch 1-5), software-select (no, switch
-    2-1 off: obey DC1 and DC3), user-defined-characters (yes, switch 1-4
-    off), high-codes-printable (no: power on as if ESC 6 were sent),
+    switch 1-1), slashed-zero (no, switch 1-2), emphasized (no, switch
+    1-5), software-select (no, switch 2-1 off: obey DC1 and DC3),
+    user-defined-characters (yes, switch 1-4 off), high-codes-printable (no: power on as if ESC 6 were sent),
     form-length in inches (11), paper-width in inches (9.5: standard
     fanfold, 8.5 inches between its tear-off strips), top-offset in inches
     (0: how far below the perforation the operator wound the paper before
@@ -55,6 +55,7 @@ class EpsonFx80(PrinterModel):
         skip_perforation: bool = False,
         high_codes_printable: bool = False,
         condensed: bool = False,
+        slashed_zero: bool = False,
         emphasized: bool = False,
         software_select: bool = False,
         user_defined_characters: bool = True,
@@ -90,6 +91,7 @@ class EpsonFx80(PrinterModel):
             skip_perforation_lines=_SKIP_PERFORATION_LINES if skip_perforation else 0,
             high_codes_printable=high_codes_printable,
             condensed=condensed,
+            slashed_zero=slashed_zero,
             emphasized=emphasized,
             software_select=software_select,
             user_defined_characters=user_defined_characters,

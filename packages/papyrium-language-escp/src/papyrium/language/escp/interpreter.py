@@ -28,7 +28,7 @@ import logging
 from collections.abc import Callable, Generator, Iterable
 from dataclasses import dataclass, field
 
-from papyrium.core.dotfont import Glyph
+from papyrium.core.dotfont import Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
 from papyrium.language.escp.charsets import CharacterSet, character_at, rom_location
@@ -75,6 +75,9 @@ GRAPHICS_STEP = {
 
 #: Densities that move the head too fast to fire a pin in two adjacent columns.
 HIGH_SPEED_MODES = frozenset({2, 3})
+
+#: The font's name for the zero printed when the slashed-zero switch is on.
+SLASHED_ZERO = "0\u0338"
 
 #: The baseline row of the character matrix, about which italics lean.
 BASELINE_ROW = 6
@@ -321,13 +324,21 @@ class EscpInterpreter(Interpreter):
         if source == _BLANK:
             return Glyph(frozenset())
         character = self._rom_character(location)
+        if character == "0" and self._mechanism.slashed_zero:
+            glyph = self._font.glyph(SLASHED_ZERO)
+            if glyph is not None:
+                return glyph
+            self._report_missing(SLASHED_ZERO, "printing a plain zero")
         glyph = self._font.glyph(character)
         if glyph is None:
-            if character not in self._missing_characters:
-                self._missing_characters.add(character)
-                logger.warning("font has no glyph for U+%04X; printing nothing", ord(character))
+            self._report_missing(character, "printing nothing")
             return Glyph(frozenset())
         return glyph
+
+    def _report_missing(self, character: str, instead: str) -> None:
+        if character not in self._missing_characters:
+            self._missing_characters.add(character)
+            logger.warning("font has no glyph for %s; %s", code_points(character), instead)
 
     def _character_layout(self, location: int) -> tuple[int, int, int, tuple]:
         """Width, column step, column offset and cache key of a character."""
