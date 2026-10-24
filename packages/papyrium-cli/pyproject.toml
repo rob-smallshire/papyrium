@@ -8,6 +8,8 @@ dynamic = ["version"]
 authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
 description = "The papyrium command: run a virtual vintage printer, replay its jobs and inspect them."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "papyrium-core>=0.0.0",

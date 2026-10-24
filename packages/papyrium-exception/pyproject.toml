@@ -8,6 +8,8 @@ dynamic = ["version"]
 authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
 description = "Categorised exceptions and the CLI error-reporting boundary shared by Papyrium."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "exit-codes>=1.3",

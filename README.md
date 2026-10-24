@@ -137,3 +137,12 @@ with a pinned image. The end-to-end tests that drive a real Beebium BBC
 Micro are in `integration/beebium/`; their module docstring gives the
 command to run them. `oracles/` compares Papyrium with independent
 interpreters run as separate programs: `uv run pytest oracles/escapy`.
+
+## Licence
+
+Papyrium is released under the MIT licence; see `LICENSE`. Each package
+carries its own copy.
+
+Epson, Brother and the other printer and computer names in this project
+are trademarks of their owners, used only to identify the printers that
+Papyrium emulates. Papyrium is not affiliated with or endorsed by them.
