@@ -1,0 +1,26 @@
+# papyrium-model-brother-m1109
+
+The Brother M-1109, a 9-pin dot-matrix printer of 1985, for Papyrium. In
+its Mode I, the factory setting, it is Epson FX-80 compatible, and it
+speaks ESC/P through `papyrium-language-escp`. Its IBM personality, Mode
+II, is not modelled. `docs/brother-m1109.md` records the behaviour
+followed and how it differs from the FX-80.
+
+Registered as `brother-m1109` on the `papyrium.model` axis. The options
+model the printer's DIP switches and paper:
+
+| Option | Default | Meaning |
+|---|---|---|
+| `auto-line-feed` | `no` | Each carriage return also feeds a line (switch 2-9) |
+| `character-set` | `usa` | Power-on international set: any of the twelve `ESC R` sets, by name or number |
+| `form-length` | `11` | Form length in inches (switch 2-1 gives 11 or 12) |
+| `skip-perforation` | `no` | Skip one inch over the perforation (switch 1-9) |
+| `slashed-zero` | `no` | Print zero with a slash (switch 2-6 off) |
+| `near-letter-quality` | `no` | Power on printing near letter quality (switch 1-10) |
+| `paper-width` | `8.5` | Paper width in inches; the line is centred on it |
+| `top-offset` | `0` | Inches from the top of the sheet to the top of the first line |
+| `stationery` | `sheet` | The paper: `sheet` (a cut sheet), or with the PF-50 pin feed unit `fanfold`, `green-bar`, `blue-bar`, `music-ruled` |
+| `font` | `draft-9` | The dot font standing in for the character ROM |
+
+Near letter quality prints each character struck twice, 1/216 inch
+apart, which is how the printer prints characters it has no NLQ form for.

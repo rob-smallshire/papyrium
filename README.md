@@ -99,7 +99,7 @@ add to:
 |---|---|
 | Transports deliver bytes | `raw-tcp` |
 | Languages interpret them | `escp` |
-| Printer models are what the user chooses | `epson-fx80` |
+| Printer models are what the user chooses | `epson-fx80`, `brother-m1109` |
 | Fonts stand in for character ROMs | `draft-9`, an original 9-pin design |
 | Outputs write pages | `png`, `pdf` |
 
@@ -114,13 +114,14 @@ The packages live under `packages/`:
 | `papyrium-language-escp` | An incremental ESC/P interpreter for 9-pin printers |
 | `papyrium-font-draft-9` | The draft-9 dot font |
 | `papyrium-model-epson-fx80` | The Epson FX-80 |
+| `papyrium-model-brother-m1109` | The Brother M-1109, in its FX-80 compatible Mode I |
 | `papyrium-output-png` | PNG pages |
 | `papyrium-output-pdf` | PDF documents of vector dots |
 | `papyrium-cli` | The `papyrium` command |
 
 `docs/specification.md` is the design as handed over from Beebium,
-`docs/epson-fx80.md` records the FX-80 behaviour Papyrium follows, from
-Epson's manual, and `CLAUDE.md` records the working practices.
+`docs/epson-fx80.md` and `docs/brother-m1109.md` record the behaviour
+Papyrium follows, from the manufacturers' manuals, and `CLAUDE.md` records the working practices.
 
 ## Tests
 

@@ -84,5 +84,7 @@ class EscpMechanism:
     graphics_modes: frozenset[int] = frozenset(range(7))
     #: ESC x selects near letter quality.
     nlq: bool = False
+    #: Power on printing near letter quality.
+    near_letter_quality: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None

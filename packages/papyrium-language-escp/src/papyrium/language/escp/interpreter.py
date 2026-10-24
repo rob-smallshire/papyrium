@@ -173,7 +173,7 @@ class EscpInterpreter(Interpreter):
         self._high_codes_printable = mechanism.high_codes_printable
         self._low_codes_printable = False
         self._immediate = False
-        self._nlq = False
+        self._nlq = mechanism.near_letter_quality
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0

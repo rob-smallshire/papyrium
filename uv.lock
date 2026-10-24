@@ -10,6 +10,7 @@ members = [
     "papyrium-extension",
     "papyrium-font-draft-9",
     "papyrium-language-escp",
+    "papyrium-model-brother-m1109",
     "papyrium-model-epson-fx80",
     "papyrium-output-pdf",
     "papyrium-output-png",
@@ -30,6 +31,7 @@ workspace = [
     { name = "papyrium-extension", editable = "packages/papyrium-extension" },
     { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
     { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
+    { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
     { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
     { name = "papyrium-output-pdf", editable = "packages/papyrium-output-pdf" },
     { name = "papyrium-output-png", editable = "packages/papyrium-output-png" },
@@ -210,10 +212,34 @@ name = "papyrium-language-escp"
 source = { editable = "packages/papyrium-language-escp" }
 dependencies = [
     { name = "papyrium-core" },
+    { name = "papyrium-exception" },
+    { name = "papyrium-extension" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "papyrium-core", editable = "packages/papyrium-core" }]
+requires-dist = [
+    { name = "papyrium-core", editable = "packages/papyrium-core" },
+    { name = "papyrium-exception", editable = "packages/papyrium-exception" },
+    { name = "papyrium-extension", editable = "packages/papyrium-extension" },
+]
+
+[[package]]
+name = "papyrium-model-brother-m1109"
+source = { editable = "packages/papyrium-model-brother-m1109" }
+dependencies = [
+    { name = "papyrium-core" },
+    { name = "papyrium-extension" },
+    { name = "papyrium-font-draft-9" },
+    { name = "papyrium-language-escp" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "papyrium-core", editable = "packages/papyrium-core" },
+    { name = "papyrium-extension", editable = "packages/papyrium-extension" },
+    { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
+    { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
+]
 
 [[package]]
 name = "papyrium-model-epson-fx80"

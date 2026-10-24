@@ -12,6 +12,7 @@ members = ["packages/papyrium-*"]
 [tool.uv.sources]
 papyrium-output-pdf = { workspace = true }
 papyrium-model-epson-fx80 = { workspace = true }
+papyrium-model-brother-m1109 = { workspace = true }
 papyrium-language-escp = { workspace = true }
 papyrium-font-draft-9 = { workspace = true }
 papyrium-output-png = { workspace = true }
@@ -34,6 +35,7 @@ workspace = [
     "papyrium-font-draft-9",
     "papyrium-language-escp",
     "papyrium-model-epson-fx80",
+    "papyrium-model-brother-m1109",
     "papyrium-output-pdf",
     "papyrium-exception",
     "papyrium-extension",
@@ -64,6 +66,7 @@ testpaths = [
     "packages/papyrium-font-draft-9/tests",
     "packages/papyrium-language-escp/tests",
     "packages/papyrium-model-epson-fx80/tests",
+    "packages/papyrium-model-brother-m1109/tests",
     "packages/papyrium-output-pdf/tests",
 ]
 

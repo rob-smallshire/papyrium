@@ -68,3 +68,7 @@ def test_nlq_prints_draft_double_struck_when_the_printer_has_it():
     assert len(run(ESC + b"x1A")[0].text) == 2
     assert dots(ESC + b"x\x01A", nlq=True) == [(LEFT + 36, 0), (LEFT + 36, 20)]
     assert dots(ESC + b"x\x01" + ESC + b"x\x00A", nlq=True) == [(LEFT + 36, 0)]
+
+
+def test_a_printer_can_power_on_in_nlq():
+    assert dots(b"A", nlq=True, near_letter_quality=True) == [(LEFT + 36, 0), (LEFT + 36, 20)]
