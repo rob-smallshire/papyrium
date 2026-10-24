@@ -72,3 +72,41 @@ def test_nlq_prints_draft_double_struck_when_the_printer_has_it():
 
 def test_a_printer_can_power_on_in_nlq():
     assert dots(b"A", nlq=True, near_letter_quality=True) == [(LEFT + 36, 0), (LEFT + 36, 20)]
+
+
+def _nlq_font():
+    from papyrium.core.testing import MemoryDotFont
+
+    # A: column 0 of the first pass's top pin, and column 1 of the second pass's.
+    rows = ["." * 24 for _ in range(18)]
+    rows[0] = "#" + rows[0][1:]
+    rows[1] = ".#" + rows[1][2:]
+    text = "rows 18\ncolumns 24\nU+0041\n" + "\n".join(rows) + "\n"
+    return MemoryDotFont(name="nlq", text=text)
+
+
+def test_an_nlq_font_gives_two_passes_on_a_240th_inch_grid():
+    assert dots(ESC + b"x\x01A", nlq=True, nlq_font=_nlq_font()) == [(LEFT, 0), (LEFT + 18, 20)]
+
+
+def test_characters_the_nlq_font_lacks_print_draft_double_struck():
+    assert dots(ESC + b"x\x01B", nlq=True, nlq_font=_nlq_font()) == [
+        (LEFT + 36, 0),
+        (LEFT + 36, 20),
+        (LEFT + 108, 360),
+        (LEFT + 108, 380),
+    ]
+
+
+def test_nlq_is_always_ten_characters_an_inch():
+    data = ESC + b"M" + ESC + b"x\x01AA"
+    assert [x for x, _ in dots(data, nlq=True, nlq_font=_nlq_font())][::2] == [LEFT, LEFT + 432]
+
+
+def test_enlarged_nlq_doubles_the_grid_and_strikes_each_dot_twice():
+    assert dots(ESC + b"x\x01" + ESC + b"W\x01A", nlq=True, nlq_font=_nlq_font()) == [
+        (LEFT, 0),
+        (LEFT + 18, 0),
+        (LEFT + 36, 20),
+        (LEFT + 54, 20),
+    ]

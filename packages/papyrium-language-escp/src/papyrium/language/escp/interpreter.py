@@ -76,6 +76,9 @@ GRAPHICS_STEP = {
 #: Densities that move the head too fast to fire a pin in two adjacent columns.
 HIGH_SPEED_MODES = frozenset({2, 3, 7})
 
+#: Columns of an NLQ character: 1/240 inch apart across the pica cell.
+NLQ_COLUMNS = 24
+
 #: Condensed elite, on printers that have it: 20 characters an inch.
 CONDENSED_ELITE_WIDTH = inches(1) // 20
 
@@ -280,6 +283,10 @@ class EscpInterpreter(Interpreter):
 
     def _character(self, byte: int) -> None:
         location = self._location(byte)
+        nlq_glyph = self._nlq_glyph(location)
+        if nlq_glyph is not None:
+            self._nlq_character(location, nlq_glyph)
+            return
         # The ROM keeps italic characters at 128-255; the RAM has its own there.
         from_rom = self._glyph_source(location)[0] == "rom"
         italic = self._italic or (from_rom and location >= 0x80)
@@ -291,6 +298,22 @@ class EscpInterpreter(Interpreter):
             self._advance_line()
             width, step, offset, glyph_key = self._character_layout(location)
         dots = self._character_dots(location, glyph_key, step, offset, italic)
+        entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
+        entry.text.append(self._text_mark(location, width))
+        if self._underline:
+            entry.dots.extend(self._underline_dots(width))
+        self._line.append(entry)
+        self._x += width
+        if self._immediate:
+            self._print_line()
+
+    def _nlq_character(self, location: int, glyph: Glyph) -> None:
+        width = PICA_WIDTH * (2 if self._is_double_width() else 1)
+        if self._x + width > self._right_limit(text=True):
+            self._print_line()
+            self._x = self._left_margin
+            self._advance_line()
+        dots = self._nlq_dots(glyph, width)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
         if self._underline:
@@ -343,6 +366,35 @@ class EscpInterpreter(Interpreter):
             self._report_missing(character, "printing nothing")
             return Glyph(frozenset())
         return glyph
+
+    def _nlq_glyph(self, location: int) -> Glyph | None:
+        """The NLQ form of the ROM character at *location*, if it has one in use.
+
+        Downloaded characters and super- and subscripts print in draft.
+        """
+        font = self._mechanism.nlq_font
+        if not self._nlq or font is None or self._script is not None:
+            return None
+        if self._glyph_source(location)[0] != "rom":
+            return None
+        character = self._rom_character(location)
+        if character == "0" and self._mechanism.slashed_zero:
+            character = SLASHED_ZERO
+        return font.glyph(character)
+
+    def _nlq_dots(self, glyph: Glyph, width: int) -> list[tuple[int, int]]:
+        """NLQ dots: two passes 1/216 inch apart, on 24 columns to the cell."""
+        step = width // NLQ_COLUMNS
+        pin_pitch = self._mechanism.pin_pitch
+        result = []
+        for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
+            dx = column * step
+            dy = (row // 2) * pin_pitch + (row % 2) * DOUBLE_STRIKE_OFFSET
+            result.append((dx, dy))
+            if self._is_double_width():
+                # Enlarged characters strike every dot twice, side by side.
+                result.append((dx + step // 2, dy))
+        return result
 
     def _report_missing(self, character: str, instead: str) -> None:
         if character not in self._missing_characters:
@@ -421,15 +473,14 @@ class EscpInterpreter(Interpreter):
         return self._proportional and not self._elite
 
     def _is_emphasized(self) -> bool:
-        """Proportional characters always print emphasized."""
-        return not self._elite and (self._emphasized or self._proportional)
+        """Proportional characters always print emphasized; NLQ masks it."""
+        return not self._nlq and not self._elite and (self._emphasized or self._proportional)
 
     def _is_double_strike(self) -> bool:
         """Super- and subscript always print double-strike, and so does NLQ.
 
-        Near letter quality strikes each character twice, 1/216 inch apart,
-        which is how the printer prints characters it has no NLQ form for;
-        Papyrium has no NLQ forms, so prints every character that way.
+        A character with no NLQ form prints in draft struck twice, 1/216
+        inch apart; those with one never come here.
         """
         return self._double_strike or self._script is not None or self._nlq
 
@@ -836,6 +887,8 @@ class EscpInterpreter(Interpreter):
 
     def _column_width(self) -> int:
         """The fixed pitch, pica for proportional text."""
+        if self._nlq:
+            return PICA_WIDTH  # Near letter quality masks elite and condensed.
         if self._elite:
             if self._condensed and self._mechanism.condensed_elite:
                 return CONDENSED_ELITE_WIDTH

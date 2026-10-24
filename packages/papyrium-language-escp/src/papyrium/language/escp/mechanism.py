@@ -85,5 +85,10 @@ class EscpMechanism:
     nlq: bool = False
     #: Power on printing near letter quality.
     near_letter_quality: bool = False
+    #: The near letter quality characters: 18 rows, the pins of a first pass
+    #: on even rows and of a second pass 1/216 inch lower on odd rows, by 24
+    #: columns of 1/240 inch to the pica cell. None prints NLQ as draft
+    #: struck twice.
+    nlq_font: DotFont | None = None
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None
