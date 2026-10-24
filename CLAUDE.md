@@ -16,7 +16,7 @@ emulator.
 
 The design starts from `docs/specification.md` (written under the earlier
 name Scriptorium). Background from Beebium is in `docs/beebium/`; those
-files are verbatim copies and are exempt from the ASCII rule below.
+files are verbatim copies.
 
 Printer behaviour comes from the manufacturers' manuals. They are
 copyrighted, so they live uncommitted in `docs/local/` (ignored by git),
@@ -126,7 +126,6 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   names, no emojis; attribution trailers at the end are allowed.
 - **Never `git push`.** Rob pushes. Rob decides release timing and
   version numbers.
-- **7-bit ASCII** in source and docs.
 - **Naming**: `_filename`, `_filepath`, `_dirpath`, `_dirname` suffixes,
   never `_file` or `_dir`.
 - **Ubiquitous language**: transport, language, printer model, output,

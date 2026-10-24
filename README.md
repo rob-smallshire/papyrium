@@ -52,34 +52,36 @@ connection open for its whole life.
 
 ## Printers, paper and fonts
 
-Each printer model describes itself and its options, which set its DIP
-switches and its paper:
-
 ```
-$ papyrium describe-model brother-m1109
-Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I.
+$ papyrium list-models
+                                     Models                                     
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name          ┃ Description                                                  ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ brother-m1109 │ Brother M-1109: an 80-column, 9-pin dot-matrix printer in    │
+│               │ its Mode I.                                                  │
+│ epson-fx80    │ Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking │
+│               │ ESC/P.                                                       │
+└───────────────┴──────────────────────────────────────────────────────────────┘
 
-Mode I (switch 2-2 on, the factory setting) is Epson FX-80 compatible,
-with near letter quality, condensed elite, three more national sets and
-a 144 dpi bit-image mode; Mode II, its IBM personality, is not modelled.
-
-Options model its DIP switches, at their factory settings by default,
-and its paper: auto-line-feed (no, switch 2-9), character-set (usa,
-switches 2-3 to 2-5, or any of the twelve ESC R sets), form-length in
-inches (11, switch 2-1; 12 with it off), skip-perforation (no, switch
-1-9), slashed-zero (no, switch 2-6 off), near-letter-quality (no,
-switch 1-10: power on in NLQ), paper-width in inches (8.5: a Letter cut
-sheet, or 9.5 for stationery with tear-off strips), top-offset in
-inches (1/2), stationery (sheet: no tear-off strips; fanfold and the
-listing papers with the PF-50 pin feed unit), font (m1109-draft,
-Brother's characters reconstructed from printed output) and nlq-font
-(m1109-nlq, its near letter quality characters, likewise). The line is
-centred across the paper.
+$ papyrium list-fonts
+                                     Fonts                                      
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name        ┃ Description                                                    ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ draft-9     │ An original 9-pin draft font in the style of 1980s dot-matrix  │
+│             │ printers.                                                      │
+│ m1109-draft │ The Brother M-1109's draft font, reconstructed from printed    │
+│             │ output.                                                        │
+│ m1109-nlq   │ The Brother M-1109's NLQ font, reconstructed from printed      │
+│             │ output.                                                        │
+└─────────────┴────────────────────────────────────────────────────────────────┘
 ```
 
-Choose a printer with `--model` and set its options with `-M KEY=VALUE`.
-For example, an M-1109 printing near letter quality from power on, on
-blue-bar listing paper:
+Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
+`papyrium describe-model NAME` describes a model and its options, which
+set its DIP switches and its paper. For example, an M-1109 printing near
+letter quality from power on, on blue-bar listing paper:
 
 ```sh
 uv run papyrium serve --model brother-m1109 -M near-letter-quality=yes -M stationery=blue-bar

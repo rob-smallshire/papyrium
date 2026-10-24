@@ -252,7 +252,6 @@ Scriptorium's own CLAUDE.md from day one.
 - **Commit messages**: imperative title, a body saying why, no AI or
   model names in the body, no emojis; attribution trailers at the end
   are allowed. Never `git push`; Rob pushes.
-- **7-bit ASCII** in source and docs.
 - **Naming**: `_filename`, `_filepath`, `_dirpath`, `_dirname` suffixes,
   never `_file` or `_dir`.
 - **Ubiquitous language**: pick names (job, page, capture, printer model,

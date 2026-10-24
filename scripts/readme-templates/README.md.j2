@@ -59,14 +59,12 @@ connection open for its whole life.
 
 ## Printers, paper and fonts
 
-Each printer model describes itself and its options, which set its DIP
-switches and its paper:
+{{ transcript("plugins") }}
 
-{{ transcript("describe_model") }}
-
-Choose a printer with `--model` and set its options with `-M KEY=VALUE`.
-For example, an M-1109 printing near letter quality from power on, on
-blue-bar listing paper:
+Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
+`papyrium describe-model NAME` describes a model and its options, which
+set its DIP switches and its paper. For example, an M-1109 printing near
+letter quality from power on, on blue-bar listing paper:
 
 ```sh
 uv run papyrium serve --model brother-m1109 -M near-letter-quality=yes -M stationery=blue-bar
