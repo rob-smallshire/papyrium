@@ -31,13 +31,16 @@ from dataclasses import dataclass, field
 from papyrium.core.dotfont import Glyph
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
-from papyrium.language.escp.charsets import CharacterSet, character_for
+from papyrium.language.escp.charsets import CharacterSet, character_at, rom_location
 from papyrium.language.escp.mechanism import EscpMechanism
 
 logger = logging.getLogger(__name__)
 
 NUL, BEL, BS, HT, LF, VT, FF, CR, SO, SI = 0, 7, 8, 9, 10, 11, 12, 13, 14, 15
 DC1, DC2, DC3, DC4, CAN, ESC, DEL = 17, 18, 19, 20, 24, 27, 127
+
+#: Codes below 32 that stay controls even when ESC I makes the others printable.
+PRINTER_CONTROLS = frozenset({BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1, DC2, DC3, DC4, CAN, ESC})
 
 #: Character widths, in units, for each pitch.
 PICA_WIDTH = inches(1) // 10
@@ -149,6 +152,7 @@ class EscpInterpreter(Interpreter):
         self._msb: int | None = None
         self._character_set = mechanism.character_set
         self._high_codes_printable = mechanism.high_codes_printable
+        self._low_codes_printable = False
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
@@ -178,14 +182,19 @@ class EscpInterpreter(Interpreter):
                 if byte & 0x7F == DC1:
                     self._selected = True
                 continue
-            if byte < 0x20 or byte == DEL:
-                yield from self._control(byte)
-            elif byte < 0xA0 and byte >= 0x80 and not self._high_codes_printable:
-                yield from self._control(byte & 0x7F)
-            elif byte == 0xFF:
-                continue
-            else:
+            if self._is_printable(byte):
                 self._character(byte)
+            else:
+                yield from self._control(byte & 0x7F)
+
+    def _is_printable(self, byte: int) -> bool:
+        """Whether *byte* prints a character; the high codes mirror the controls."""
+        code = byte & 0x7F
+        if code >= 0x20 and code != DEL:
+            return True
+        if byte & 0x80:
+            return self._high_codes_printable
+        return code != DEL and self._low_codes_printable and code not in PRINTER_CONTROLS
 
     def _control(self, code: int) -> ArgumentReader:
         if code == ESC:
@@ -234,29 +243,39 @@ class EscpInterpreter(Interpreter):
 
     # -- Characters -------------------------------------------------------
 
-    def _character(self, byte: int) -> None:
-        italic = self._italic or byte >= 0x80
+    def _location(self, byte: int) -> int:
+        """The character location *byte* prints: the national sets redirect some codes."""
         code = byte & 0x7F
-        if code < 0x20:
-            # A printable high code (ESC 6) for a control position has no glyph.
-            code = 0x20
-        width, step, offset, glyph_key = self._character_layout(code)
+        if code >= 0x20:
+            code = rom_location(code, self._character_set)
+        return code | (byte & 0x80)
+
+    def _character(self, byte: int) -> None:
+        location = self._location(byte)
+        italic = self._italic or location >= 0x80
+        width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
             self._print_line()
             self._x = self._left_margin
             self._advance_line()
-            width, step, offset, glyph_key = self._character_layout(code)
-        dots = self._character_dots(code, glyph_key, step, offset, italic)
+            width, step, offset, glyph_key = self._character_layout(location)
+        dots = self._character_dots(location, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
-        entry.text.append(self._text_mark(code, width))
+        entry.text.append(self._text_mark(location, width))
         if self._underline:
             entry.dots.extend(self._underline_dots(width))
         self._line.append(entry)
         self._x += width
 
-    def _text_mark(self, code: int, width: int) -> TextMark:
-        character = " " if code < 0x20 else character_for(code, self._character_set)
+    @staticmethod
+    def _rom_character(location: int) -> str:
+        """The character at a ROM location; the italics at 128-255 mirror 0-127."""
+        location &= 0x7F
+        return " " if location == DEL else character_at(location)
+
+    def _text_mark(self, location: int, width: int) -> TextMark:
+        character = self._rom_character(location)
         height = self._font.rows * self._mechanism.pin_pitch
         y = self._y
         if self._script is not None:
@@ -265,10 +284,11 @@ class EscpInterpreter(Interpreter):
                 y += 4 * self._mechanism.pin_pitch
         return TextMark(x=self._x, y=y, width=width, height=height, character=character)
 
-    def _glyph(self, code: int) -> Glyph:
+    def _glyph(self, location: int) -> Glyph:
+        code = location & 0x7F
         if self._user_set_selected and code in self._user_glyphs:
             return self._user_glyphs[code]
-        character = character_for(code, self._character_set)
+        character = self._rom_character(location)
         glyph = self._font.glyph(character)
         if glyph is None:
             if character not in self._missing_characters:
@@ -277,16 +297,17 @@ class EscpInterpreter(Interpreter):
             return Glyph(frozenset())
         return glyph
 
-    def _character_layout(self, code: int) -> tuple[int, int, int, tuple]:
+    def _character_layout(self, location: int) -> tuple[int, int, int, tuple]:
         """Width, column step, column offset and cache key of a character."""
         double = 2 if self._is_double_width() else 1
+        code = location & 0x7F
         glyph_source = (
             ("user", code)
             if self._user_set_selected and code in self._user_glyphs
-            else (self._character_set, code)
+            else ("rom", code)
         )
         if self._is_proportional():
-            glyph = self._glyph(code)
+            glyph = self._glyph(location)
             if glyph.leftmost is None:
                 columns, offset = PROPORTIONAL_SPACE_COLUMNS, 0
             else:
@@ -298,7 +319,7 @@ class EscpInterpreter(Interpreter):
         return width, width // CELL_COLUMNS, 0, glyph_source
 
     def _character_dots(
-        self, code: int, glyph_source: tuple, step: int, offset: int, italic: bool
+        self, location: int, glyph_source: tuple, step: int, offset: int, italic: bool
     ) -> tuple[tuple[int, int], ...]:
         """The dots of a character relative to the head, cached by style."""
         key = (
@@ -312,7 +333,7 @@ class EscpInterpreter(Interpreter):
         )
         dots = self._glyph_cache.get(key)
         if dots is None:
-            dots = tuple(self._style_dots(self._glyph(code), step, offset, italic))
+            dots = tuple(self._style_dots(self._glyph(location), step, offset, italic))
             if glyph_source[0] != "user":
                 self._glyph_cache[key] = dots
         return dots
@@ -545,6 +566,7 @@ class EscpInterpreter(Interpreter):
             "5": setter("_italic", False),
             "6": setter("_high_codes_printable", True),
             "7": setter("_high_codes_printable", False),
+            "I": self._esc_low_codes_printable,
             "8": lambda: None,
             "9": lambda: None,
             "<": lambda: None,
@@ -656,6 +678,9 @@ class EscpInterpreter(Interpreter):
         n = yield
         self._print_line()
         self._advance(n * DOUBLE_STRIKE_OFFSET)
+
+    def _esc_low_codes_printable(self) -> ArgumentReader:
+        self._low_codes_printable = self._flag((yield))
 
     def _esc_italic(self) -> None:
         self._print_line()

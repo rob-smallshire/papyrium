@@ -158,8 +158,26 @@ def test_msb_one_forces_italic():
 
 def test_codes_128_to_159_are_controls_unless_made_printable():
     assert dots(b"A\x8aA") == [(LEFT + 36, 0), (LEFT + 36, LINE)]
-    # Made printable, 0x8A is an italic control position: no glyph, one column.
+    # Made printable, 0x8A is the italic n with tilde, which the test font lacks.
     assert dots(ESC + b"6\x8aA") == [(LEFT + PICA + 36, 0)]
+
+
+def test_esc_6_prints_the_italic_international_characters():
+    assert dots(ESC + b"6\x86") == [(LEFT + 7 * 36 + 108, 0)]
+
+
+def test_esc_i_prints_the_international_characters_behind_codes_0_to_31():
+    assert dots(b"\x06A") == [(LEFT + 36, 0)]
+    assert dots(ESC + b"I\x01\x06A") == [(LEFT + 7 * 36, 0), (LEFT + PICA + 36, 0)]
+    assert dots(ESC + b"I1\x06" + ESC + b"I0\x06A") == [(LEFT + 7 * 36, 0), (LEFT + PICA + 36, 0)]
+
+
+def test_esc_i_leaves_the_printer_s_own_control_codes_working():
+    assert dots(ESC + b"I\x01A\rA") == [(LEFT + 36, 0), (LEFT + 36, 0)]
+
+
+def test_code_255_is_delete_unless_high_codes_print():
+    assert dots(b"AA\xffB") == [(LEFT + 36, 0), (LEFT + PICA + 36, 0), (LEFT + PICA + 108, 360)]
 
 
 def test_dc3_deselects_until_dc1():

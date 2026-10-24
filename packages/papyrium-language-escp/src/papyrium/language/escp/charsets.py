@@ -1,16 +1,29 @@
-"""The ESC/P international character sets.
+"""The ESC/P character ROM's international characters and national sets.
 
-Each set replaces the characters at twelve ASCII positions with national
-characters. The tables are the facts listed in Epson's FX-series manuals
-for ``ESC R n``.
+The FX character ROM keeps 32 international characters at locations 0-31
+(and their italics at 128-159). An international set prints them in
+place of up to twelve ASCII characters: each national code points at one
+of those locations. The tables are the facts listed in Epson's FX-series
+manuals for ``ESC R n``.
 """
 
 from __future__ import annotations
 
 import enum
 
-#: The ASCII codes each international set may redefine, in table order.
+#: The ASCII codes each international set may redefine.
 NATIONAL_CODES = (0x23, 0x24, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x60, 0x7B, 0x7C, 0x7D, 0x7E)
+
+#: The characters at ROM locations 0-31, by Unicode code point.
+INTERNATIONAL_CHARACTERS = tuple(
+    chr(code_point)
+    for code_point in (
+        0xE0, 0xE8, 0xF9, 0xF2, 0xEC, 0xB0, 0xA3, 0xA1,
+        0xBF, 0xD1, 0xF1, 0xA4, 0x20A7, 0xC5, 0xE5, 0xE7,
+        0xA7, 0xDF, 0xC6, 0xE6, 0xD8, 0xF8, 0xA8, 0xC4,
+        0xD6, 0xDC, 0xE4, 0xF6, 0xFC, 0xC9, 0xE9, 0xA5,
+    )
+)  # fmt: skip
 
 
 class CharacterSet(enum.IntEnum):
@@ -27,42 +40,38 @@ class CharacterSet(enum.IntEnum):
     JAPAN = 8
 
 
-def _table(*code_points: int) -> dict[int, str]:
-    return {code: chr(code_point) for code, code_point in zip(NATIONAL_CODES, code_points)}
+#: For each set, the ROM location each redefined national code prints.
+_LOCATIONS: dict[CharacterSet, dict[int, int]] = {
+    CharacterSet.USA: {},
+    CharacterSet.FRANCE: {64: 0, 91: 5, 92: 15, 93: 16, 123: 30, 124: 2, 125: 1, 126: 22},
+    CharacterSet.GERMANY: {64: 16, 91: 23, 92: 24, 93: 25, 123: 26, 124: 27, 125: 28, 126: 17},
+    CharacterSet.UK: {35: 6},
+    CharacterSet.DENMARK: {91: 18, 92: 20, 93: 13, 123: 19, 124: 21, 125: 14},
+    CharacterSet.SWEDEN: {
+        36: 11, 64: 29, 91: 23, 92: 24, 93: 13, 94: 25,
+        96: 30, 123: 26, 124: 27, 125: 14, 126: 28,
+    },
+    CharacterSet.ITALY: {91: 5, 93: 30, 96: 2, 123: 0, 124: 3, 125: 1, 126: 4},
+    CharacterSet.SPAIN: {35: 12, 91: 7, 92: 9, 93: 8, 123: 22, 124: 10},
+    CharacterSet.JAPAN: {92: 31},
+}  # fmt: skip
 
 
-_ASCII = (0x23, 0x24, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x60, 0x7B, 0x7C, 0x7D, 0x7E)
+def rom_location(code: int, character_set: CharacterSet) -> int:
+    """The ROM location a 7-bit *code* prints in *character_set*."""
+    return _LOCATIONS[character_set].get(code, code)
 
-_REPLACEMENTS: dict[CharacterSet, dict[int, str]] = {
-    CharacterSet.USA: _table(*_ASCII),
-    CharacterSet.FRANCE: _table(
-        0x23, 0x24, 0xE0, 0xB0, 0xE7, 0xA7, 0x5E, 0x60, 0xE9, 0xF9, 0xE8, 0xA8
-    ),
-    CharacterSet.GERMANY: _table(
-        0x23, 0x24, 0xA7, 0xC4, 0xD6, 0xDC, 0x5E, 0x60, 0xE4, 0xF6, 0xFC, 0xDF
-    ),
-    CharacterSet.UK: _table(0xA3, 0x24, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x60, 0x7B, 0x7C, 0x7D, 0x7E),
-    CharacterSet.DENMARK: _table(
-        0x23, 0x24, 0x40, 0xC6, 0xD8, 0xC5, 0x5E, 0x60, 0xE6, 0xF8, 0xE5, 0x7E
-    ),
-    CharacterSet.SWEDEN: _table(
-        0x23, 0xA4, 0xC9, 0xC4, 0xD6, 0xC5, 0xDC, 0xE9, 0xE4, 0xF6, 0xE5, 0xFC
-    ),
-    CharacterSet.ITALY: _table(
-        0x23, 0x24, 0x40, 0xB0, 0x5C, 0xE9, 0x5E, 0xF9, 0xE0, 0xF2, 0xE8, 0xEC
-    ),
-    CharacterSet.SPAIN: _table(
-        0x20A7, 0x24, 0x40, 0xA1, 0xD1, 0xBF, 0x5E, 0x60, 0xA8, 0xF1, 0x7D, 0x7E
-    ),
-    CharacterSet.JAPAN: _table(
-        0x23, 0x24, 0x40, 0x5B, 0xA5, 0x5D, 0x5E, 0x60, 0x7B, 0x7C, 0x7D, 0x7E
-    ),
-}
+
+def character_at(location: int) -> str:
+    """The character at a 7-bit ROM *location*."""
+    if location < len(INTERNATIONAL_CHARACTERS):
+        return INTERNATIONAL_CHARACTERS[location]
+    return chr(location)
 
 
 def character_for(code: int, character_set: CharacterSet) -> str:
     """The character a 7-bit printable *code* prints in *character_set*."""
-    return _REPLACEMENTS[character_set].get(code, chr(code))
+    return character_at(rom_location(code, character_set))
 
 
 def parse_character_set(value: str | int | CharacterSet) -> CharacterSet:

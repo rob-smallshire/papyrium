@@ -26,6 +26,12 @@ def test_national_characters_are_recorded_as_printed():
     assert _text(ESC + b"R\x03#") == [[(LEFT, 0, chr(0x00A3))]]
 
 
+def test_international_characters_behind_control_codes_are_recorded():
+    assert _text(ESC + b"I\x01\x06" + ESC + b"6\x87") == [
+        [(LEFT, 0, chr(0x00A3)), (LEFT + PICA, 0, chr(0x00A1))]
+    ]
+
+
 def test_deleted_and_cancelled_characters_leave_no_text():
     assert _text(b"AB\x7f") == [[(LEFT, 0, "A")]]
     assert _text(b"AB\x18A") == [[(LEFT, 0, "A")]]
