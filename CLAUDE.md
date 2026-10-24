@@ -92,6 +92,12 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   in `integration/beebium/test_beebium_printing.py` (needs a Beebium build).
   Refresh golden images with `PAPYRIUM_UPDATE_GOLDEN=1 uv run pytest` and
   look at them before committing.
+- **CI** (`.github/workflows/ci.yml`) runs the tests against wheels built
+  from every package, installed over a `uv sync --no-install-workspace`
+  environment and run with `uv run --no-sync` (a plain `uv run` would
+  reinstate the editable installs), on Linux, macOS and Windows. A test
+  that reads files from the source tree rather than the installed package
+  passes locally and fails there.
 - **Generated READMEs.** `README.md`, the printer models' READMEs and
   `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
   templates (`scripts/readme-templates/`, `packages/*/readme/`), running

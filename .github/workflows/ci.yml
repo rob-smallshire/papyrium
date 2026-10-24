@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache-dependency-glob: |
+            pyproject.toml
+            packages/*/pyproject.toml
+
+      - name: Install dependency environment (no workspace packages)
+        # Every third-party dependency, but not the papyrium-* members
+        # themselves: those are installed from freshly built wheels below,
+        # so the tests run against the distribution artefacts rather than
+        # the source tree. That catches packaging bugs such as missing
+        # package data (fonts) or entry points.
+        run: uv sync --no-install-workspace
+
+      - name: Run namespace-init guard
+        shell: bash
+        run: sh scripts/check_no_namespace_init.sh
+
+      - name: Run ruff
+        run: uv run --no-sync ruff check
+
+      - name: Check formatting
+        run: uv run --no-sync ruff format --check
+
+      - name: Build all workspace wheels
+        run: uv build --all-packages
+
+      - name: Install wheels into the test environment
+        # bash so the glob expands the same on every runner OS.
+        shell: bash
+        run: uv pip install dist/*.whl
+
+      - name: Check the code comes from the wheels
+        # A papyrium module imported from packages/ would mean the tests
+        # are exercising the source tree, not what users install.
+        shell: bash
+        run: >-
+          uv run --no-sync python -c
+          "import papyrium.core, papyrium.cli, papyrium.font.draft_9 as f, pathlib, sys;
+          paths = [pathlib.Path(p) for p in [*papyrium.core.__path__, *papyrium.cli.__path__, f.__file__]];
+          bad = [p for p in paths if 'site-packages' not in p.parts];
+          sys.exit(f'imported from the source tree: {bad}' if bad else 0)"
+
+      - name: Run tests against installed wheels
+        # --no-sync stops uv re-syncing the environment, which would
+        # reinstate editable installs, so pytest imports the wheels' code.
+        run: uv run --no-sync pytest -v
+
+      - name: Check generated READMEs are current
+        # A consistency check of the committed READMEs and sample images,
+        # not a per-platform test, so it runs on one platform only. It
+        # prints with the installed wheels' papyrium command.
+        if: runner.os == 'Linux' && matrix.python-version == '3.13'
+        run: uv run --no-sync python scripts/render_readme.py --check
