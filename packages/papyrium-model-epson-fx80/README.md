@@ -23,4 +23,4 @@ the printer's DIP switches and paper:
 | `paper-width` | `9.5` | Paper width in inches, tear-off strips included; the line is centred on it |
 | `top-offset` | `0` | Inches from the perforation to the top of the first line, where the paper was wound before switching on |
 | `stationery` | `fanfold` | The paper: `fanfold` (plain, with tear-off strips), `sheet` (no strips), `green-bar`, `blue-bar`, `music-ruled` |
-| `font` | `draft-9` | The dot font standing in for the character ROM |
+| `font` | `draft-9` | The dot font standing in for the character ROM: an installed font's name, or the path of a dot font file |

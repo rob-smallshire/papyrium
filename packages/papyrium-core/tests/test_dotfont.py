@@ -62,3 +62,14 @@ def test_glyph_reports_horizontally_adjacent_dots():
 def test_malformed_fonts_are_data_errors(text, message):
     with pytest.raises(DataError, match=message):
         parse_dot_font(text)
+
+
+def test_a_font_file_on_disk_is_a_dot_font(tmp_path):
+    from papyrium.core.dotfont import FileDotFont
+
+    font_filepath = tmp_path / "local.txt"
+    font_filepath.write_text(_FONT_TEXT)
+    font = FileDotFont(name="local", filepath=font_filepath)
+    assert (font.rows, font.columns) == (3, 5)
+    assert font.characters() == frozenset({"A", POUND_SIGN})
+    assert font.glyph("A") == parse_dot_font(_FONT_TEXT).glyphs["A"]

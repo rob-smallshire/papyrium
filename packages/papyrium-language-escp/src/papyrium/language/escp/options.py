@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from fractions import Fraction
+from pathlib import Path
 from typing import Any
 
-from papyrium.core.dotfont import DotFont
+from papyrium.core.dotfont import DotFont, FileDotFont
 from papyrium.core.page import inches
 from papyrium.core.stationery import STATIONERY
-from papyrium.exception import ConfigurationError
+from papyrium.exception import ConfigurationError, DataError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp.charsets import CharacterSet, parse_character_set
 
@@ -37,8 +38,15 @@ def character_set_option(value: str) -> CharacterSet:
 
 
 def nine_row_font(name: str) -> DotFont:
-    """The installed dot font called *name*, which must be nine rows high."""
-    font = create_extension("font", namespace_for("font"), name)
+    """The installed dot font called *name*, or the dot font file at the path
+    *name*, which must be nine rows high."""
+    if name.endswith(".txt") or "/" in name or "\\" in name:
+        try:
+            font = FileDotFont(name=Path(name).stem, filepath=Path(name))
+        except (OSError, DataError) as error:
+            raise ConfigurationError(f"cannot read the font file {name}: {error}") from error
+    else:
+        font = create_extension("font", namespace_for("font"), name)
     if not isinstance(font, DotFont) or font.rows != 9:
         raise ConfigurationError(f"font {name!r} is not a 9-row dot font")
     return font

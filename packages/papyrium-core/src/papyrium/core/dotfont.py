@@ -25,6 +25,7 @@ import importlib.resources
 import re
 from abc import abstractmethod
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from papyrium.exception import DataError
 from papyrium.extension import Extension
@@ -151,20 +152,10 @@ class DotFont(Extension):
         """Every character the font has a glyph for."""
 
 
-class DataDotFont(DotFont):
-    """A dot font read from a text file shipped in its package.
+class _ParsedDotFont(DotFont):
+    """A dot font whose glyphs have been parsed into ``self._data``."""
 
-    Subclasses set :attr:`font_filename`, the file's name within the
-    subclass's package.
-    """
-
-    font_filename: str = "glyphs.txt"
-
-    def __init__(self, name: str, **kwargs) -> None:
-        super().__init__(name=name, **kwargs)
-        package = type(self).__module__
-        text = importlib.resources.files(package).joinpath(self.font_filename).read_text("ascii")
-        self._data = parse_dot_font(text)
+    _data: DotFontData
 
     @property
     def rows(self) -> int:
@@ -179,3 +170,33 @@ class DataDotFont(DotFont):
 
     def characters(self) -> frozenset[str]:
         return frozenset(self._data.glyphs)
+
+
+class FileDotFont(_ParsedDotFont):
+    """A dot font read from a file on disk, such as a font kept locally rather
+    than installed as a package.
+
+    Raises:
+        OSError: The file cannot be read.
+        DataError: The file is not a well-formed dot font.
+    """
+
+    def __init__(self, name: str, *, filepath: Path, **kwargs) -> None:
+        super().__init__(name=name, **kwargs)
+        self._data = parse_dot_font(Path(filepath).read_text("ascii"))
+
+
+class DataDotFont(_ParsedDotFont):
+    """A dot font read from a text file shipped in its package.
+
+    Subclasses set :attr:`font_filename`, the file's name within the
+    subclass's package.
+    """
+
+    font_filename: str = "glyphs.txt"
+
+    def __init__(self, name: str, **kwargs) -> None:
+        super().__init__(name=name, **kwargs)
+        package = type(self).__module__
+        text = importlib.resources.files(package).joinpath(self.font_filename).read_text("ascii")
+        self._data = parse_dot_font(text)
