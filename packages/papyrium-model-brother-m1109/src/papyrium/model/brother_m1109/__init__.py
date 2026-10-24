@@ -37,8 +37,8 @@ class BrotherM1109(PrinterModel):
     switch 1-10: power on in NLQ), paper-width in inches (8.5: a Letter cut
     sheet), top-offset in inches (0), stationery (sheet: no tear-off strips;
     fanfold and the listing papers with the PF-50 pin feed unit), and font
-    (draft-9), the dot font standing in for Brother's character ROM. The
-    line is centred across the paper.
+    (m1109-draft, Brother's characters reconstructed from printed output).
+    The line is centred across the paper.
     """
 
     def __init__(
@@ -54,7 +54,7 @@ class BrotherM1109(PrinterModel):
         paper_width: str = "8.5",
         top_offset: str = "0",
         stationery: str = "sheet",
-        font: str = "draft-9",
+        font: str = "m1109-draft",
         **kwargs,
     ) -> None:
         super().__init__(name=name, **kwargs)

@@ -12,7 +12,7 @@ requires-python = ">=3.12"
 dependencies = [
     "papyrium-core>=0.0.0",
     "papyrium-extension>=0.0.0",
-    "papyrium-font-draft-9>=0.0.0",
+    "papyrium-font-m1109-draft>=0.0.0",
     "papyrium-language-escp>=0.0.0",
 ]
 
