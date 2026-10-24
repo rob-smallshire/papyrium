@@ -15,8 +15,8 @@ about the computer on the other end; the computer's port belongs to the
 emulator.
 
 The design starts from `docs/specification.md` (written under the earlier
-name Scriptorium). Background from Beebium is in `docs/beebium/`; those
-files are verbatim copies.
+name Scriptorium). Background design documents belong to Beebium and live
+in its repository.
 
 Printer behaviour comes from the manufacturers' manuals. They are
 copyrighted, so they live uncommitted in `docs/local/` (ignored by git),

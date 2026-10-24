@@ -77,7 +77,8 @@ USB-to-Centronics adapter and a small bridge) can drive it.
 ### The breadth first
 
 Scriptorium is a general-purpose virtual vintage printer, not an ESC/P to
-PDF converter. The tail of `docs/beebium/printing-architecture.md` (from
+PDF converter. The tail of Beebium's
+`docs/discussion/printing-architecture.md` (from
 the prompt "I'm familiar with RFC2217" to the end) settles this and is
 the authoritative statement of scope. In summary:
 
@@ -288,10 +289,10 @@ Beebium is at `/Users/rjs/Code/beebium`. A current build is in
   `BEEBIUM_SERVER=/Users/rjs/Code/beebium/build/src/server/beebium-model-b uv run pytest`
   from that directory.
 
-## 8. Documents to copy from Beebium
+## 8. Documents in Beebium
 
-Take copies into this repository's `docs/` (they are the design record,
-and Beebium's may move):
+The design record is in the Beebium repository. These were copied here
+for the handover and have since been removed:
 
 - `docs/discussion/printing-architecture.md`: the original design
   conversation (currently staged, uncommitted, in the Beebium checkout).
