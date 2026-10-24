@@ -18,6 +18,13 @@ The design starts from `docs/specification.md` (written under the earlier
 name Scriptorium). Background from Beebium is in `docs/beebium/`; those
 files are verbatim copies and are exempt from the ASCII rule below.
 
+Printer behaviour comes from the manufacturers' manuals. They are
+copyrighted, so they live uncommitted in `docs/local/` (ignored by git),
+with plain-text extractions beside them. What Papyrium takes from them is
+restated in our own words, with page references, in committed notes:
+`docs/epson-fx80.md` for the FX-80. Check a behaviour question there, then
+in the manual, before deciding it yourself, and record new findings there.
+
 ## Architecture
 
 Independent, pluggable axes, each chosen by configuration:

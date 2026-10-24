@@ -118,8 +118,9 @@ The packages live under `packages/`:
 | `papyrium-output-pdf` | PDF documents of vector dots |
 | `papyrium-cli` | The `papyrium` command |
 
-`docs/specification.md` is the design as handed over from Beebium, and
-`CLAUDE.md` records the working practices.
+`docs/specification.md` is the design as handed over from Beebium,
+`docs/epson-fx80.md` records the FX-80 behaviour Papyrium follows, from
+Epson's manual, and `CLAUDE.md` records the working practices.
 
 ## Tests
 
