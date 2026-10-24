@@ -239,7 +239,7 @@ def test_initialise_restores_the_power_on_form_length():
 
 
 def test_proportional_tabs_and_backspace_use_pica_columns():
-    assert dots(ESC + b"p\x01" + ESC + b"D\x02\x00\tA") == [(LEFT + 2 * PICA + 36, 0)]
+    assert dots(ESC + b"p\x01" + ESC + b"D\x02\x00\tA")[0] == (LEFT + 2 * PICA + 36, 0)
 
 
 def test_margins_in_condensed_emphasized_use_pica_columns():

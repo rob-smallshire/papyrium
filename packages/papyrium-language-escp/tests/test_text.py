@@ -81,11 +81,16 @@ def test_underline_runs_along_the_bottom_pin_for_the_whole_cell():
 
 
 def test_superscript_and_subscript_compress_rows_to_half_pitch():
+    # Each script dot is struck twice, the second 1/216 inch lower.
     assert dots(ESC + b"S0B" + ESC + b"S1B" + ESC + b"TB") == [
         (LEFT + 36, 0),
+        (LEFT + 36, 20),
         (LEFT + 108, 180),
+        (LEFT + 108, 200),
         (LEFT + PICA + 36, 240),
+        (LEFT + PICA + 36, 260),
         (LEFT + PICA + 108, 420),
+        (LEFT + PICA + 108, 440),
         (LEFT + 2 * PICA + 36, 0),
         (LEFT + 2 * PICA + 108, 360),
     ]
@@ -93,7 +98,7 @@ def test_superscript_and_subscript_compress_rows_to_half_pitch():
 
 def test_proportional_width_follows_the_glyph():
     # A's only dot is in column 1: one column wide plus two of spacing.
-    assert dots(ESC + b"p\x01AA") == [(LEFT + 36, 0), (LEFT + 3 * 36 + 36, 0)]
+    assert dots(ESC + b"p\x01AA")[::2] == [(LEFT + 36, 0), (LEFT + 3 * 36 + 36, 0)]
 
 
 def test_master_select_sets_every_style_at_once():
@@ -104,6 +109,35 @@ def test_master_select_sets_every_style_at_once():
         (LEFT + 108, 0),
         (LEFT + 144, 0),
     ]
+
+
+def test_master_select_leaves_italic_underline_and_proportional_alone():
+    italic = dots(ESC + b"4" + ESC + b"!\x00A")
+    assert italic == [(LEFT + 36 + 108, 0)]
+    assert dots(ESC + b"!\xc2A") == [(LEFT + 36, 0)]
+
+
+def test_elite_masks_emphasized_and_proportional():
+    assert dots(ESC + b"M" + ESC + b"E" + ESC + b"p\x01AA") == [
+        (LEFT + 30, 0),
+        (LEFT + 360 + 30, 0),
+    ]
+
+
+def test_masked_modes_return_when_the_masking_mode_ends():
+    assert dots(ESC + b"M\x0f" + ESC + b"PA") == [(LEFT + 21, 0)]
+
+
+def test_proportional_characters_print_emphasized():
+    assert dots(ESC + b"p\x01A") == [(LEFT + 36, 0), (LEFT + 54, 0)]
+
+
+def test_script_prints_double_strike():
+    assert dots(ESC + b"S0A") == [(LEFT + 36, 0), (LEFT + 36, 20)]
+
+
+def test_esc_w_0_also_ends_one_line_double_width():
+    assert dots(b"\x0e" + ESC + b"W\x00A") == [(LEFT + 36, 0)]
 
 
 def test_uk_character_set_prints_pound_for_hash():

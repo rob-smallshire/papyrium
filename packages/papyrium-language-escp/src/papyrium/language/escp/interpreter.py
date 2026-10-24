@@ -70,6 +70,9 @@ GRAPHICS_STEP = {
     6: inches(1) // 90,
 }
 
+#: Densities that move the head too fast to fire a pin in two adjacent columns.
+HIGH_SPEED_MODES = frozenset({2, 3})
+
 #: The baseline row of the character matrix, about which italics lean.
 BASELINE_ROW = 6
 
@@ -281,7 +284,7 @@ class EscpInterpreter(Interpreter):
             if self._user_set_selected and code in self._user_glyphs
             else (self._character_set, code)
         )
-        if self._proportional:
+        if self._is_proportional():
             glyph = self._glyph(code)
             if glyph.leftmost is None:
                 columns, offset = PROPORTIONAL_SPACE_COLUMNS, 0
@@ -290,13 +293,7 @@ class EscpInterpreter(Interpreter):
                 offset = 1 - glyph.leftmost
             step = PROPORTIONAL_STEP * double
             return columns * step, step, offset, glyph_source
-        if self._elite:
-            width = ELITE_WIDTH
-        elif self._condensed and not self._emphasized:
-            width = CONDENSED_WIDTH
-        else:
-            width = PICA_WIDTH
-        width *= double
+        width = self._column_width() * double
         return width, width // CELL_COLUMNS, 0, glyph_source
 
     def _character_dots(
@@ -309,8 +306,8 @@ class EscpInterpreter(Interpreter):
             offset,
             italic,
             self._script,
-            self._emphasized,
-            self._double_strike,
+            self._is_emphasized(),
+            self._is_double_strike(),
         )
         dots = self._glyph_cache.get(key)
         if dots is None:
@@ -337,11 +334,25 @@ class EscpInterpreter(Interpreter):
             if self._is_double_width():
                 # Enlarged characters strike every dot twice, side by side.
                 passes.append((dx + step // 2, dy))
-            if self._emphasized:
+            if self._is_emphasized():
                 passes.extend([(x + step // 2, y) for x, y in passes])
-            if self._double_strike:
+            if self._is_double_strike():
                 passes.extend([(x, y + DOUBLE_STRIKE_OFFSET) for x, y in passes])
             yield from passes
+
+    # Each mode has its own switch; a mode of higher priority masks a lower
+    # one without cancelling it: elite, proportional, emphasized, condensed.
+
+    def _is_proportional(self) -> bool:
+        return self._proportional and not self._elite
+
+    def _is_emphasized(self) -> bool:
+        """Proportional characters always print emphasized."""
+        return not self._elite and (self._emphasized or self._proportional)
+
+    def _is_double_strike(self) -> bool:
+        """Super- and subscript always print double-strike."""
+        return self._double_strike or self._script is not None
 
     def _is_double_width(self) -> bool:
         return self._double_width or self._one_line_double_width
@@ -363,10 +374,14 @@ class EscpInterpreter(Interpreter):
         pin_pitch = self._mechanism.pin_pitch
         self._print_line()
         entry = _Entry(self._x)
+        fired = 0
         for index, pattern in enumerate(columns):
             x = self._x + index * step
             if x >= self._right_limit(text=False):
                 break
+            if mode in HIGH_SPEED_MODES:
+                pattern &= ~fired
+            fired = pattern
             pins = 9 if nine_pin else 8
             for pin in range(pins):
                 if pattern & (1 << (pins - 1 - pin)):
@@ -563,15 +578,13 @@ class EscpInterpreter(Interpreter):
         return value in (1, ord("1"))
 
     def _esc_master_select(self) -> ArgumentReader:
+        """Pitch, weight and width only; italic, underline and the rest are untouched."""
         n = yield
         self._elite = bool(n & 0x01)
-        self._proportional = bool(n & 0x02)
         self._condensed = bool(n & 0x04)
         self._emphasized = bool(n & 0x08)
         self._double_strike = bool(n & 0x10)
         self._double_width = bool(n & 0x20)
-        self._italic = bool(n & 0x40)
-        self._underline = bool(n & 0x80)
 
     def _esc_select_user_set(self) -> ArgumentReader:
         n = yield
@@ -711,15 +724,16 @@ class EscpInterpreter(Interpreter):
             logger.debug("ignoring a skip-over-perforation as long as the form")
 
     def _column_width(self) -> int:
+        """The fixed pitch, pica for proportional text."""
         if self._elite:
             return ELITE_WIDTH
-        if self._condensed and not self._emphasized:
+        if self._condensed and not self._is_emphasized():
             return CONDENSED_WIDTH
         return PICA_WIDTH
 
     def _tab_unit(self) -> int:
         """The column width tabs and backspace count in: pica in proportional mode."""
-        if self._proportional:
+        if self._is_proportional():
             return PICA_WIDTH
         return self._character_layout(0x20)[0]
 
@@ -774,6 +788,8 @@ class EscpInterpreter(Interpreter):
 
     def _esc_double_width(self) -> ArgumentReader:
         self._double_width = self._flag((yield))
+        if not self._double_width:
+            self._one_line_double_width = False
 
     def _esc_proportional(self) -> ArgumentReader:
         self._proportional = self._flag((yield))
