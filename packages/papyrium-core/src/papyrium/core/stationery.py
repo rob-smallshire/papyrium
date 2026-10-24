@@ -4,8 +4,8 @@ Continuous fanfold paper has a half-inch tear-off strip down each side,
 punched with feed holes every half inch and perforated where it tears off,
 and a perforation across the top of each sheet. Listing paper is also
 printed: green-bar and blue-bar paper tint alternate half-inch bands, three
-lines at six lines per inch, and music-ruled paper rules every line of
-alternate bands.
+lines at six lines per inch, and music-ruled paper rules alternate bands
+between their lines.
 
 A stationery's features are plain shapes, rectangles and circles, so every
 output can draw them under the dots without knowing what they mean.
@@ -27,9 +27,14 @@ HOLE_PITCH = inches(1) // 2
 HOLE_DIAMETER = inches(5) // 32
 #: The height of each band of listing paper: three lines at six per inch.
 BAND_HEIGHT = inches(1) // 2
-#: Ruled lines on music-ruled paper: one per line, 1/144 inch thick.
+#: Ruled lines on music-ruled paper: one per line, 1/144 inch thick, each
+#: 1/36 inch above a line printed from the band's top, so in the gap
+#: between the descenders of one line and the capitals of the next.
 RULE_PITCH = inches(1) // 6
 RULE_THICKNESS = inches(1) // 144
+RULE_RAISE = inches(1) // 36
+#: The paper between the strips, or a whole cut sheet: 8.5 inches.
+PAPER_WIDTH = inches(17) // 2
 #: Perforations: short cuts with ties between.
 PERFORATION_CUT = inches(1) // 16
 PERFORATION_TIE = inches(1) // 32
@@ -81,6 +86,11 @@ class Stationery:
     band_colour: Colour | None = None
     ruled: bool = False
 
+    @property
+    def paper_width(self) -> int:
+        """The usual width of this stationery: 8.5 inches, plus any strips."""
+        return PAPER_WIDTH + (2 * STRIP_WIDTH if self.strips else 0)
+
     def features(self, width: int, height: int) -> tuple[Feature, ...]:
         """The shapes on a sheet *width* by *height* units, back to front."""
         features: list[Feature] = []
@@ -91,7 +101,7 @@ class Stationery:
                 if self.ruled:
                     features.extend(
                         Rectangle(left, y, right - left, RULE_THICKNESS, self.band_colour)
-                        for y in range(top, bottom + 1, RULE_PITCH)
+                        for y in range(top - RULE_RAISE, bottom - RULE_RAISE + 1, RULE_PITCH)
                         if y + RULE_THICKNESS <= height
                     )
                 else:
@@ -138,7 +148,7 @@ STATIONERY = {
         ),
         Stationery(
             "music-ruled",
-            "Listing paper with every line of alternate bands ruled in green",
+            "Listing paper with alternate bands ruled in green between the lines",
             strips=True,
             band_colour=GREEN_RULE,
             ruled=True,

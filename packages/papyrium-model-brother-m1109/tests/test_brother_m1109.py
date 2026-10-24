@@ -69,6 +69,16 @@ def test_paper_is_a_letter_cut_sheet_with_the_line_centred():
     assert mechanism.left_offset == 4320 // 4
 
 
+def test_fanfold_is_9_5_inches_wide_by_default():
+    mechanism = BrotherM1109(name="brother-m1109", stationery="green-bar").mechanism
+    assert mechanism.paper_width == 9 * 4320 + 2160
+    assert mechanism.left_offset == 3 * 4320 // 4
+
+
+def test_the_first_line_is_half_an_inch_below_the_top_of_the_sheet():
+    assert _mechanism().top_offset == 4320 // 2
+
+
 def test_mode_i_differs_from_the_fx80():
     mechanism = _mechanism()
     assert mechanism.character_sets == 12

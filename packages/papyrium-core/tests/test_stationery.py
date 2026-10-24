@@ -40,12 +40,19 @@ def test_green_bar_tints_alternate_half_inch_bands_between_the_strips():
     assert colour[1] > colour[0] and colour[1] > colour[2]
 
 
-def test_music_ruled_rules_every_line_of_alternate_bands():
+def test_music_ruled_rules_between_the_lines_of_alternate_bands():
     features = stationery_named("music-ruled").features(WIDTH, HEIGHT)
     rules = [f for f in features if isinstance(f, Rectangle) and f.width == WIDTH - 2 * HALF_INCH]
     line = inches(1) // 6
-    first_band = [rule.y for rule in rules if HALF_INCH <= rule.y <= 2 * HALF_INCH]
-    assert first_band == [HALF_INCH + n * line for n in range(4)]
+    # Lines printed from the band's top have a rule 1/36 inch above each,
+    # clear of the tops of their capitals, and one below the last.
+    first_band = [rule.y for rule in rules if 0 < rule.y <= 2 * HALF_INCH]
+    assert first_band == [HALF_INCH - inches(1) // 36 + n * line for n in range(4)]
+
+
+def test_paper_with_tear_off_strips_is_wider_by_the_strips():
+    assert stationery_named("sheet").paper_width == inches(8) + HALF_INCH
+    assert stationery_named("green-bar").paper_width == inches(9) + HALF_INCH
 
 
 def test_every_kind_is_listed():

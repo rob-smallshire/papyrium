@@ -35,14 +35,17 @@ so that the first line prints just below the perforation; the manual
 gives no exact distance.
 
 Papyrium models this with the FX-80's `top-offset` option, the distance
-from the perforation to the top of the first line, 0 by default.
+from the perforation to the top of the first line, 1/2 inch by default:
+three lines, so that on listing paper the first line falls in the first
+band and, on music-ruled paper, between its rules.
 
 ## Paper (T 23-24; R 327-328)
 
 The built-in pin feed takes continuous paper 9.5 to 10 inches wide. The
 standard 9.5-inch fanfold is 8.5-inch paper with a half-inch tear-off
 strip of feed holes at each side. Cut sheets are 7.25 to 8.5 inches
-wide, friction fed. Papyrium's default sheet is 9.5 by 11 inches, with
+wide, friction fed. Papyrium's default sheet is 9.5 by 11 inches (8.5 inches for the
+`sheet` stationery, which has no strips), with
 the 8-inch pica line centred across it (0.75 inch in from the edge); the
 manual gives no exact head position.
 

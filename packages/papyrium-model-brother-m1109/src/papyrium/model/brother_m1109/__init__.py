@@ -34,7 +34,8 @@ class BrotherM1109(PrinterModel):
     inches (11, switch 2-1; 12 with it off), skip-perforation (no, switch
     1-9), slashed-zero (no, switch 2-6 off), near-letter-quality (no,
     switch 1-10: power on in NLQ), paper-width in inches (8.5: a Letter cut
-    sheet), top-offset in inches (0), stationery (sheet: no tear-off strips;
+    sheet, or 9.5 for stationery with tear-off strips), top-offset in
+    inches (1/2), stationery (sheet: no tear-off strips;
     fanfold and the listing papers with the PF-50 pin feed unit), and font
     (m1109-draft, Brother's characters reconstructed from printed output),
     and nlq-font (m1109-nlq, its near letter quality characters, likewise).
@@ -51,8 +52,8 @@ class BrotherM1109(PrinterModel):
         skip_perforation: bool = False,
         slashed_zero: bool = False,
         near_letter_quality: bool = False,
-        paper_width: str = "8.5",
-        top_offset: str = "0",
+        paper_width: str | None = None,
+        top_offset: str = "1/2",
         stationery: str = "sheet",
         font: str = "m1109-draft",
         nlq_font: str = "m1109-nlq",

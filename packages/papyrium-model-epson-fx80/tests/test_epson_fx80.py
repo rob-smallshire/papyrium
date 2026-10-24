@@ -36,7 +36,7 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.auto_line_feed is False
     assert mechanism.character_set is CharacterSet.USA
     assert mechanism.sheet_length == 11 * 4320
-    assert mechanism.top_offset == 0
+    assert mechanism.top_offset == 4320 // 2
     assert mechanism.slashed_zero is False
     assert mechanism.stationery.name == "fanfold"
     assert mechanism.font.name == "draft-9"
@@ -50,6 +50,11 @@ def test_paper_is_standard_fanfold_with_its_tear_off_strips():
     assert mechanism.paper_width == 9 * 4320 + 2160
     # The 8-inch line is centred on the 8.5 inches between the strips.
     assert mechanism.left_offset == 3 * 4320 // 4
+
+
+def test_cut_sheets_are_8_5_inches_wide_by_default():
+    mechanism = EpsonFx80(name="m", stationery="sheet").mechanism
+    assert mechanism.paper_width == 8 * 4320 + 2160
 
 
 def test_the_line_is_centred_on_other_widths_of_paper():

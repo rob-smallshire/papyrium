@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import logging
 from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
 from papyrium.core.dotfont import DotFont, FileDotFont
 from papyrium.core.page import inches
-from papyrium.core.stationery import STATIONERY
+from papyrium.core.stationery import STATIONERY, STRIP_WIDTH
 from papyrium.exception import ConfigurationError, DataError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp.charsets import CharacterSet, parse_character_set
+
+logger = logging.getLogger(__name__)
 
 #: The head's reach on an 80-column printer: 8 inches.
 LINE_LENGTH = inches(8)
@@ -67,10 +70,13 @@ def nlq_font(name: str) -> DotFont:
 
 
 def paper_options(
-    *, paper_width: str, form_length: str, top_offset: str, stationery: str
+    *, paper_width: str | None, form_length: str, top_offset: str, stationery: str
 ) -> dict[str, Any]:
-    """EscpMechanism settings for the paper, with the 8-inch line centred across it."""
-    width = inches_option("paper-width", paper_width)
+    """EscpMechanism settings for the paper, with the 8-inch line centred across it.
+
+    Without a *paper_width*, the paper is as wide as the stationery usually
+    is: 8.5 inches, and 9.5 with tear-off strips.
+    """
     length = inches_option("form-length", form_length)
     top = inches_option("top-offset", top_offset)
     if not 0 <= top < length:
@@ -81,10 +87,19 @@ def paper_options(
         raise ConfigurationError(
             f"unknown stationery {stationery!r}; choose from {', '.join(STATIONERY)}"
         )
+    kind = STATIONERY[stationery]
+    width = kind.paper_width if paper_width is None else inches_option("paper-width", paper_width)
+    left_offset = max(0, (width - LINE_LENGTH) // 2)
+    if kind.strips and left_offset < STRIP_WIDTH:
+        logger.warning(
+            "the line runs onto the tear-off strips of %s paper %s inches wide",
+            stationery,
+            paper_width,
+        )
     return {
         "paper_width": width,
         "sheet_length": length,
-        "left_offset": max(0, (width - LINE_LENGTH) // 2),
+        "left_offset": left_offset,
         "top_offset": top,
-        "stationery": STATIONERY[stationery],
+        "stationery": kind,
     }
