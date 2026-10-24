@@ -77,7 +77,47 @@ def test_stationery_is_drawn_in_colour_under_the_dots(tmp_path):
         assert image.mode == "RGB"
         # The first green band runs from 1/2 to 1 inch down; the dot is in it.
         assert image.getpixel((200, 50)) == GREEN_BAND
-        assert image.getpixel((inches(4) * 72 // 4320, 54)) == (0, 0, 0)
+        # The dot, a pixel across centred on a pixel corner, darkens the band.
+        inked = image.getpixel((inches(4) * 72 // 4320, 54))
+        assert all(ink < band for ink, band in zip(inked, GREEN_BAND))
         assert image.getpixel((200, 20)) == (255, 255, 255)
         # A feed hole is centred 1/4 inch in from the edge.
         assert image.getpixel((18, 18)) == HOLE_COLOUR
+
+
+def _ink_area(image, ink=0, paper=255):
+    """The area covered by ink, in pixels, from how dark the image is."""
+    return sum((paper - value) * count for value, count in enumerate(image.histogram())) / (
+        paper - ink
+    )
+
+
+def test_a_small_dot_covers_the_area_of_its_circle(tmp_path):
+    # At 150 dpi a 1/72 inch dot is about 2 pixels across, too small to draw
+    # as whole pixels without it turning into a cross.
+    centre = (inches(1), inches(1) // 2)
+    page = _page((centre,), dot_diameter=inches(1) // 72)
+    with Image.open(_render(tmp_path, page, dpi=150, ink=0, paper=255)) as image:
+        radius = 150 / 72 / 2
+        assert abs(_ink_area(image) - 3.14159 * radius**2) < 0.15
+
+
+def test_a_small_dot_is_round_not_a_cross(tmp_path):
+    # At 144 dpi a unit is 1/30 pixel: this dot is 2 pixels across, centred
+    # on pixel (144, 72). Its diagonal neighbours are partly inked, less
+    # than those beside it.
+    centre = (inches(1) + 15, inches(1) // 2 + 15)
+    page = _page((centre,), dot_diameter=60)
+    with Image.open(_render(tmp_path, page, dpi=144, ink=0, paper=255)) as image:
+        cx, cy = 144, 72
+        across = image.getpixel((cx + 1, cy))
+        diagonal = image.getpixel((cx + 1, cy + 1))
+        assert diagonal < 255
+        assert across < diagonal
+
+
+def test_overlapping_dots_are_darker_where_they_overlap(tmp_path):
+    y = inches(1) // 2
+    page = _page(((inches(1), y), (inches(1) + 12, y)), dot_diameter=60)
+    with Image.open(_render(tmp_path, page, ink=0, paper=255)) as image:
+        assert image.getpixel((361, 180)) == 0

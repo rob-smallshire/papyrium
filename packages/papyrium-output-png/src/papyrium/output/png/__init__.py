@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+from functools import cache
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -13,6 +15,30 @@ from papyrium.core.stationery import Circle
 __version__ = "0.0.0"
 
 __all__ = ["PngOutput"]
+
+#: Dot centres are placed to 1/SUBPIXELS of a pixel.
+SUBPIXELS = 8
+#: Each pixel's coverage by a dot is measured on a SUPERSAMPLE-square grid.
+SUPERSAMPLE = 16
+
+
+@cache
+def _dot_stamp(diameter: float, x_eighths: int, y_eighths: int) -> tuple[Image.Image, int]:
+    """A mask of how much of each pixel a dot covers, and its margin.
+
+    The dot is *diameter* pixels across, centred *x_eighths* and
+    *y_eighths* of a pixel (in SUBPIXELS) right of and below the top-left
+    corner of the stamp's centre pixel, which is *margin* pixels in from
+    the stamp's top-left corner.
+    """
+    margin = math.ceil(diameter / 2) + 1
+    size = 2 * margin + 1
+    radius = diameter / 2 * SUPERSAMPLE
+    cx = (margin + x_eighths / SUBPIXELS) * SUPERSAMPLE
+    cy = (margin + y_eighths / SUBPIXELS) * SUPERSAMPLE
+    large = Image.new("L", (size * SUPERSAMPLE,) * 2, 0)
+    ImageDraw.Draw(large).ellipse((cx - radius, cy - radius, cx + radius, cy + radius), fill=255)
+    return large.reduce(SUPERSAMPLE), margin
 
 
 class _PngDocument(Document):
@@ -81,8 +107,12 @@ class PngOutput(Output):
                 draw.rectangle(
                     (x0, y0, max(x1, x0 + 1) - 1, max(y1, y0 + 1) - 1), fill=feature.colour
                 )
-        radius = page.dot_diameter * scale / 2
+        # Each dot is stamped with the share of each pixel it covers, so a dot
+        # only a pixel or two across stays round.
+        diameter = page.dot_diameter * scale
         for x, y in dict.fromkeys(page.dots):
-            cx, cy = x * scale, y * scale
-            draw.ellipse((cx - radius, cy - radius, cx + radius, cy + radius), fill=ink)
+            column, x_eighths = divmod(round(x * scale * SUBPIXELS), SUBPIXELS)
+            row, y_eighths = divmod(round(y * scale * SUBPIXELS), SUBPIXELS)
+            stamp, margin = _dot_stamp(diameter, x_eighths, y_eighths)
+            image.paste(ink, (column - margin, row - margin), mask=stamp)
         return image
