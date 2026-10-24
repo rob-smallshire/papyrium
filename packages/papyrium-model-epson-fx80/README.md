@@ -22,7 +22,7 @@ the printer's DIP switches and paper:
 | `software-select` | `no` | Obey DC1 and DC3; otherwise the printer is always selected |
 | `user-defined-characters` | `yes` | The RAM holds user-defined characters; `no` makes it a buffer and `ESC %` is ignored |
 | `paper-width` | `9.5`, or `8.5` for `sheet` | Paper width in inches, tear-off strips included; the line is centred on it |
-| `top-offset` | `1/2` | Inches from the perforation to the top of the first line, where the paper was wound before switching on |
+| `top-offset` | `19/36` | Inches from the perforation to the top of the first line, where the paper was wound before switching on |
 | `stationery` | `fanfold` | The paper: `fanfold` (plain, with tear-off strips), `sheet` (no strips), `green-bar`, `blue-bar`, `music-ruled` |
 | `font` | `draft-9` | The dot font standing in for the character ROM: an installed font's name, or the path of a dot font file |
 

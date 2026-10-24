@@ -35,9 +35,11 @@ so that the first line prints just below the perforation; the manual
 gives no exact distance.
 
 Papyrium models this with the FX-80's `top-offset` option, the distance
-from the perforation to the top of the first line, 1/2 inch by default:
-three lines, so that on listing paper the first line falls in the first
-band and, on music-ruled paper, between its rules.
+from the perforation to the top of the first line, 19/36 inch by default.
+Listing paper's first band starts half an inch down, and three lines of
+draft, capitals to descenders, are 32/72 inch deep, so 1/36 inch more
+centres each run of three lines in its half-inch band and puts
+music-ruled paper's rules in the gaps between lines.
 
 ## Paper (T 23-24; R 327-328)
 

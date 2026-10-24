@@ -75,8 +75,8 @@ def test_fanfold_is_9_5_inches_wide_by_default():
     assert mechanism.left_offset == 3 * 4320 // 4
 
 
-def test_the_first_line_is_half_an_inch_below_the_top_of_the_sheet():
-    assert _mechanism().top_offset == 4320 // 2
+def test_the_first_line_is_19_36_inch_below_the_top_of_the_sheet():
+    assert _mechanism().top_offset == 4320 * 19 // 36
 
 
 def test_mode_i_differs_from_the_fx80():
@@ -131,3 +131,16 @@ def test_options_from_strings():
 def test_bad_options_are_configuration_errors(options, message):
     with pytest.raises(ConfigurationError, match=message):
         BrotherM1109(name="brother-m1109", **options)
+
+
+def test_three_lines_sit_centred_in_the_first_band_of_listing_paper():
+    from papyrium.core.stationery import BAND_HEIGHT
+
+    model = BrotherM1109(name="brother-m1109", stationery="green-bar")
+    interpreter = model.create_interpreter()
+    (page,) = interpreter.feed(b"Hg\r\n" * 3 + b"\x0c")
+    radius = page.dot_diameter // 2
+    top = min(y for _, y in page.dots) - radius
+    bottom = max(y for _, y in page.dots) + radius
+    # The band runs from 1/2 to 1 inch; the ink has equal room above and below.
+    assert top - BAND_HEIGHT == 2 * BAND_HEIGHT - bottom

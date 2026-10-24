@@ -155,9 +155,9 @@ def test_a_band_edge_across_a_pixel_tints_it_by_the_share_covered(tmp_path):
 def test_a_rule_thinner_than_a_pixel_is_a_pale_line(tmp_path):
     from papyrium.core.stationery import GREEN_RULE
 
-    # At 72 dpi a 1/144 inch rule is half a pixel; the first starts 34 pixels down.
+    # At 72 dpi a 1/144 inch rule is half a pixel; the first starts 36 pixels down.
     with Image.open(_render(tmp_path, _stationery_page("music-ruled"), dpi=72)) as image:
-        assert _close(image.getpixel((200, 34)), _blend(GREEN_RULE, 0.5))
+        assert _close(image.getpixel((200, 36)), _blend(GREEN_RULE, 0.5))
 
 
 def test_a_feed_hole_has_a_soft_edge(tmp_path):

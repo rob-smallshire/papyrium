@@ -25,9 +25,9 @@ class EpsonFx80(PrinterModel):
     user-defined-characters (yes, switch 1-4 off), high-codes-printable
     (no: power on as if ESC 6 were sent), form-length in inches (11),
     paper-width in inches (9.5: standard fanfold, 8.5 inches between its
-    tear-off strips; 8.5 for a sheet), top-offset in inches (1/2: how far
-    below the perforation the operator wound the paper before switching
-    on),
+    tear-off strips; 8.5 for a sheet), top-offset in inches (19/36: how
+    far below the perforation the operator wound the paper before
+    switching on, centring lines in listing paper's bands),
     stationery (fanfold: plain, with tear-off strips; also sheet,
     green-bar, blue-bar and music-ruled), and font (draft-9), the dot font
     standing in for Epson's character ROM. The line is centred across the
@@ -49,7 +49,7 @@ class EpsonFx80(PrinterModel):
         software_select: bool = False,
         user_defined_characters: bool = True,
         paper_width: str | None = None,
-        top_offset: str = "1/2",
+        top_offset: str = "19/36",
         stationery: str = "fanfold",
         font: str = "draft-9",
         **kwargs,

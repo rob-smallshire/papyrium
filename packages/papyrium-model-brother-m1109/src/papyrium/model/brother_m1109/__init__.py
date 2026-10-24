@@ -35,7 +35,7 @@ class BrotherM1109(PrinterModel):
     1-9), slashed-zero (no, switch 2-6 off), near-letter-quality (no,
     switch 1-10: power on in NLQ), paper-width in inches (8.5: a Letter cut
     sheet, or 9.5 for stationery with tear-off strips), top-offset in
-    inches (1/2), stationery (sheet: no tear-off strips; fanfold and the
+    inches (19/36), stationery (sheet: no tear-off strips; fanfold and the
     listing papers with the PF-50 pin feed unit), font (m1109-draft,
     Brother's characters reconstructed from printed output) and nlq-font
     (m1109-nlq, its near letter quality characters, likewise). The line is
@@ -53,7 +53,7 @@ class BrotherM1109(PrinterModel):
         slashed_zero: bool = False,
         near_letter_quality: bool = False,
         paper_width: str | None = None,
-        top_offset: str = "1/2",
+        top_offset: str = "19/36",
         stationery: str = "sheet",
         font: str = "m1109-draft",
         nlq_font: str = "m1109-nlq",

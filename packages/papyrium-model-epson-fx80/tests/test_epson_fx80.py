@@ -36,7 +36,7 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.auto_line_feed is False
     assert mechanism.character_set is CharacterSet.USA
     assert mechanism.sheet_length == 11 * 4320
-    assert mechanism.top_offset == 4320 // 2
+    assert mechanism.top_offset == 4320 * 19 // 36
     assert mechanism.slashed_zero is False
     assert mechanism.stationery.name == "fanfold"
     assert mechanism.font.name == "draft-9"
@@ -120,3 +120,16 @@ def test_character_set_by_number():
 def test_bad_options_are_configuration_errors(options, message):
     with pytest.raises(ConfigurationError, match=message):
         EpsonFx80(name="epson-fx80", **options)
+
+
+def test_three_lines_sit_centred_in_the_first_band_of_listing_paper():
+    from papyrium.core.stationery import BAND_HEIGHT
+
+    model = EpsonFx80(name="epson-fx80", stationery="green-bar")
+    interpreter = model.create_interpreter()
+    (page,) = interpreter.feed(b"Hg\r\n" * 3 + b"\x0c")
+    radius = page.dot_diameter // 2
+    top = min(y for _, y in page.dots) - radius
+    bottom = max(y for _, y in page.dots) + radius
+    # The band runs from 1/2 to 1 inch; the ink has equal room above and below.
+    assert top - BAND_HEIGHT == 2 * BAND_HEIGHT - bottom

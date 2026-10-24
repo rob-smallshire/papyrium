@@ -19,7 +19,7 @@ model the printer's DIP switches and paper:
 | `slashed-zero` | `no` | Print zero with a slash (switch 2-6 off) |
 | `near-letter-quality` | `no` | Power on printing near letter quality (switch 1-10) |
 | `paper-width` | `8.5`, or `9.5` with tear-off strips | Paper width in inches; the line is centred on it |
-| `top-offset` | `1/2` | Inches from the top of the sheet to the top of the first line |
+| `top-offset` | `19/36` | Inches from the top of the sheet to the top of the first line |
 | `stationery` | `sheet` | The paper: `sheet` (a cut sheet), or with the PF-50 pin feed unit `fanfold`, `green-bar`, `blue-bar`, `music-ruled` |
 | `nlq-font` | `m1109-nlq` | The near letter quality characters: an 18 x 24 dot font's name or file |
 | `font` | `m1109-draft` | The dot font standing in for the character ROM: an installed font's name, or the path of a dot font file |
