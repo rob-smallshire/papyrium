@@ -4,7 +4,8 @@ The FX character ROM keeps 32 international characters at locations 0-31
 (and their italics at 128-159). An international set prints them in
 place of up to twelve ASCII characters: each national code points at one
 of those locations. The tables are the facts listed in Epson's FX-series
-manuals for ``ESC R n``.
+manuals for ``ESC R n``; Norway, Denmark II and England II (9-11) are the
+Brother M-1109's additions.
 """
 
 from __future__ import annotations
@@ -38,6 +39,9 @@ class CharacterSet(enum.IntEnum):
     ITALY = 6
     SPAIN = 7
     JAPAN = 8
+    NORWAY = 9
+    DENMARK_II = 10
+    UK_II = 11
 
 
 #: For each set, the ROM location each redefined national code prints.
@@ -54,6 +58,14 @@ _LOCATIONS: dict[CharacterSet, dict[int, int]] = {
     CharacterSet.ITALY: {91: 5, 93: 30, 96: 2, 123: 0, 124: 3, 125: 1, 126: 4},
     CharacterSet.SPAIN: {35: 12, 91: 7, 92: 9, 93: 8, 123: 22, 124: 10},
     CharacterSet.JAPAN: {92: 31},
+    CharacterSet.NORWAY: {
+        36: 11, 64: 29, 91: 18, 92: 20, 93: 13, 94: 25,
+        96: 30, 123: 19, 124: 21, 125: 14, 126: 28,
+    },
+    CharacterSet.DENMARK_II: {
+        64: 29, 91: 18, 92: 20, 93: 13, 94: 25, 96: 30, 123: 19, 124: 21, 125: 14, 126: 28,
+    },
+    CharacterSet.UK_II: {96: 6},
 }  # fmt: skip
 
 

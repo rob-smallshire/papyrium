@@ -11,6 +11,11 @@ from papyrium.core.stationery import Stationery
 from papyrium.language.escp.charsets import CharacterSet
 
 
+#: The codes the FX-80 always obeys as controls, even when ESC I makes the
+#: other low codes print: BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1-DC4, CAN, ESC.
+FX_CONTROLS = frozenset({7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 24, 27})
+
+
 @dataclass(frozen=True)
 class EscpMechanism:
     """A 9-pin ESC/P printer's character ROM, paper, head and switch settings.
@@ -63,5 +68,21 @@ class EscpMechanism:
     user_defined_characters: bool = True
     #: The dot row the underline prints on: 8 is the ninth pin, 9 one row below it.
     underline_row: int = 8
+    #: How many ESC R international sets the printer has: 9 (0-8) or 12 (0-11).
+    character_sets: int = 9
+    #: Low codes obeyed as controls even when ESC I makes the others print.
+    controls: frozenset[int] = FX_CONTROLS
+    #: Power on with vertical tab stops every other line; otherwise VT is LF.
+    default_vertical_tabs: bool = True
+    #: ESC C also clears the vertical tab stops.
+    form_length_clears_vertical_tabs: bool = False
+    #: CAN also ends SO's one-line enlarged mode.
+    cancel_ends_one_line_enlarged: bool = False
+    #: Condensed elite prints at 20 characters an inch; otherwise elite masks condensed.
+    condensed_elite: bool = False
+    #: The ESC * bit-image modes the printer has.
+    graphics_modes: frozenset[int] = frozenset(range(7))
+    #: ESC x selects near letter quality.
+    nlq: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None

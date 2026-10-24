@@ -40,7 +40,6 @@ NUL, BEL, BS, HT, LF, VT, FF, CR, SO, SI = 0, 7, 8, 9, 10, 11, 12, 13, 14, 15
 DC1, DC2, DC3, DC4, CAN, ESC, DEL = 17, 18, 19, 20, 24, 27, 127
 
 #: Codes below 32 that stay controls even when ESC I makes the others printable.
-PRINTER_CONTROLS = frozenset({BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1, DC2, DC3, DC4, CAN, ESC})
 
 #: Character widths, in units, for each pitch.
 PICA_WIDTH = inches(1) // 10
@@ -71,10 +70,14 @@ GRAPHICS_STEP = {
     4: inches(1) // 80,
     5: inches(1) // 72,
     6: inches(1) // 90,
+    7: inches(1) // 144,
 }
 
 #: Densities that move the head too fast to fire a pin in two adjacent columns.
-HIGH_SPEED_MODES = frozenset({2, 3})
+HIGH_SPEED_MODES = frozenset({2, 3, 7})
+
+#: Condensed elite, on printers that have it: 20 characters an inch.
+CONDENSED_ELITE_WIDTH = inches(1) // 20
 
 #: The font's name for the zero printed when the slashed-zero switch is on.
 SLASHED_ZERO = "0\u0338"
@@ -170,6 +173,7 @@ class EscpInterpreter(Interpreter):
         self._high_codes_printable = mechanism.high_codes_printable
         self._low_codes_printable = False
         self._immediate = False
+        self._nlq = False
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
@@ -178,9 +182,12 @@ class EscpInterpreter(Interpreter):
         self._tabs = self._default_tabs()
         # Eight stored channels of vertical tab stops; channel 0 is selected.
         two_lines = 2 * self._line_spacing
-        self._vertical_tab_channels: list[list[int]] = [
+        default_stops = (
             list(range(two_lines, self._form_length, two_lines))
-        ] + [[] for _ in range(7)]
+            if mechanism.default_vertical_tabs
+            else []
+        )
+        self._vertical_tab_channels: list[list[int]] = [default_stops] + [[] for _ in range(7)]
         self._vertical_tab_channel = 0
         self._vertical_tabs = self._vertical_tab_channels[0]
         self._skip_perforation = mechanism.skip_perforation_lines * self._line_spacing
@@ -213,7 +220,9 @@ class EscpInterpreter(Interpreter):
             return True
         if byte & 0x80:
             return self._high_codes_printable
-        return code != DEL and self._low_codes_printable and code not in PRINTER_CONTROLS
+        return (
+            code != DEL and self._low_codes_printable and code not in self._mechanism.controls
+        )
 
     def _control(self, code: int) -> ArgumentReader:
         if code == ESC:
@@ -244,6 +253,8 @@ class EscpInterpreter(Interpreter):
             self._selected = not self._mechanism.software_select
         elif code == CAN:
             self._cancel()
+            if self._mechanism.cancel_ends_one_line_enlarged:
+                self._one_line_double_width = False
         elif code == DEL:
             if self._line:
                 self._x = self._line.pop().x_before
@@ -416,8 +427,13 @@ class EscpInterpreter(Interpreter):
         return not self._elite and (self._emphasized or self._proportional)
 
     def _is_double_strike(self) -> bool:
-        """Super- and subscript always print double-strike."""
-        return self._double_strike or self._script is not None
+        """Super- and subscript always print double-strike, and so does NLQ.
+
+        Near letter quality strikes each character twice, 1/216 inch apart,
+        which is how the printer prints characters it has no NLQ form for;
+        Papyrium has no NLQ forms, so prints every character that way.
+        """
+        return self._double_strike or self._script is not None or self._nlq
 
     def _is_double_width(self) -> bool:
         return self._double_width or self._one_line_double_width
@@ -429,7 +445,7 @@ class EscpInterpreter(Interpreter):
     # -- Bit-image graphics -----------------------------------------------
 
     def _graphics(self, mode: int, columns: list[int], *, nine_pin: bool) -> None:
-        step = GRAPHICS_STEP.get(mode)
+        step = GRAPHICS_STEP.get(mode) if mode in self._mechanism.graphics_modes else None
         if step is None:
             logger.debug("ignoring graphics in unknown density %d", mode)
             return
@@ -578,7 +594,7 @@ class EscpInterpreter(Interpreter):
         def setter(attribute: str, value) -> Callable[[], None]:
             return lambda: setattr(self, attribute, value)
 
-        return {
+        table = {
             "\x0e": setter("_one_line_double_width", True),
             "\x0f": setter("_condensed", True),
             "!": self._esc_master_select,
@@ -636,6 +652,9 @@ class EscpInterpreter(Interpreter):
             "p": self._esc_proportional,
             "s": self._esc_skip_argument,
         }
+        if self._mechanism.nlq:
+            table["x"] = self._esc_nlq
+        return table
 
     @staticmethod
     def _flag(value: int) -> bool:
@@ -802,6 +821,9 @@ class EscpInterpreter(Interpreter):
             form_length = inches((yield))
         self._set_top_of_form()
         self._skip_perforation = 0
+        if self._mechanism.form_length_clears_vertical_tabs:
+            self._vertical_tab_channels = [[] for _ in range(8)]
+            self._vertical_tabs = self._vertical_tab_channels[self._vertical_tab_channel]
         if form_length:
             self._form_length = form_length
         else:
@@ -817,6 +839,8 @@ class EscpInterpreter(Interpreter):
     def _column_width(self) -> int:
         """The fixed pitch, pica for proportional text."""
         if self._elite:
+            if self._condensed and self._mechanism.condensed_elite:
+                return CONDENSED_ELITE_WIDTH
             return ELITE_WIDTH
         if self._condensed and not self._is_emphasized():
             return CONDENSED_WIDTH
@@ -868,10 +892,15 @@ class EscpInterpreter(Interpreter):
     def _esc_character_set(self) -> ArgumentReader:
         n = yield
         self._print_line()
+        previous = self._character_set
         try:
             self._character_set = CharacterSet(n)
         except ValueError:
             logger.debug("ignoring unknown international character set %d", n)
+            return
+        if n >= self._mechanism.character_sets:
+            logger.debug("ignoring international character set %d, which this printer lacks", n)
+            self._character_set = previous
 
     def _esc_script(self) -> ArgumentReader:
         n = yield
@@ -881,6 +910,9 @@ class EscpInterpreter(Interpreter):
         self._double_width = self._flag((yield))
         if not self._double_width:
             self._one_line_double_width = False
+
+    def _esc_nlq(self) -> ArgumentReader:
+        self._nlq = self._flag((yield))
 
     def _esc_proportional(self) -> ArgumentReader:
         self._proportional = self._flag((yield))
