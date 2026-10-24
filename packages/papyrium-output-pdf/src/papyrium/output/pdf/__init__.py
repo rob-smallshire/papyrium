@@ -154,8 +154,21 @@ class _PdfDocument(Document):
 
         catalog_number = add(b"")  # Filled in once the page tree number is known.
         pages_number = add(b"")
+        # Explicit metrics, because viewers size text selection boxes from the
+        # font's ascent and descent: these make a box cover the whole cell.
+        ascent = round(1000 * _BASELINE)
+        descriptor_number = add(
+            f"<< /Type /FontDescriptor /FontName /Courier /Flags 33 "
+            f"/FontBBox [0 {ascent - 1000} 600 {ascent}] /ItalicAngle 0 "
+            f"/Ascent {ascent} /Descent {ascent - 1000} /CapHeight {ascent} /StemV 80 >>".encode(
+                "ascii"
+            )
+        )
+        widths = " ".join(["600"] * 224)
         font_number = add(
-            b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>"
+            f"<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding "
+            f"/FirstChar 32 /LastChar 255 /Widths [{widths}] "
+            f"/FontDescriptor {descriptor_number} 0 R >>".encode("ascii")
         )
         page_numbers = []
         dot_numbers: dict[int, int] = {}

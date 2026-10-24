@@ -127,3 +127,14 @@ def test_dots_are_scaled_exactly_to_points(tmp_path):
     content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
     scale = content.splitlines()[1].split()[0]
     assert abs(float(scale) * 47520 - 792) < 1e-4
+
+
+def test_text_cells_are_as_tall_as_the_printed_cell(tmp_path):
+    # Viewers size selection boxes from the font's ascent and descent, which
+    # are set so that a box covers the whole cell, baseline at 7/9 of it.
+    (filepath,) = _write(tmp_path, [_text_page("HELLO")])
+    font = PdfReader(filepath).pages[0]["/Resources"]["/Font"]["/F1"].get_object()
+    descriptor = font["/FontDescriptor"].get_object()
+    assert (descriptor["/Ascent"], descriptor["/Descent"]) == (778, -222)
+    assert (font["/FirstChar"], font["/LastChar"]) == (32, 255)
+    assert set(font["/Widths"]) == {600}
