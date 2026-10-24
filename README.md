@@ -100,7 +100,7 @@ add to:
 | Transports deliver bytes | `raw-tcp` |
 | Languages interpret them | `escp` |
 | Printer models are what the user chooses | `epson-fx80`, `brother-m1109` |
-| Fonts stand in for character ROMs | `draft-9`, an original 9-pin design |
+| Fonts stand in for character ROMs | `draft-9`, an original 9-pin design; `m1109-draft`, the Brother M-1109's, reconstructed from its printed output |
 | Outputs write pages | `png`, `pdf` |
 
 The packages live under `packages/`:
@@ -113,6 +113,7 @@ The packages live under `packages/`:
 | `papyrium-transport-raw-tcp` | Port 9100 raw TCP |
 | `papyrium-language-escp` | An incremental ESC/P interpreter for 9-pin printers |
 | `papyrium-font-draft-9` | The draft-9 dot font |
+| `papyrium-font-m1109-draft` | The Brother M-1109's draft characters |
 | `papyrium-model-epson-fx80` | The Epson FX-80 |
 | `papyrium-model-brother-m1109` | The Brother M-1109, in its FX-80 compatible Mode I |
 | `papyrium-output-png` | PNG pages |

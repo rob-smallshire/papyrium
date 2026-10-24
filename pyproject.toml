@@ -15,6 +15,7 @@ papyrium-model-epson-fx80 = { workspace = true }
 papyrium-model-brother-m1109 = { workspace = true }
 papyrium-language-escp = { workspace = true }
 papyrium-font-draft-9 = { workspace = true }
+papyrium-font-m1109-draft = { workspace = true }
 papyrium-output-png = { workspace = true }
 papyrium-cli = { workspace = true }
 papyrium-transport-raw-tcp = { workspace = true }
@@ -33,6 +34,7 @@ workspace = [
     "papyrium-cli",
     "papyrium-output-png",
     "papyrium-font-draft-9",
+    "papyrium-font-m1109-draft",
     "papyrium-language-escp",
     "papyrium-model-epson-fx80",
     "papyrium-model-brother-m1109",
@@ -64,6 +66,7 @@ testpaths = [
     "packages/papyrium-cli/tests",
     "packages/papyrium-output-png/tests",
     "packages/papyrium-font-draft-9/tests",
+    "packages/papyrium-font-m1109-draft/tests",
     "packages/papyrium-language-escp/tests",
     "packages/papyrium-model-epson-fx80/tests",
     "packages/papyrium-model-brother-m1109/tests",

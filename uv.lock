@@ -9,6 +9,7 @@ members = [
     "papyrium-exception",
     "papyrium-extension",
     "papyrium-font-draft-9",
+    "papyrium-font-m1109-draft",
     "papyrium-language-escp",
     "papyrium-model-brother-m1109",
     "papyrium-model-epson-fx80",
@@ -30,6 +31,7 @@ workspace = [
     { name = "papyrium-exception", editable = "packages/papyrium-exception" },
     { name = "papyrium-extension", editable = "packages/papyrium-extension" },
     { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
+    { name = "papyrium-font-m1109-draft", editable = "packages/papyrium-font-m1109-draft" },
     { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
     { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
     { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
@@ -208,6 +210,16 @@ dependencies = [
 requires-dist = [{ name = "papyrium-core", editable = "packages/papyrium-core" }]
 
 [[package]]
+name = "papyrium-font-m1109-draft"
+source = { editable = "packages/papyrium-font-m1109-draft" }
+dependencies = [
+    { name = "papyrium-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "papyrium-core", editable = "packages/papyrium-core" }]
+
+[[package]]
 name = "papyrium-language-escp"
 source = { editable = "packages/papyrium-language-escp" }
 dependencies = [
@@ -229,7 +241,7 @@ source = { editable = "packages/papyrium-model-brother-m1109" }
 dependencies = [
     { name = "papyrium-core" },
     { name = "papyrium-extension" },
-    { name = "papyrium-font-draft-9" },
+    { name = "papyrium-font-m1109-draft" },
     { name = "papyrium-language-escp" },
 ]
 
@@ -237,7 +249,7 @@ dependencies = [
 requires-dist = [
     { name = "papyrium-core", editable = "packages/papyrium-core" },
     { name = "papyrium-extension", editable = "packages/papyrium-extension" },
-    { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
+    { name = "papyrium-font-m1109-draft", editable = "packages/papyrium-font-m1109-draft" },
     { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
 ]
 

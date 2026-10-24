@@ -130,10 +130,9 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   where two threads genuinely share state.
 - **No backward compatibility** before 1.0; change the API freely.
 - **Never silently discard a failure**; log why.
-- **No copyrighted material**: no printer ROMs (Epson's character ROM
-  included), commercial software or its output. Test captures come from
-  BASIC programs this project writes itself. Fonts are self-designed or
-  permissively licensed, kept as swappable data.
+- **No copyrighted material**: no ROM images or dumps, commercial software
+  or its output, and no manuals. Test captures come from BASIC programs
+  this project writes itself. Fonts are kept as swappable data.
 - **Own implementations, others as oracles.** Papyrium's languages are
   implemented from public documentation (printer manuals, specifications),
   not from other implementations' source. Existing interpreters (EscaPy,
@@ -144,7 +143,10 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
 - Ghostscript, if used for a PostScript model, runs as a subprocess the
   user installs; never link `libgs`. Any plug-in that imports AGPL code is
   a separately distributed package and needs Rob's licence decision.
-- Fonts (dot fonts, and outline fonts for daisywheel print wheels) must
-  be our own design or carry a licence that permits redistribution.
+- Fonts (dot fonts, and outline fonts for daisywheel print wheels) are
+  our own design, carry a licence that permits redistribution, or are
+  reconstructions of a printer's characters from its printed output, as
+  `m1109-draft` is from the M-1109 manual's pages (`tools/m1109-glyphs/`).
+  A reconstruction never comes from reading a ROM.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask
   beebium-architect about Beebium's behaviour.
