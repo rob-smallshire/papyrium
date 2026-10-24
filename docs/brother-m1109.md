@@ -462,6 +462,9 @@ accented letters (C cedilla to f hook), and 3-6 print the card suits and
   count is unclear, as is how it relates to the 11-column download grid.
 - NLQ is described as 18 x 20 dots in a 3.1 x 2.0 mm frame; the
   horizontal resolution this implies does not fit 1/120 inch half dots.
+  Papyrium reads it as the nine pins in two passes 1/216 inch apart (18
+  rows) on a 1/240 inch grid (20 dots in 2.0 mm is close to 1/240 inch);
+  the sample on page 74 fits that grid within 24 columns of the pica cell.
 - The mixing notes (104, 105) list "Double-Strike > Script", but `ESC !`
   (68), `ESC G` (60) and `ESC S` (71) all say script beats double-strike.
 - Condensed pica: 136 per line (127) or 137 (55, 52)?
