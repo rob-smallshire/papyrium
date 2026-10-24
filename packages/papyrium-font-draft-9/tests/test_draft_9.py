@@ -65,6 +65,11 @@ def test_capitals_sit_on_row_6_and_descenders_reach_row_8():
     assert max(row for _, row in font.glyph("g").dots) == 8
 
 
+def test_zero_is_plain_like_the_fx80s():
+    dots = Draft9Font(name="draft-9").glyph("0").dots
+    assert not [(column, row) for column, row in dots if 3 <= column <= 7 and 1 <= row <= 5]
+
+
 def test_has_a_slashed_zero():
     font = Draft9Font(name="draft-9")
     slashed = font.glyph("0\u0338")
