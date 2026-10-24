@@ -112,6 +112,11 @@ class EscpInterpreter(Interpreter):
     def feed(self, data: bytes) -> list[Page]:
         send = self._machine.send
         for byte in data:
+            # ESC = and ESC > force bit 7 of every byte received, arguments included.
+            if self._msb == 0:
+                byte &= 0x7F
+            elif self._msb == 1:
+                byte |= 0x80
             send(byte)
         return self._take_completed()
 
@@ -230,10 +235,6 @@ class EscpInterpreter(Interpreter):
     # -- Characters -------------------------------------------------------
 
     def _character(self, byte: int) -> None:
-        if self._msb == 0:
-            byte &= 0x7F
-        elif self._msb == 1:
-            byte |= 0x80
         italic = self._italic or byte >= 0x80
         code = byte & 0x7F
         if code < 0x20:

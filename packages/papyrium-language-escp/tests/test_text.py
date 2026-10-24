@@ -198,3 +198,16 @@ def test_copy_rom_discards_user_definitions():
 
 def test_missing_glyph_prints_nothing_but_advances():
     assert dots(b"zA") == [(LEFT + PICA + 36, 0)]
+
+
+def test_msb_control_applies_to_every_byte_received():
+    # With bit 7 forced on, CR arrives as 141, still a carriage return.
+    assert dots(ESC + b">A\rB" + ESC + b"#") == [
+        (LEFT + 144, 0),
+        (LEFT + 144, 0),
+        (LEFT + 108, 360),
+    ]
+
+
+def test_msb_zero_keeps_graphics_off_the_top_pin():
+    assert run(ESC + b"=" + ESC + b"K\x01\x00\x80") == []
