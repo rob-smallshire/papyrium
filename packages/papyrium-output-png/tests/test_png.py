@@ -60,3 +60,24 @@ def test_blank_page_is_all_paper(tmp_path):
 def test_no_temporary_files_are_left_behind(tmp_path):
     _render(tmp_path, _page(()))
     assert [path.name for path in tmp_path.iterdir()] == ["page-0001.png"]
+
+
+def test_stationery_is_drawn_in_colour_under_the_dots(tmp_path):
+    from papyrium.core.stationery import GREEN_BAND, HOLE_COLOUR, stationery_named
+
+    page = Page(
+        number=1,
+        width=inches(9) + inches(1) // 2,
+        height=inches(2),
+        dot_diameter=60,
+        dots=((inches(4), inches(3) // 4),),
+        stationery=stationery_named("green-bar"),
+    )
+    with Image.open(_render(tmp_path, page, dpi=72, ink=0, paper=255)) as image:
+        assert image.mode == "RGB"
+        # The first green band runs from 1/2 to 1 inch down; the dot is in it.
+        assert image.getpixel((200, 50)) == GREEN_BAND
+        assert image.getpixel((inches(4) * 72 // 4320, 54)) == (0, 0, 0)
+        assert image.getpixel((200, 20)) == (255, 255, 255)
+        # A feed hole is centred 1/4 inch in from the edge.
+        assert image.getpixel((18, 18)) == HOLE_COLOUR

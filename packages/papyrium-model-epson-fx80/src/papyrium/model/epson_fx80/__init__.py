@@ -7,6 +7,7 @@ from fractions import Fraction
 from papyrium.core.dotfont import DotFont
 from papyrium.core.model import Interpreter, PrinterModel
 from papyrium.core.page import inches
+from papyrium.core.stationery import STATIONERY
 from papyrium.exception import ConfigurationError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, parse_character_set
@@ -41,7 +42,8 @@ class EpsonFx80(PrinterModel):
     form-length in inches (11), paper-width in inches (9.5: standard
     fanfold, 8.5 inches between its tear-off strips), top-offset in inches
     (0: how far below the perforation the operator wound the paper before
-    switching on), and font (draft-9), the dot font standing in for
+    switching on), stationery (fanfold: plain, with tear-off strips; also
+    sheet, green-bar, blue-bar and music-ruled), and font (draft-9), the dot font standing in for
     Epson's character ROM. The line is centred across the paper.
     """
 
@@ -61,6 +63,7 @@ class EpsonFx80(PrinterModel):
         user_defined_characters: bool = True,
         paper_width: str = "9.5",
         top_offset: str = "0",
+        stationery: str = "fanfold",
         font: str = "draft-9",
         **kwargs,
     ) -> None:
@@ -79,12 +82,17 @@ class EpsonFx80(PrinterModel):
             raise ConfigurationError(
                 f"top-offset must be at least 0 and less than the form length, not {top_offset!r}"
             )
+        if stationery not in STATIONERY:
+            raise ConfigurationError(
+                f"unknown stationery {stationery!r}; choose from {', '.join(STATIONERY)}"
+            )
         self._mechanism = EscpMechanism(
             font=dot_font,
             paper_width=width,
             sheet_length=length,
             left_offset=max(0, (width - _LINE_LENGTH) // 2),
             top_offset=top,
+            stationery=STATIONERY[stationery],
             columns=80,
             auto_line_feed=auto_line_feed,
             character_set=charset,

@@ -17,6 +17,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from fractions import Fraction
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from papyrium.core.stationery import Stationery
 
 #: Page units per inch.
 UNITS_PER_INCH = 4320
@@ -62,6 +66,8 @@ class Page:
     *number* counts pages within a job from 1. *dots* are the centres of the
     dots struck, in the order they were struck, each *dot_diameter* units
     across. *text* records the characters printed, in printing order.
+    *stationery* is the kind of paper, which outputs draw under the marks;
+    None for a blank sheet.
     """
 
     number: int
@@ -70,6 +76,7 @@ class Page:
     dot_diameter: int
     dots: tuple[Dot, ...] = ()
     text: tuple[TextMark, ...] = ()
+    stationery: Stationery | None = None
 
     @property
     def width_inches(self) -> Fraction:

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from papyrium.core.output import Document, Output
 from papyrium.core.page import UNITS_PER_INCH, Page, TextMark
+from papyrium.core.stationery import Circle
 
 __version__ = "0.0.0"
 
@@ -68,6 +69,43 @@ def _number(value: Fraction | float) -> str:
     return f"{float(value):.4f}".rstrip("0").rstrip(".")
 
 
+def _circle_path(x: int, y: int, diameter: int) -> list[str]:
+    """A circle about (*x*, *y*) as four Bezier curves."""
+    r = Fraction(diameter, 2)
+    k = r * _KAPPA
+    curves = [
+        (r, k, k, r, 0, r),
+        (-k, r, -r, k, -r, 0),
+        (-r, -k, -k, -r, 0, -r),
+        (k, -r, r, -k, r, 0),
+    ]
+    return [f"{_number(x + r)} {_number(y)} m"] + [
+        " ".join(
+            _number(x + dx1) + " " + _number(y + dy1) for dx1, dy1 in zip(curve[::2], curve[1::2])
+        )
+        + " c"
+        for curve in curves
+    ]
+
+
+def _stationery_content(page: Page) -> list[str]:
+    """Fill each of the stationery's features in its colour, in page units."""
+    if page.stationery is None:
+        return []
+    lines = []
+    colour = None
+    for feature in page.stationery.features(page.width, page.height):
+        if feature.colour != colour:
+            colour = feature.colour
+            lines.append(" ".join(_number(Fraction(c, 255)) for c in colour) + " rg")
+        if isinstance(feature, Circle):
+            lines += _circle_path(feature.x, feature.y, feature.diameter)
+        else:
+            lines.append(f"{feature.x} {feature.y} {feature.width} {feature.height} re")
+        lines.append("f")
+    return lines
+
+
 class _PdfDocument(Document):
     def __init__(self, filepath: Path, ink: float, text: bool) -> None:
         self._filepath = filepath
@@ -80,17 +118,8 @@ class _PdfDocument(Document):
 
     @staticmethod
     def _dot_drawing(diameter: int) -> bytes:
-        """A filled circle about the origin, in page units, built from four Beziers."""
-        r = Fraction(diameter, 2)
-        k = r * _KAPPA
-        points = [
-            (r, k, k, r, 0, r),
-            (-k, r, -r, k, -r, 0),
-            (-r, -k, -k, -r, 0, -r),
-            (k, -r, r, -k, r, 0),
-        ]
-        curves = [" ".join(_number(value) for value in curve) + " c" for curve in points]
-        return "\n".join([f"{_number(r)} 0 m", *curves, "f", ""]).encode("ascii")
+        """A filled circle about the origin, in page units."""
+        return "\n".join([*_circle_path(0, 0, diameter), "f", ""]).encode("ascii")
 
     def _content(self, page: Page) -> bytes:
         height_points = Fraction(page.height, _UNITS_PER_POINT)
@@ -100,6 +129,7 @@ class _PdfDocument(Document):
         lines += [
             "q",
             f"{scale} 0 0 -{scale} 0 {_number(height_points)} cm",
+            *_stationery_content(page),
             f"{_number(Fraction(self._ink))} g",
         ]
         # Each dot places the form /D, a filled circle. Some renderers drop

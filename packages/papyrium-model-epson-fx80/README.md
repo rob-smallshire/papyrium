@@ -22,4 +22,5 @@ the printer's DIP switches and paper:
 | `user-defined-characters` | `yes` | The RAM holds user-defined characters; `no` makes it a buffer and `ESC %` is ignored |
 | `paper-width` | `9.5` | Paper width in inches, tear-off strips included; the line is centred on it |
 | `top-offset` | `0` | Inches from the perforation to the top of the first line, where the paper was wound before switching on |
+| `stationery` | `fanfold` | The paper: `fanfold` (plain, with tear-off strips), `sheet` (no strips), `green-bar`, `blue-bar`, `music-ruled` |
 | `font` | `draft-9` | The dot font standing in for the character ROM |

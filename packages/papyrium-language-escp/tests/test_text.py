@@ -321,3 +321,10 @@ def test_the_slashed_zero_switch_prints_the_slashed_variant():
 def test_the_slashed_zero_is_still_text_zero():
     (page,) = run(b"0", slashed_zero=True)
     assert [mark.character for mark in page.text] == ["0"]
+
+
+def test_pages_carry_the_mechanisms_stationery():
+    from papyrium.core.stationery import stationery_named
+
+    (page,) = run(b"A", stationery=stationery_named("music-ruled"))
+    assert page.stationery.name == "music-ruled"

@@ -7,6 +7,7 @@ from fractions import Fraction
 
 from papyrium.core.dotfont import DotFont
 from papyrium.core.page import inches
+from papyrium.core.stationery import Stationery
 from papyrium.language.escp.charsets import CharacterSet
 
 
@@ -27,6 +28,8 @@ class EscpMechanism:
     #: Length of each fanfold sheet, perforation to perforation, which is also
     #: the power-on form length.
     sheet_length: int = inches(11)
+    #: The kind of paper; None for a blank sheet.
+    stationery: Stationery | None = None
     #: From the paper's left edge to the leftmost print position.
     left_offset: int = inches(Fraction(1, 4))
     #: From the top of the sheet to the top of the first line at power-on:

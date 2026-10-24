@@ -549,6 +549,7 @@ class EscpInterpreter(Interpreter):
                 width=mechanism.paper_width,
                 height=mechanism.sheet_length,
                 dot_diameter=mechanism.dot_diameter,
+                stationery=mechanism.stationery,
                 dots=tuple(
                     (left + x, y - top)
                     for x, y in on_page

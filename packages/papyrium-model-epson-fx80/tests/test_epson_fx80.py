@@ -38,6 +38,7 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.sheet_length == 11 * 4320
     assert mechanism.top_offset == 0
     assert mechanism.slashed_zero is False
+    assert mechanism.stationery.name == "fanfold"
     assert mechanism.font.name == "draft-9"
     assert mechanism.software_select is False
     assert mechanism.emphasized is False
@@ -75,6 +76,7 @@ def test_options_from_strings():
             "paper-width": "10",
             "top-offset": "0.25",
             "slashed-zero": "yes",
+            "stationery": "music-ruled",
             "software-select": "yes",
             "emphasized": "yes",
             "user-defined-characters": "no",
@@ -88,6 +90,7 @@ def test_options_from_strings():
     assert mechanism.paper_width == 10 * 4320
     assert mechanism.top_offset == 4320 // 4
     assert mechanism.slashed_zero is True
+    assert mechanism.stationery.name == "music-ruled"
     assert model.config["character-set"] == "uk"
     assert mechanism.software_select is True
     assert mechanism.emphasized is True
@@ -105,6 +108,7 @@ def test_character_set_by_number():
         ({"form_length": "eleven"}, "form-length"),
         ({"font": "no-such-font"}, "no-such-font"),
         ({"top_offset": "-1"}, "top-offset"),
+        ({"stationery": "papyrus"}, "papyrus"),
         ({"top_offset": "11"}, "top-offset"),
     ],
 )

@@ -42,7 +42,8 @@ def test_capture_prints_the_golden_pages(capture_filepath):
     for image, golden_filepath in zip(images, golden_filepaths):
         with Image.open(golden_filepath) as golden:
             assert image.size == golden.size, golden_filepath.name
-            assert image.tobytes() == golden.convert("L").tobytes(), golden_filepath.name
+            assert image.mode == golden.mode, golden_filepath.name
+            assert image.tobytes() == golden.tobytes(), golden_filepath.name
 
 
 def test_there_are_golden_captures():

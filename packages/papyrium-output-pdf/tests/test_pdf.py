@@ -138,3 +138,20 @@ def test_text_cells_are_as_tall_as_the_printed_cell(tmp_path):
     assert (descriptor["/Ascent"], descriptor["/Descent"]) == (778, -222)
     assert (font["/FirstChar"], font["/LastChar"]) == (32, 255)
     assert set(font["/Widths"]) == {600}
+
+
+def test_stationery_is_drawn_under_the_dots(tmp_path):
+    from papyrium.core.stationery import stationery_named
+
+    page = Page(
+        number=1,
+        width=inches(9) + inches(1) // 2,
+        height=inches(11),
+        dot_diameter=60,
+        dots=((inches(4), inches(1)),),
+        stationery=stationery_named("green-bar"),
+    )
+    (filepath,) = _write(tmp_path, [page])
+    content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
+    band = content.index("2160 2160 36720 2160 re")
+    assert content.index(" rg", band - 40) < band < content.index("/D Do")
