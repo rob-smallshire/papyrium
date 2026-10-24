@@ -147,7 +147,13 @@ class EscpInterpreter(Interpreter):
         # None until ESC Q sets one: the power-on margin depends on the pitch.
         self._right_margin: int | None = None
         self._tabs = self._default_tabs()
-        self._vertical_tabs: list[int] = []
+        # Eight stored channels of vertical tab stops; channel 0 is selected.
+        two_lines = 2 * self._line_spacing
+        self._vertical_tab_channels: list[list[int]] = [
+            list(range(two_lines, self._form_length, two_lines))
+        ] + [[] for _ in range(7)]
+        self._vertical_tab_channel = 0
+        self._vertical_tabs = self._vertical_tab_channels[0]
         self._skip_perforation = mechanism.skip_perforation_lines * self._line_spacing
         self._graphics_modes = {"K": 0, "L": 1, "Y": 2, "Z": 3}
         self._user_glyphs: dict[int, Glyph] = {}
@@ -512,7 +518,7 @@ class EscpInterpreter(Interpreter):
             "^": self._esc_nine_pin_graphics,
             "?": self._esc_reassign_graphics,
             "-": self._esc_underline,
-            "/": self._esc_skip_argument,
+            "/": self._esc_select_vertical_tab_channel,
             "0": setter("_line_spacing", inches(1) // 8),
             "1": setter("_line_spacing", inches(7) // 72),
             "2": setter("_line_spacing", inches(1) // 6),
@@ -545,7 +551,7 @@ class EscpInterpreter(Interpreter):
             "T": setter("_script", None),
             "U": self._esc_skip_argument,
             "W": self._esc_double_width,
-            "b": self._esc_vfu_channel,
+            "b": self._esc_vertical_tab_channel,
             "i": self._esc_skip_argument,
             "p": self._esc_proportional,
             "s": self._esc_skip_argument,
@@ -626,7 +632,11 @@ class EscpInterpreter(Interpreter):
         self._line_spacing = (yield) * DOUBLE_STRIKE_OFFSET
 
     def _esc_line_spacing_72(self) -> ArgumentReader:
-        self._line_spacing = (yield) * self._mechanism.pin_pitch
+        n = yield
+        if n <= 85:
+            self._line_spacing = n * self._mechanism.pin_pitch
+        else:
+            logger.debug("ignoring line spacing of %d/72 inch", n)
 
     def _esc_immediate_feed(self) -> ArgumentReader:
         n = yield
@@ -651,17 +661,35 @@ class EscpInterpreter(Interpreter):
                 stops.append(n)
 
     def _esc_vertical_tabs(self) -> ArgumentReader:
+        yield from self._store_vertical_tabs(0)
+
+    def _store_vertical_tabs(self, channel: int) -> ArgumentReader:
         lines = yield from self._read_stops(16)
-        self._vertical_tabs = [line * self._line_spacing for line in lines]
+        stops = [line * self._line_spacing for line in lines]
+        stops = [stop for stop in stops if stop < self._form_length]
+        if channel < len(self._vertical_tab_channels):
+            self._vertical_tab_channels[channel] = stops
+            if self._vertical_tab_channel == channel:
+                self._vertical_tabs = stops
+        else:
+            logger.debug("ignoring vertical tabs for channel %d", channel)
 
     def _esc_horizontal_tabs(self) -> ArgumentReader:
         columns = yield from self._read_stops(32)
         width = self._tab_unit()
         self._tabs = [column * width for column in columns]
 
-    def _esc_vfu_channel(self) -> ArgumentReader:
-        yield  # Channel number; channels other than 0 are not modelled.
-        yield from self._esc_vertical_tabs()
+    def _esc_vertical_tab_channel(self) -> ArgumentReader:
+        channel = yield
+        yield from self._store_vertical_tabs(channel)
+
+    def _esc_select_vertical_tab_channel(self) -> ArgumentReader:
+        channel = yield
+        if channel < len(self._vertical_tab_channels):
+            self._vertical_tab_channel = channel
+            self._vertical_tabs = self._vertical_tab_channels[channel]
+        else:
+            logger.debug("ignoring unknown vertical tab channel %d", channel)
 
     def _esc_form_length(self) -> ArgumentReader:
         n = yield
@@ -669,13 +697,18 @@ class EscpInterpreter(Interpreter):
         if n == 0:
             form_length = inches((yield))
         self._set_top_of_form()
+        self._skip_perforation = 0
         if form_length:
             self._form_length = form_length
         else:
             logger.debug("ignoring a zero form length")
 
     def _esc_skip_perforation(self) -> ArgumentReader:
-        self._skip_perforation = (yield) * self._line_spacing
+        skip = (yield) * self._line_spacing
+        if skip < self._form_length:
+            self._skip_perforation = skip
+        else:
+            logger.debug("ignoring a skip-over-perforation as long as the form")
 
     def _column_width(self) -> int:
         if self._elite:

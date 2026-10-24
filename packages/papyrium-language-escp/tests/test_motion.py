@@ -78,8 +78,50 @@ def test_vertical_tabs():
     assert dots(ESC + b"B\x02\x05\x00\x0bA\x0bA") == [(LEFT + 36, 2 * LINE), (LEFT + 36, 5 * LINE)]
 
 
-def test_vertical_tab_without_stops_is_a_line_feed():
-    assert dots(b"A\x0bA") == [(LEFT + 36, 0), (LEFT + 36, LINE)]
+def test_vertical_tabs_default_to_every_other_line():
+    assert dots(b"A\x0bA\nA\x0bA") == [
+        (LEFT + 36, 0),
+        (LEFT + 36, 2 * LINE),
+        (LEFT + 36, 3 * LINE),
+        (LEFT + 36, 4 * LINE),
+    ]
+
+
+def test_vertical_tab_in_a_channel_without_stops_is_a_line_feed():
+    assert dots(ESC + b"/\x01A\x0bA") == [(LEFT + 36, 0), (LEFT + 36, LINE)]
+
+
+def test_vertical_tab_channels_are_stored_and_selected():
+    channels = ESC + b"b\x01\x05\x00" + ESC + b"b\x02\x03\x00"
+    assert dots(channels + ESC + b"/\x01\x0bA") == [(LEFT + 36, 5 * LINE)]
+    assert dots(channels + ESC + b"/\x02\x0bA") == [(LEFT + 36, 3 * LINE)]
+
+
+def test_esc_b_stores_channel_zero():
+    data = ESC + b"b\x00\x04\x00" + ESC + b"/\x01" + ESC + b"/\x00\x0bA"
+    assert dots(data) == [(LEFT + 36, 4 * LINE)]
+
+
+def test_vertical_tab_stops_beyond_the_form_are_ignored():
+    data = ESC + b"C\x04" + ESC + b"B\x02\x04\x00\x0b\x0bA"
+    assert dots(data) == [(LEFT + 36, 4 * LINE)]
+
+
+def test_setting_the_form_length_cancels_skip_over_perforation():
+    interpreter = EscpInterpreter(mechanism())
+    pages = interpreter.feed(ESC + b"N\x06" + ESC + b"C\x42A" + b"\n" * 60 + b"A")
+    assert pages == []
+    (page,) = interpreter.finish()
+    assert page.dots[-1] == (LEFT + 36, 60 * LINE)
+
+
+def test_skip_over_perforation_as_long_as_the_form_is_ignored():
+    data = ESC + b"C\x04" + ESC + b"N\x04A\nA"
+    assert dots(data) == [(LEFT + 36, 0), (LEFT + 36, LINE)]
+
+
+def test_line_spacing_beyond_85_72nds_is_ignored():
+    assert dots(ESC + b"A\x56A\nA") == [(LEFT + 36, 0), (LEFT + 36, LINE)]
 
 
 def test_horizontal_tabs_default_to_every_eight_columns():
