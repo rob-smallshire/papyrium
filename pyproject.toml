@@ -27,6 +27,13 @@ papyrium-extension = { workspace = true }
 [tool.uv]
 default-groups = ["test", "lint", "readme", "workspace"]
 
+# PyPI, not any index in a developer's own uv configuration, so that
+# uv.lock records public URLs that CI and other contributors can fetch.
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true
+
 [dependency-groups]
 # Installs every papyrium-* member editable in development.
 workspace = [

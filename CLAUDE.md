@@ -83,7 +83,9 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
 ## Development
 
 - Python, managed with `uv` only: `uv add`, `uv run`, `uv run pytest`.
-  `pyproject.toml` and `uv.lock` are committed. Prefer pure-Python or
+  `pyproject.toml` and `uv.lock` are committed; the root
+  `pyproject.toml` pins PyPI as the index, so the lock never records a
+  developer's private index, which CI cannot reach. Prefer pure-Python or
   wheel-only dependencies so Windows installs are painless.
 - No platform-specific code in the core; platform specifics only in host
   printer output.
