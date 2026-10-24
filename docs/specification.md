@@ -155,8 +155,8 @@ transport  ->  spooler  ->  interpreter  ->  page model  ->  renderers  ->  outp
    one specific historical printer and its DIP switches rather than
    "all of ESC/P"; the FX-80 manual is the reference, and the Panasonic
    KX-P1180 is a second model to consider later.
-4. **Page model.** Continuous fanfold stationery, 8.5 in wide, 11 in
-   long, 66 lines at 6 lpi, 80 columns at 10 cpi, 9-pin head, 240 dpi
+4. **Page model.** Continuous fanfold stationery, 9.5 in wide (8.5 in
+   between the tear-off strips), 11 in long, 66 lines at 6 lpi, 80 columns at 10 cpi, 9-pin head, 240 dpi
    horizontal in the densest mode, 72 dpi vertical (n/72 line spacing
    with n/216 fine spacing). Page size, resolution and character ROM
    belong to the printer model, not the renderer.

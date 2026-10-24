@@ -115,7 +115,6 @@ class EscpInterpreter(Interpreter):
         self._paper_dots: list[tuple[int, int]] = []
         self._paper_text: list[TextMark] = []
         self._sheet_top = 0
-        self._y = 0
         self._missing_characters: set[str] = set()
         self._glyph_cache: dict[tuple, tuple[tuple[int, int], ...]] = {}
         self._escapes = self._escape_table()
@@ -145,7 +144,8 @@ class EscpInterpreter(Interpreter):
     # -- State ------------------------------------------------------------
 
     def _power_on(self) -> None:
-        self._form_top = 0
+        self._y = self._mechanism.top_offset
+        self._form_top = self._y
         self._selected = True
         self._initialise()
 

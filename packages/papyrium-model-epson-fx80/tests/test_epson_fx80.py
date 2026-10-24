@@ -36,11 +36,27 @@ def test_defaults_match_the_factory_switch_settings():
     assert mechanism.auto_line_feed is False
     assert mechanism.character_set is CharacterSet.USA
     assert mechanism.sheet_length == 11 * 4320
-    assert mechanism.paper_width == 8 * 4320 + 2160
+    assert mechanism.top_offset == 0
     assert mechanism.font.name == "draft-9"
     assert mechanism.software_select is False
     assert mechanism.emphasized is False
     assert mechanism.user_defined_characters is True
+
+
+def test_paper_is_standard_fanfold_with_its_tear_off_strips():
+    mechanism = EpsonFx80(name="epson-fx80").mechanism
+    assert mechanism.paper_width == 9 * 4320 + 2160
+    # The 8-inch line is centred on the 8.5 inches between the strips.
+    assert mechanism.left_offset == 3 * 4320 // 4
+
+
+def test_the_line_is_centred_on_other_widths_of_paper():
+    assert EpsonFx80(name="m", paper_width="8.5").mechanism.left_offset == 4320 // 4
+    assert EpsonFx80(name="m", paper_width="7").mechanism.left_offset == 0
+
+
+def test_top_offset_is_where_the_operator_wound_the_paper():
+    assert EpsonFx80(name="m", top_offset="1/6").mechanism.top_offset == 720
 
 
 def test_underlines_below_the_descenders():
@@ -55,7 +71,8 @@ def test_options_from_strings():
             "character-set": "uk",
             "form-length": "12",
             "skip-perforation": "yes",
-            "paper-width": "9.5",
+            "paper-width": "10",
+            "top-offset": "0.25",
             "software-select": "yes",
             "emphasized": "yes",
             "user-defined-characters": "no",
@@ -66,7 +83,8 @@ def test_options_from_strings():
     assert mechanism.character_set is CharacterSet.UK
     assert mechanism.sheet_length == 12 * 4320
     assert mechanism.skip_perforation_lines == 6
-    assert mechanism.paper_width == 9 * 4320 + 2160
+    assert mechanism.paper_width == 10 * 4320
+    assert mechanism.top_offset == 4320 // 4
     assert model.config["character-set"] == "uk"
     assert mechanism.software_select is True
     assert mechanism.emphasized is True
@@ -83,6 +101,8 @@ def test_character_set_by_number():
         ({"character_set": "atlantis"}, "atlantis"),
         ({"form_length": "eleven"}, "form-length"),
         ({"font": "no-such-font"}, "no-such-font"),
+        ({"top_offset": "-1"}, "top-offset"),
+        ({"top_offset": "11"}, "top-offset"),
     ],
 )
 def test_bad_options_are_configuration_errors(options, message):

@@ -284,3 +284,18 @@ def test_reverse_feed_moves_back_up_the_sheet_without_a_carriage_return():
 
 def test_reverse_feed_stops_at_the_top_of_the_sheet():
     assert dots(b"A" + ESC + b"j\xffA") == [(LEFT + 36, 0), (LEFT + PICA + 36, 0)]
+
+
+def test_top_offset_places_the_first_line_below_the_top_of_the_sheet():
+    assert dots(b"A", top_offset=1000) == [(LEFT + 36, 1000)]
+
+
+def test_forms_start_at_the_top_offset_on_every_sheet():
+    first, second = run(b"A\x0cA", top_offset=1000)
+    assert first.dots == second.dots == ((LEFT + 36, 1000),)
+
+
+def test_a_full_form_of_line_feeds_reaches_the_top_offset_of_the_next_sheet():
+    first, second = run(b"\n" * 66 + b"A", top_offset=LINE // 2)
+    assert first.dots == ()
+    assert second.dots == ((LEFT + 36, LINE // 2),)

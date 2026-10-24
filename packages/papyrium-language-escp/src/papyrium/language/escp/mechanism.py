@@ -29,6 +29,9 @@ class EscpMechanism:
     sheet_length: int = inches(11)
     #: From the paper's left edge to the leftmost print position.
     left_offset: int = inches(Fraction(1, 4))
+    #: From the top of the sheet to the top of the first line at power-on:
+    #: where the operator wound the paper before switching on.
+    top_offset: int = 0
     #: Pica columns the head can reach; the power-on right margin.
     columns: int = 80
     #: Condensed characters in a line at the power-on right margin.

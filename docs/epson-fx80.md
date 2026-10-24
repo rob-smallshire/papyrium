@@ -34,6 +34,18 @@ told to wind a perforation to the top of the ribbon before switching on,
 so that the first line prints just below the perforation; the manual
 gives no exact distance.
 
+Papyrium models this with the FX-80's `top-offset` option, the distance
+from the perforation to the top of the first line, 0 by default.
+
+## Paper (T 23-24; R 327-328)
+
+The built-in pin feed takes continuous paper 9.5 to 10 inches wide. The
+standard 9.5-inch fanfold is 8.5-inch paper with a half-inch tear-off
+strip of feed holes at each side. Cut sheets are 7.25 to 8.5 inches
+wide, friction fed. Papyrium's default sheet is 9.5 by 11 inches, with
+the 8-inch pica line centred across it (0.75 inch in from the edge); the
+manual gives no exact head position.
+
 ## The print buffer
 
 Text is collected in a one-line buffer that is printed by CR, LF, FF, VT,
