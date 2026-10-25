@@ -26,8 +26,8 @@ its text beside it as `<manual>.txt` and, for a scan OCRed with
 `tools/manual-ocr/ocr.sh`, its page images and per-page text in
 `<manual>-pages/`. What Papyrium takes from them is
 restated in our own words, with page references, in committed notes:
-`docs/epson-fx80.md` for the FX-80, `docs/brother-m1109.md` for the
-Brother M-1109 and `docs/star-lc-10.md` for the Star LC-10 and LC-10
+`docs/epson-fx80.md` for the FX-80, `docs/epson-lx800.md` for the
+LX-800, `docs/brother-m1109.md` for the Brother M-1109 and `docs/star-lc-10.md` for the Star LC-10 and LC-10
 Colour. Check a behaviour question there, then
 in the manual, before deciding it yourself, and record new findings there.
 
