@@ -130,6 +130,8 @@ commit = true
 tag = true
 tag_name = "v{new_version}"
 message = "Bump papyrium to {new_version}"
+# The workspace members' versions are recorded in the lock file too.
+pre_commit_hooks = ["uv lock", "git add uv.lock"]
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"

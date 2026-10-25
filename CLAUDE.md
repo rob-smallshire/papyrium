@@ -108,6 +108,12 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   reinstate the editable installs), on Linux, macOS and Windows. A test
   that reads files from the source tree rather than the installed package
   passes locally and fails there.
+- **Releases** (Rob decides when, and the version): every distribution
+  shares one version. `uv run bump-my-version bump minor` (or `major`,
+  `patch`) bumps it everywhere, relocks, commits "Bump papyrium to X" and
+  tags `vX`; pushing the tag runs `.github/workflows/release.yml`, which
+  runs the CI workflow, checks the tag matches the version, builds every
+  distribution and publishes them to PyPI with the `PYPI_TOKEN` secret.
 - **Generated READMEs.** `README.md`, the printer models' READMEs and
   `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
   templates (`scripts/readme-templates/`, `packages/*/readme/`), running
