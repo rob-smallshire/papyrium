@@ -22,8 +22,9 @@ Printer behaviour comes from the manufacturers' manuals. They are
 copyrighted, so they live uncommitted in `docs/local/` (ignored by git),
 with plain-text extractions beside them. What Papyrium takes from them is
 restated in our own words, with page references, in committed notes:
-`docs/epson-fx80.md` for the FX-80 and `docs/brother-m1109.md` for the
-Brother M-1109. Check a behaviour question there, then
+`docs/epson-fx80.md` for the FX-80, `docs/brother-m1109.md` for the
+Brother M-1109 and `docs/star-lc-10.md` for the Star LC-10 and LC-10
+Colour. Check a behaviour question there, then
 in the manual, before deciding it yourself, and record new findings there.
 
 ## Architecture
