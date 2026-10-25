@@ -28,14 +28,18 @@ class Axis:
     def names(self) -> list[str]:
         return sorted(list_extensions(self.namespace))
 
-    def create(self, name: str, options: Mapping[str, Any]):
-        """Build the plug-in *name* from KEY=VALUE *options*."""
+    def plugin_class(self, name: str) -> type:
+        """The class of the installed plug-in *name*."""
         if name not in self.names():
             raise ConfigurationError(
                 f"no {self.singular} named {name!r}; installed {self.plural}: "
                 f"{', '.join(self.names()) or 'none'}"
             )
-        plugin_class = extension(self.kind, self.namespace, name)
+        return extension(self.kind, self.namespace, name)
+
+    def create(self, name: str, options: Mapping[str, Any]):
+        """Build the plug-in *name* from KEY=VALUE *options*."""
+        plugin_class = self.plugin_class(name)
         if hasattr(plugin_class, "from_config"):
             return plugin_class.from_config(name=name, config=options)
         if options:
@@ -48,8 +52,9 @@ LANGUAGES = Axis("language", "language", "languages", "Installed printer languag
 MODELS = Axis("model", "model", "models", "Installed printer models.")
 FONTS = Axis("font", "font", "fonts", "Installed dot fonts.")
 OUTPUTS = Axis("output", "output", "outputs", "Installed output plug-ins.")
+ADVERTISERS = Axis("advertiser", "advertiser", "advertisers", "Installed advertisers.")
 
-AXES = (TRANSPORTS, LANGUAGES, MODELS, FONTS, OUTPUTS)
+AXES = (TRANSPORTS, LANGUAGES, MODELS, FONTS, OUTPUTS, ADVERTISERS)
 
 
 def parse_options(_ctx, _param, values: tuple[str, ...]) -> dict[str, str]:

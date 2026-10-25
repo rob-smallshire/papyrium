@@ -127,6 +127,30 @@ uv run papyrium serve -M auto-line-feed=yes
 Escape sequences go to the printer with `VDU 1`, so `VDU 1,27,1,69` turns
 on emphasized printing (`ESC E`).
 
+## Finding Papyrium on the network
+
+`--advertise` announces the printer on the local network with multicast
+DNS, as Bonjour and Avahi announce network printers, so that a sender,
+such as a bridge from a real computer's printer port, can find it without
+being given an address:
+
+```sh
+uv run papyrium serve --model brother-m1109 --advertise --name "Desk M-1109"
+```
+
+It appears as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
+record names it a Papyrium printer (`note=Papyrium virtual printer`, and
+`ty=Brother M-1109 (Papyrium)`), so a client can tell it from a real
+printer, and carries the printer's `uuid`, which stays the same across
+restarts and renames. The UUID is kept in `printer.json` in the output
+directory; `--name` defaults to the model's name with "(Papyrium)".
+
+Advertising makes the printer listen on every interface unless a host is
+given with `-T host=`. Anyone on the network can then send it jobs, as with
+any network printer. A printer only this machine can reach is not
+advertised, and says so. A desktop that adds the printer from its printer
+dialog must print to it in ESC/P, not PostScript or PCL.
+
 ## Commands
 
 | Command | Purpose |
@@ -135,7 +159,7 @@ on emphasized printing (`ESC E`).
 | `papyrium render JOB_OR_CAPTURE` | Print a captured job again, from a job directory or a `.prn` file |
 | `papyrium list-jobs` | List captured jobs |
 | `papyrium list-models`, `describe-model NAME` | The printer models installed, and their options |
-| `papyrium list-transports`, `list-languages`, `list-fonts`, `list-outputs` | The other plug-ins installed |
+| `papyrium list-transports`, `list-languages`, `list-fonts`, `list-outputs`, `list-advertisers` | The other plug-ins installed |
 
 Options are passed as `KEY=VALUE`: `-T` for the transport (`-T port=9101`),
 `-M` for the printer model (`-M character-set=uk`), and

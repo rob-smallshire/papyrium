@@ -42,6 +42,10 @@ Independent, pluggable axes, each chosen by configuration:
 - **Outputs** are backends over an intermediate page model, not PDF: PNG,
   PDF, host printing, preview. Dot-matrix output keeps its dots;
   PostScript and plotters keep their vectors.
+- **Advertisers** announce a running printer on the network (multicast
+  DNS). Each plug-in describes itself in neutral terms (a transport's
+  endpoints, a model's and a language's identity) and only the advertiser
+  knows its protocol's records.
 
 One printer instance has one mechanism; serial and parallel are
 alternative configurations of it, and several instances may run side by
@@ -74,10 +78,11 @@ core that plug-in packages subclass in their own tests.
 A uv workspace of `packages/papyrium-*` members sharing the PEP 420
 `papyrium` namespace (never add `src/papyrium/__init__.py`). `README.md`
 lists the packages. Entry-point groups are `papyrium.transport`,
-`papyrium.language`, `papyrium.model`, `papyrium.font` and
-`papyrium.output`. Positions on the page are whole units of 1/4320 inch
+`papyrium.language`, `papyrium.model`, `papyrium.font`,
+`papyrium.output` and `papyrium.advertiser`. Positions on the page are whole units of 1/4320 inch
 (`papyrium.core.page`). Golden captures and images for the FX-80 are in
-`packages/papyrium-model-epson-fx80/tests/golden/`; Beebium end-to-end
+`packages/papyrium-model-epson-fx80/tests/golden/`; the multicast DNS
+test is in `integration/mdns/` (`uv run pytest integration/mdns`); Beebium end-to-end
 tests are in `integration/beebium/` and are not part of `uv run pytest`.
 
 ## Development

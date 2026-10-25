@@ -77,3 +77,41 @@ def test_serve_captures_a_job_and_closes_it_on_shutdown(tmp_path):
     assert (job_dirpath / "page-0001.png").is_file()
     assert not (job_dirpath / "page-0002.png").exists()
     assert (job_dirpath / "job.pdf").is_file()
+
+
+def test_advertising_a_printer_only_this_machine_can_reach_says_so_and_prints_on(tmp_path):
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "papyrium.cli",
+            "serve",
+            "--output-dir",
+            str(tmp_path),
+            "-T",
+            "host=127.0.0.1",
+            "-T",
+            "port=0",
+            "--advertise",
+            "--capture-only",
+        ],
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        port = _wait_for_port(process)
+        warning = next(line for line in process.stderr if "not advertising" in line)
+        with socket.create_connection(("127.0.0.1", port)) as connection:
+            connection.sendall(b"HELLO")
+        capture_filepath = tmp_path / "job-0001" / "capture.prn"
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            if capture_filepath.exists() and capture_filepath.read_bytes() == b"HELLO":
+                break
+            time.sleep(0.05)
+    finally:
+        process.send_signal(signal.SIGINT)
+        process.wait(timeout=10)
+    assert process.returncode == 0
+    assert "only this machine" in warning
+    assert capture_filepath.read_bytes() == b"HELLO"

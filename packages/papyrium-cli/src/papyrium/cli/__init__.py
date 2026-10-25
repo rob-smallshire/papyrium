@@ -21,6 +21,7 @@ from asyoulikeit.cli import (
 
 from papyrium.cli.help import use_plain_help
 from papyrium.cli.plugins import (
+    ADVERTISERS,
     AXES,
     MODELS,
     TRANSPORTS,
@@ -29,6 +30,7 @@ from papyrium.cli.plugins import (
     parse_options,
     parse_output_options,
 )
+from papyrium.core.advertising import Advertising
 from papyrium.core.instance import PrinterInstance, default_printer_name
 from papyrium.core.jobs import CAPTURE_FILENAME, JOB_RECORD_FILENAME, JobRecord, JobStore
 from papyrium.core.rendering import JobRenderer, JobRendering
@@ -41,6 +43,7 @@ __version__ = "0.0.0"
 __all__ = ["cli"]
 
 _DEFAULT_TRANSPORT_NAME = "raw-tcp"
+_DEFAULT_ADVERTISER_NAME = "mdns"
 _DEFAULT_MODEL_NAME = "epson-fx80"
 _DEFAULT_OUTPUT_NAMES = ("png", "pdf")
 _DEFAULT_OUTPUT_DIRNAME = "papyrium-jobs"
@@ -153,6 +156,12 @@ _OUTPUT_OPTION = click.option(
     default=None,
     help="The printer's name; default: its model's, such as 'Epson FX-80 (Papyrium)'.",
 )
+@click.option(
+    "--advertise",
+    is_flag=True,
+    help="Announce the printer on the local network (multicast DNS, as Bonjour and "
+    "Avahi do); unless -T host= is given, it then listens on every interface.",
+)
 def serve(
     transport_name: str,
     transport_options: dict[str, str],
@@ -164,6 +173,7 @@ def serve(
     output_dirpath: Path,
     idle_timeout_seconds: float,
     printer_name: str | None,
+    advertise: bool,
 ) -> None:
     """Run a printer until interrupted, printing every job it receives.
 
@@ -173,14 +183,22 @@ def serve(
     job ends after ``--idle-timeout`` seconds without bytes, or at
     shutdown; a disconnect never ends one. The printer keeps a UUID in
     ``--output-dir``, and each job records it with the printer's name.
+
+    With ``--advertise`` the printer is announced on the local network
+    while it runs, under its name, so that senders can find it.
     """
-    transport = TRANSPORTS.create(transport_name, transport_options)
+    transport = TRANSPORTS.create(
+        transport_name,
+        transport_options_for(transport_name, transport_options, advertise=advertise),
+    )
     model = MODELS.create(model_name, model_options)
     renderer = None
     if not capture_only:
         outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
         renderer = JobRenderer(model, outputs)
     store = JobStore(output_dirpath)
+    name = printer_name or default_printer_name(model.identity())
+    printer_uuid = store.printer_uuid()
     spooler = Spooler(
         transport,
         store,
@@ -188,13 +206,32 @@ def serve(
         printer_setup={
             "model": model_name,
             "options": model.config,
-            "name": printer_name or default_printer_name(model.identity()),
-            "uuid": str(store.printer_uuid()),
+            "name": name,
+            "uuid": str(printer_uuid),
         },
         listener=renderer,
     )
+    advertising = None
+    if advertise:
+        advertising = Advertising(
+            ADVERTISERS.create(_DEFAULT_ADVERTISER_NAME, {}),
+            name=name,
+            printer_uuid=printer_uuid,
+            model=model,
+        )
     logging.basicConfig(level=logging.INFO, format="papyrium: %(message)s")
-    asyncio.run(_serve_until_signalled(PrinterInstance(transport, spooler, renderer)))
+    instance = PrinterInstance(transport, spooler, renderer, advertising=advertising)
+    asyncio.run(_serve_until_signalled(instance))
+
+
+def transport_options_for(
+    transport_name: str, options: dict[str, str], *, advertise: bool
+) -> dict[str, str]:
+    """The options to build the transport with: when advertising, those that make it
+    listen on every interface, under any the user gave."""
+    if not advertise:
+        return dict(options)
+    return {**TRANSPORTS.plugin_class(transport_name).all_interfaces_options(), **options}
 
 
 async def _serve_until_signalled(instance: PrinterInstance) -> None:

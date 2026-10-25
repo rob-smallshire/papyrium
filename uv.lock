@@ -342,6 +342,7 @@ source = { editable = "packages/papyrium-cli" }
 dependencies = [
     { name = "asyoulikeit" },
     { name = "click" },
+    { name = "papyrium-advertiser-mdns" },
     { name = "papyrium-core" },
     { name = "papyrium-exception" },
     { name = "papyrium-extension" },
@@ -355,6 +356,7 @@ dependencies = [
 requires-dist = [
     { name = "asyoulikeit", specifier = ">=1.5.1" },
     { name = "click", specifier = ">=8.1.7" },
+    { name = "papyrium-advertiser-mdns", editable = "packages/papyrium-advertiser-mdns" },
     { name = "papyrium-core", editable = "packages/papyrium-core" },
     { name = "papyrium-exception", editable = "packages/papyrium-exception" },
     { name = "papyrium-extension", editable = "packages/papyrium-extension" },

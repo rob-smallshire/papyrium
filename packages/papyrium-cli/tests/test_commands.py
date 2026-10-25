@@ -31,6 +31,29 @@ def test_list_transports_includes_raw_tcp(run):
     assert "raw-tcp" in result.output
 
 
+def test_list_advertisers_includes_mdns(run):
+    result = run("list-advertisers", "--as", "json")
+    assert result.exit_code == 0
+    assert "mdns" in result.output
+
+
+@pytest.mark.parametrize(
+    "options, advertise, expected",
+    [
+        ({}, False, {}),
+        ({}, True, {"host": ""}),
+        ({"host": "127.0.0.1"}, True, {"host": "127.0.0.1"}),
+        ({"port": "9101"}, True, {"host": "", "port": "9101"}),
+    ],
+)
+def test_advertising_listens_on_every_interface_unless_a_host_is_given(
+    options, advertise, expected
+):
+    from papyrium.cli import transport_options_for
+
+    assert transport_options_for("raw-tcp", options, advertise=advertise) == expected
+
+
 def test_describe_transport(run):
     result = run("describe-transport", "raw-tcp")
     assert result.exit_code == 0
