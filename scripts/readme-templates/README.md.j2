@@ -138,7 +138,7 @@ package can add to it:
 
 | Axis | Plug-in | Description | Package |
 |---|---|---|---|
-{%- for kind, label in [("transport", "Transports deliver bytes"), ("language", "Languages interpret them"), ("model", "Printer models are what the user chooses"), ("font", "Fonts stand in for character ROMs"), ("output", "Outputs write pages")] %}
+{%- for kind, label in [("transport", "Transports deliver bytes"), ("language", "Languages interpret them"), ("model", "Printer models are what the user chooses"), ("font", "Fonts stand in for character ROMs"), ("output", "Outputs write pages"), ("advertiser", "Advertisers announce printers")] %}
 {%- for plugin in plugins[kind] %}
 | {{ label if loop.first else "" }} | `{{ plugin.name }}` | {{ plugin.description }} | [`{{ plugin.package }}`](packages/{{ plugin.package }}/) |
 {%- endfor %}

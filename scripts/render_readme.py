@@ -78,11 +78,12 @@ PACKAGE_ORDER = (
     "papyrium-font-m1109-nlq",
     "papyrium-output-png",
     "papyrium-output-pdf",
+    "papyrium-advertiser-mdns",
     "papyrium-cli",
 )
 
 #: The plug-in axes, in the order bytes flow through a printer.
-AXES = ("transport", "language", "model", "font", "output")
+AXES = ("transport", "language", "model", "font", "output", "advertiser")
 
 
 @dataclass(frozen=True)

@@ -164,6 +164,7 @@ package can add to it:
 |  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium-font-m1109-nlq`](packages/papyrium-font-m1109-nlq/) |
 | Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium-output-pdf`](packages/papyrium-output-pdf/) |
 |  | `png` | PNG images, one per page, with each struck dot drawn as a dot | [`papyrium-output-png`](packages/papyrium-output-png/) |
+| Advertisers announce printers | `mdns` | Announces printers with multicast DNS, as Bonjour and Avahi do | [`papyrium-advertiser-mdns`](packages/papyrium-advertiser-mdns/) |
 
 The packages live under `packages/`, in a [uv](https://docs.astral.sh/uv/)
 workspace, and share the `papyrium` namespace:
@@ -182,6 +183,7 @@ workspace, and share the `papyrium` namespace:
 | [`papyrium-font-m1109-nlq`](packages/papyrium-font-m1109-nlq/) | m1109-nlq, the Brother M-1109's near letter quality characters, reconstructed for Papyrium |
 | [`papyrium-output-png`](packages/papyrium-output-png/) | PNG output for Papyrium: one raster image per page, dots drawn as dots |
 | [`papyrium-output-pdf`](packages/papyrium-output-pdf/) | PDF output for Papyrium: one document per job, dots as vector dots |
+| [`papyrium-advertiser-mdns`](packages/papyrium-advertiser-mdns/) | Announces Papyrium printers on the local network with multicast DNS (Bonjour, Avahi) |
 | [`papyrium-cli`](packages/papyrium-cli/) | The papyrium command: run a virtual vintage printer, replay its jobs and inspect them |
 
 `docs/specification.md` is the design as handed over from Beebium.

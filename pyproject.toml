@@ -11,6 +11,7 @@ members = ["packages/papyrium-*"]
 
 [tool.uv.sources]
 papyrium-output-pdf = { workspace = true }
+papyrium-advertiser-mdns = { workspace = true }
 papyrium-model-epson-fx80 = { workspace = true }
 papyrium-model-brother-m1109 = { workspace = true }
 papyrium-language-escp = { workspace = true }
@@ -38,6 +39,7 @@ default = true
 # Installs every papyrium-* member editable in development.
 workspace = [
     "papyrium-core",
+    "papyrium-advertiser-mdns",
     "papyrium-transport-raw-tcp",
     "papyrium-cli",
     "papyrium-output-png",
@@ -85,6 +87,7 @@ testpaths = [
     "packages/papyrium-model-epson-fx80/tests",
     "packages/papyrium-model-brother-m1109/tests",
     "packages/papyrium-output-pdf/tests",
+    "packages/papyrium-advertiser-mdns/tests",
 ]
 
 [tool.ruff]
