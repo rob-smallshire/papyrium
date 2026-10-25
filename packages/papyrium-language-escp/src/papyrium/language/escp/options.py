@@ -32,10 +32,10 @@ def inches_option(option: str, value: str) -> int:
         raise ConfigurationError(f"{option} must be a length in inches, not {value!r}") from error
 
 
-def character_set_option(value: str) -> CharacterSet:
-    """The international character set named or numbered by *value*."""
+def character_set_option(value: str, sets: tuple[CharacterSet, ...]) -> CharacterSet:
+    """The international character set named by *value*, or numbered in *sets*."""
     try:
-        return parse_character_set(value)
+        return parse_character_set(value, sets)
     except (KeyError, ValueError) as error:
         raise ConfigurationError(f"unknown character set {value!r}") from error
 

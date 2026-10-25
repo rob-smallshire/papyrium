@@ -4,8 +4,12 @@ The FX character ROM keeps 32 international characters at locations 0-31
 (and their italics at 128-159). An international set prints them in
 place of up to twelve ASCII characters: each national code points at one
 of those locations. The tables are the facts listed in Epson's FX-series
-manuals for ``ESC R n``; Norway, Denmark II and England II (9-11) are the
-Brother M-1109's additions.
+manuals for ``ESC R n``; Norway, Denmark II and England II are the
+Brother M-1109's additions, and Spain II and Latin America the Epson
+LX-800's. Each printer numbers its sets for ``ESC R`` in its own order.
+
+Characters some sets need beyond the 32 international ones are at
+locations 0x100 and up, clear of the italic bit (0x80).
 """
 
 from __future__ import annotations
@@ -26,9 +30,18 @@ INTERNATIONAL_CHARACTERS = tuple(
     )
 )  # fmt: skip
 
+#: Characters beyond the 32 international ones, at locations 0x100 on.
+EXTRA_LOCATION = 0x100
+EXTRA_CHARACTERS = ("á", "í", "ó", "ú")
+_A_ACUTE, _I_ACUTE, _O_ACUTE, _U_ACUTE = (EXTRA_LOCATION + i for i in range(4))
+
 
 class CharacterSet(enum.IntEnum):
-    """The ``ESC R n`` international character sets, by their ``n``."""
+    """The international character sets.
+
+    The values are the FX-80's and M-1109's ``ESC R`` numbers; each
+    printer's own numbering is its mechanism's ``character_sets``.
+    """
 
     USA = 0
     FRANCE = 1
@@ -42,6 +55,8 @@ class CharacterSet(enum.IntEnum):
     NORWAY = 9
     DENMARK_II = 10
     UK_II = 11
+    SPAIN_II = 12
+    LATIN_AMERICA = 13
 
 
 #: For each set, the ROM location each redefined national code prints.
@@ -66,7 +81,25 @@ _LOCATIONS: dict[CharacterSet, dict[int, int]] = {
         64: 29, 91: 18, 92: 20, 93: 13, 94: 25, 96: 30, 123: 19, 124: 21, 125: 14, 126: 28,
     },
     CharacterSet.UK_II: {96: 6},
+    CharacterSet.SPAIN_II: {
+        64: _A_ACUTE, 91: 7, 92: 9, 93: 8, 94: 30,
+        123: _I_ACUTE, 124: 10, 125: _O_ACUTE, 126: _U_ACUTE,
+    },
+    CharacterSet.LATIN_AMERICA: {
+        64: _A_ACUTE, 91: 7, 92: 9, 93: 8, 94: 30, 96: 28,
+        123: _I_ACUTE, 124: 10, 125: _O_ACUTE, 126: _U_ACUTE,
+    },
 }  # fmt: skip
+
+#: Each printer's ``ESC R`` sets, in its numbering.
+FX_CHARACTER_SETS = tuple(CharacterSet(n) for n in range(9))
+M1109_CHARACTER_SETS = FX_CHARACTER_SETS + (
+    CharacterSet.NORWAY, CharacterSet.DENMARK_II, CharacterSet.UK_II,
+)  # fmt: skip
+LX800_CHARACTER_SETS = FX_CHARACTER_SETS + (
+    CharacterSet.NORWAY, CharacterSet.DENMARK_II, CharacterSet.SPAIN_II,
+    CharacterSet.LATIN_AMERICA,
+)  # fmt: skip
 
 
 def rom_location(code: int, character_set: CharacterSet) -> int:
@@ -75,7 +108,9 @@ def rom_location(code: int, character_set: CharacterSet) -> int:
 
 
 def character_at(location: int) -> str:
-    """The character at a 7-bit ROM *location*."""
+    """The character at an upright ROM *location*."""
+    if location >= EXTRA_LOCATION:
+        return EXTRA_CHARACTERS[location - EXTRA_LOCATION]
     if location < len(INTERNATIONAL_CHARACTERS):
         return INTERNATIONAL_CHARACTERS[location]
     return chr(location)
@@ -86,10 +121,23 @@ def character_for(code: int, character_set: CharacterSet) -> str:
     return character_at(rom_location(code, character_set))
 
 
-def parse_character_set(value: str | int | CharacterSet) -> CharacterSet:
-    """A character set from its number or its name, such as ``uk`` or ``3``."""
-    if isinstance(value, CharacterSet):
-        return value
+def parse_character_set(
+    value: str | int | CharacterSet, sets: tuple[CharacterSet, ...] = M1109_CHARACTER_SETS
+) -> CharacterSet:
+    """One of *sets*, by name, such as ``uk``, or by its number there, such as ``3``.
+
+    Raises:
+        KeyError: No set has that name.
+        ValueError: *sets* has no such set.
+    """
     if isinstance(value, int) or str(value).strip().isdigit():
-        return CharacterSet(int(value))
-    return CharacterSet[str(value).strip().upper()]
+        number = int(value)
+        if not 0 <= number < len(sets):
+            raise ValueError(f"no character set {number}")
+        return sets[number]
+    character_set = (
+        value if isinstance(value, CharacterSet) else CharacterSet[str(value).strip().upper()]
+    )
+    if character_set not in sets:
+        raise ValueError(f"no character set {character_set.name.lower()}")
+    return character_set

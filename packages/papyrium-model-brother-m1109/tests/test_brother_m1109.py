@@ -6,6 +6,7 @@ from papyrium.core.conformance import PrinterModelConformance
 from papyrium.exception import ConfigurationError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp import CharacterSet
+from papyrium.language.escp.charsets import M1109_CHARACTER_SETS
 from papyrium.model.brother_m1109 import BrotherM1109
 
 ESC = b"\x1b"
@@ -81,7 +82,7 @@ def test_the_first_line_is_19_36_inch_below_the_top_of_the_sheet():
 
 def test_mode_i_differs_from_the_fx80():
     mechanism = _mechanism()
-    assert mechanism.character_sets == 12
+    assert mechanism.character_sets == M1109_CHARACTER_SETS
     assert mechanism.default_vertical_tabs is False
     assert mechanism.form_length_clears_vertical_tabs is True
     assert mechanism.cancel_ends_one_line_enlarged is True

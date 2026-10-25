@@ -8,7 +8,7 @@ from fractions import Fraction
 from papyrium.core.dotfont import DotFont
 from papyrium.core.page import inches
 from papyrium.core.stationery import Stationery
-from papyrium.language.escp.charsets import CharacterSet
+from papyrium.language.escp.charsets import FX_CHARACTER_SETS, CharacterSet
 
 #: The codes the FX-80 always obeys as controls, even when ESC I makes the
 #: other low codes print: BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1-DC4, CAN, ESC.
@@ -67,8 +67,8 @@ class EscpMechanism:
     user_defined_characters: bool = True
     #: The dot row the underline prints on: 8 is the ninth pin, 9 one row below it.
     underline_row: int = 8
-    #: How many ESC R international sets the printer has: 9 (0-8) or 12 (0-11).
-    character_sets: int = 9
+    #: The ESC R international sets the printer has, in its own numbering.
+    character_sets: tuple[CharacterSet, ...] = FX_CHARACTER_SETS
     #: Low codes obeyed as controls even when ESC I makes the others print.
     controls: frozenset[int] = FX_CONTROLS
     #: Power on with vertical tab stops every other line; otherwise VT is LF.

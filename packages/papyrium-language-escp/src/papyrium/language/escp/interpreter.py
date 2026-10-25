@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from papyrium.core.dotfont import Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
-from papyrium.language.escp.charsets import CharacterSet, character_at, rom_location
+from papyrium.language.escp.charsets import character_at, rom_location
 from papyrium.language.escp.mechanism import EscpMechanism
 
 logger = logging.getLogger(__name__)
@@ -84,6 +84,9 @@ CONDENSED_ELITE_WIDTH = inches(1) // 20
 
 #: The font's name for the zero printed when the slashed-zero switch is on.
 SLASHED_ZERO = "0\u0338"
+
+#: The bit of a character location that selects the ROM's italic form.
+ITALIC = 0x80
 
 #: The baseline row of the character matrix, about which italics lean.
 BASELINE_ROW = 6
@@ -289,7 +292,7 @@ class EscpInterpreter(Interpreter):
             return
         # The ROM keeps italic characters at 128-255; the RAM has its own there.
         from_rom = self._glyph_source(location)[0] == "rom"
-        italic = self._italic or (from_rom and location >= 0x80)
+        italic = self._italic or (from_rom and bool(location & ITALIC))
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
@@ -326,7 +329,7 @@ class EscpInterpreter(Interpreter):
     @staticmethod
     def _rom_character(location: int) -> str:
         """The character at a ROM location; the italics at 128-255 mirror 0-127."""
-        location &= 0x7F
+        location &= ~ITALIC
         return " " if location == DEL else character_at(location)
 
     def _text_mark(self, location: int, width: int) -> TextMark:
@@ -344,7 +347,7 @@ class EscpInterpreter(Interpreter):
     def _glyph_source(self, location: int) -> tuple:
         """Where the dots for *location* come from, as a cache key."""
         if not self._user_set_selected or (self._ram_holds_rom and location not in self._ram):
-            return ("rom", location & 0x7F)
+            return ("rom", location & ~ITALIC)
         if location in self._ram:
             return ("ram", location)
         return _BLANK
@@ -943,15 +946,11 @@ class EscpInterpreter(Interpreter):
     def _esc_character_set(self) -> ArgumentReader:
         n = yield
         self._print_line()
-        previous = self._character_set
-        try:
-            self._character_set = CharacterSet(n)
-        except ValueError:
-            logger.debug("ignoring unknown international character set %d", n)
-            return
-        if n >= self._mechanism.character_sets:
+        sets = self._mechanism.character_sets
+        if n < len(sets):
+            self._character_set = sets[n]
+        else:
             logger.debug("ignoring international character set %d, which this printer lacks", n)
-            self._character_set = previous
 
     def _esc_script(self) -> ArgumentReader:
         n = yield

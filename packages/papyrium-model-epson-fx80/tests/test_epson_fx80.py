@@ -110,6 +110,8 @@ def test_character_set_by_number():
     "options, message",
     [
         ({"character_set": "atlantis"}, "atlantis"),
+        ({"character_set": "norway"}, "norway"),
+        ({"character_set": "9"}, "9"),
         ({"form_length": "eleven"}, "form-length"),
         ({"font": "no-such-font"}, "no-such-font"),
         ({"top_offset": "-1"}, "top-offset"),

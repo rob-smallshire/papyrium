@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
+from papyrium.language.escp.charsets import M1109_CHARACTER_SETS
 
 __version__ = "0.1.0"
 
@@ -72,11 +73,11 @@ class BrotherM1109(PrinterModel):
             columns=80,
             condensed_columns=136,
             auto_line_feed=auto_line_feed,
-            character_set=options.character_set_option(character_set),
+            character_set=options.character_set_option(character_set, M1109_CHARACTER_SETS),
             skip_perforation_lines=_SKIP_PERFORATION_LINES if skip_perforation else 0,
             slashed_zero=slashed_zero,
             near_letter_quality=near_letter_quality,
-            character_sets=12,
+            character_sets=M1109_CHARACTER_SETS,
             controls=_CONTROLS,
             default_vertical_tabs=False,
             form_length_clears_vertical_tabs=True,

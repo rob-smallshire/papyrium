@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism
+from papyrium.language.escp.charsets import FX_CHARACTER_SETS
 from papyrium.language.escp.options import character_set_option, nine_row_font, paper_options
 
 __version__ = "0.1.0"
@@ -65,7 +66,7 @@ class EpsonFx80(PrinterModel):
             ),
             columns=80,
             auto_line_feed=auto_line_feed,
-            character_set=character_set_option(character_set),
+            character_set=character_set_option(character_set, FX_CHARACTER_SETS),
             skip_perforation_lines=_SKIP_PERFORATION_LINES if skip_perforation else 0,
             high_codes_printable=high_codes_printable,
             condensed=condensed,

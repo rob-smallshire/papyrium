@@ -3,7 +3,11 @@
 from helpers import ESC, LEFT, LINE, dots, run
 
 from papyrium.language.escp import CharacterSet
-from papyrium.language.escp.charsets import character_for
+from papyrium.language.escp.charsets import (
+    LX800_CHARACTER_SETS,
+    M1109_CHARACTER_SETS,
+    character_for,
+)
 
 M1109_CONTROLS = frozenset({8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 27})
 
@@ -26,7 +30,29 @@ def test_the_fx80_ignores_the_extra_national_sets():
 
 
 def test_a_printer_with_twelve_sets_selects_them():
-    assert text(ESC + b"R\x0b`", character_sets=12) == chr(0xA3)
+    assert text(ESC + b"R\x0b`", character_sets=M1109_CHARACTER_SETS) == chr(0xA3)
+
+
+def test_spain_ii_and_latin_america():
+    assert character_for(0x40, CharacterSet.SPAIN_II) == "á"
+    assert character_for(0x5C, CharacterSet.SPAIN_II) == "Ñ"
+    assert character_for(0x7B, CharacterSet.SPAIN_II) == "í"
+    assert character_for(0x60, CharacterSet.SPAIN_II) == "`"
+    assert character_for(0x60, CharacterSet.LATIN_AMERICA) == "ü"
+    assert character_for(0x7E, CharacterSet.LATIN_AMERICA) == "ú"
+
+
+def test_set_numbers_are_the_printers_own():
+    # ESC R 11 is England II on the M-1109 and Spain II on the LX-800.
+    assert text(ESC + b"R\x0b@`", character_sets=M1109_CHARACTER_SETS) == "@" + chr(0xA3)
+    assert text(ESC + b"R\x0b@`", character_sets=LX800_CHARACTER_SETS) == "á`"
+    assert text(ESC + b"R\x0c`", character_sets=LX800_CHARACTER_SETS) == "ü"
+
+
+def test_characters_beyond_the_international_ones_print_upright():
+    # The test font has no á: it prints nothing, upright, and is recorded as text.
+    marks = run(ESC + b"R\x0b@A", character_sets=LX800_CHARACTER_SETS)[0].text
+    assert [mark.character for mark in marks] == ["á", "A"]
 
 
 def test_low_codes_that_stay_controls_are_the_mechanisms():
