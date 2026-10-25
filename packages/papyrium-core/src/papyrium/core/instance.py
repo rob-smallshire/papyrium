@@ -11,9 +11,12 @@ from papyrium.core.spooler import Spooler
 from papyrium.core.transport import Transport
 
 
-def default_printer_name(identity: ModelIdentity) -> str:
-    """The name a printer goes by unless given one, such as ``Brother M-1109 (Papyrium)``."""
-    return f"{identity.display_name} (Papyrium)"
+def default_printer_name(identity: ModelIdentity | None) -> str:
+    """The name a printer goes by unless given one, such as ``Brother M-1109 (Papyrium)``.
+
+    A printer capturing jobs with no printer model is plain ``Papyrium``.
+    """
+    return "Papyrium" if identity is None else f"{identity.display_name} (Papyrium)"
 
 
 class PrinterInstance:

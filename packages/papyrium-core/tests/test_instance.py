@@ -56,3 +56,9 @@ def test_a_printer_is_named_after_its_model_by_default():
 
     identity = ModelIdentity(manufacturer="Brother", model="M-1109")
     assert default_printer_name(identity) == "Brother M-1109 (Papyrium)"
+
+
+def test_a_printer_without_a_model_is_named_papyrium():
+    from papyrium.core.instance import default_printer_name
+
+    assert default_printer_name(None) == "Papyrium"

@@ -144,3 +144,12 @@ def test_an_advertisement_needs_an_endpoint():
             languages=(),
             endpoints=(),
         )
+
+
+async def test_a_printer_without_a_model_is_announced_without_one():
+    advertiser = MemoryAdvertiser(name="memory")
+    advertising = Advertising(advertiser, name="Papyrium", printer_uuid=PRINTER_UUID, model=None)
+    await advertising.start((NETWORK,))
+    (advertisement,) = advertiser.advertisements
+    assert advertisement.model is None
+    assert advertisement.languages == ()

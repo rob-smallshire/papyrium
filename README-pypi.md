@@ -181,7 +181,9 @@ JSON with `--as tsv` or `--as json`.
 
 Replaying a capture with the same printer setup always gives identical
 pages; `render` on a job directory uses the setup recorded in its
-`job.json`.
+`job.json`. `serve --capture-only` captures jobs without printing
+them, and needs no printer model installed: each job records the model and
+options asked for, so it can be printed later on a machine that has it.
 
 ## How it is built
 

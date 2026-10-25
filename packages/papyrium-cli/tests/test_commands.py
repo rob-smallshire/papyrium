@@ -190,3 +190,12 @@ def test_every_papyrium_distribution_shares_one_version():
     }
     assert "papyrium-cli" in versions
     assert len(set(versions.values())) == 1, versions
+
+
+def test_serving_a_model_that_is_not_installed_suggests_capturing_only():
+    from click.testing import CliRunner
+
+    result = CliRunner().invoke(cli, ["serve", "--model", "no-such-printer"])
+    assert result.exit_code != 0
+    assert "no-such-printer" in result.output
+    assert "--capture-only" in result.output

@@ -64,19 +64,25 @@ def _announced_addresses(endpoint: Endpoint, interface_addresses: InterfaceAddre
 
 
 def _txt_record(advertisement: Advertisement) -> dict[str, str]:
-    """The TXT record, in the keys of the Bonjour Printing specification."""
-    display_name = advertisement.model.display_name
-    return {
-        "txtvers": "1",
-        "qtotal": "1",
-        "ty": f"{display_name} (Papyrium)",
-        "product": f"({display_name})",
-        "note": "Papyrium virtual printer",
-        "usb_MFG": advertisement.model.manufacturer,
-        "usb_MDL": advertisement.model.model,
-        "usb_CMD": ",".join(language.command_set for language in advertisement.languages),
-        "uuid": str(advertisement.printer_uuid),
-    }
+    """The TXT record, in the keys of the Bonjour Printing specification.
+
+    A printer with no model says only that it is a Papyrium printer.
+    """
+    model = advertisement.model
+    record = {"txtvers": "1", "qtotal": "1"}
+    if model is None:
+        record["ty"] = "Papyrium"
+    else:
+        record["ty"] = f"{model.display_name} (Papyrium)"
+        record["product"] = f"({model.display_name})"
+    record["note"] = "Papyrium virtual printer"
+    if model is not None:
+        record["usb_MFG"] = model.manufacturer
+        record["usb_MDL"] = model.model
+    if advertisement.languages:
+        record["usb_CMD"] = ",".join(language.command_set for language in advertisement.languages)
+    record["uuid"] = str(advertisement.printer_uuid)
+    return record
 
 
 def service_infos(

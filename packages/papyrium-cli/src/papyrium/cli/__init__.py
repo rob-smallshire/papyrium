@@ -33,6 +33,7 @@ from papyrium.cli.plugins import (
 from papyrium.core.advertising import Advertising
 from papyrium.core.instance import PrinterInstance, default_printer_name
 from papyrium.core.jobs import CAPTURE_FILENAME, JOB_RECORD_FILENAME, JobRecord, JobStore
+from papyrium.core.model import PrinterModel
 from papyrium.core.rendering import JobRenderer, JobRendering
 from papyrium.core.spooler import Spooler
 from papyrium.exception import ConfigurationError, DataError, handled_errors
@@ -186,18 +187,23 @@ def serve(
 
     With ``--advertise`` the printer is announced on the local network
     while it runs, under its name, so that senders can find it.
+
+    With ``--capture-only`` the model need not be installed: each job
+    records the model and options asked for, so that ``render`` can print
+    it wherever that model is installed.
     """
     transport = TRANSPORTS.create(
         transport_name,
         transport_options_for(transport_name, transport_options, advertise=advertise),
     )
-    model = MODELS.create(model_name, model_options)
+    logging.basicConfig(level=logging.INFO, format="papyrium: %(message)s")
+    model = _serving_model(model_name, model_options, capture_only=capture_only)
     renderer = None
     if not capture_only:
         outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
         renderer = JobRenderer(model, outputs)
     store = JobStore(output_dirpath)
-    name = printer_name or default_printer_name(model.identity())
+    name = printer_name or default_printer_name(None if model is None else model.identity())
     printer_uuid = store.printer_uuid()
     spooler = Spooler(
         transport,
@@ -205,7 +211,7 @@ def serve(
         idle_timeout_seconds=idle_timeout_seconds,
         printer_setup={
             "model": model_name,
-            "options": model.config,
+            "options": dict(model_options) if model is None else model.config,
             "name": name,
             "uuid": str(printer_uuid),
         },
@@ -219,9 +225,33 @@ def serve(
             printer_uuid=printer_uuid,
             model=model,
         )
-    logging.basicConfig(level=logging.INFO, format="papyrium: %(message)s")
     instance = PrinterInstance(transport, spooler, renderer, advertising=advertising)
     asyncio.run(_serve_until_signalled(instance))
+
+
+def _serving_model(
+    model_name: str, model_options: dict[str, str], *, capture_only: bool
+) -> PrinterModel | None:
+    """The printer model to serve as, or None when capturing for a model not installed here.
+
+    Capturing needs no printer model: a job records the model and options
+    asked for, so it can be printed where that model is installed.
+    """
+    if model_name in MODELS.names():
+        return MODELS.create(model_name, model_options)
+    installed = ", ".join(MODELS.names()) or "none"
+    if not capture_only:
+        raise ConfigurationError(
+            f"no model named {model_name!r}; installed models: {installed}; "
+            "to capture jobs without printing them, add --capture-only"
+        )
+    logging.getLogger(__name__).warning(
+        "capturing only: model %r is not installed here (installed: %s); "
+        "each job records it so it can be printed where it is",
+        model_name,
+        installed,
+    )
+    return None
 
 
 def transport_options_for(

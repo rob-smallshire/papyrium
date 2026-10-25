@@ -153,3 +153,15 @@ async def test_nothing_to_announce_opens_no_responder():
     await advertiser.start(advertisement)
     await advertiser.stop()
     assert created == []
+
+
+def test_a_printer_without_a_model_says_only_that_it_is_papyrium():
+    advertisement = dataclasses.replace(sample_advertisement(), model=None, languages=())
+    (info,) = service_infos(advertisement, _interface_addresses)
+    assert info.decoded_properties == {
+        "txtvers": "1",
+        "qtotal": "1",
+        "ty": "Papyrium",
+        "note": "Papyrium virtual printer",
+        "uuid": "00000000-0000-4000-8000-000000000001",
+    }

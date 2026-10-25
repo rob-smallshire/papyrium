@@ -28,11 +28,13 @@ class Advertisement:
     """A printer, as announced to the network.
 
     *endpoints* are those the network can reach; there is at least one.
+    *model* is None, and *languages* empty, for a printer capturing jobs
+    with no printer model.
     """
 
     name: str
     printer_uuid: uuid.UUID
-    model: ModelIdentity
+    model: ModelIdentity | None
     languages: tuple[LanguageIdentity, ...]
     endpoints: tuple[Endpoint, ...]
 
@@ -81,7 +83,7 @@ class Advertising:
         *,
         name: str,
         printer_uuid: uuid.UUID,
-        model: PrinterModel,
+        model: PrinterModel | None,
         language_identity: Callable[[str], LanguageIdentity] = _installed_language_identity,
     ) -> None:
         self._advertiser = advertiser
@@ -110,8 +112,10 @@ class Advertising:
             advertisement = Advertisement(
                 name=self._name,
                 printer_uuid=self._printer_uuid,
-                model=self._model.identity(),
-                languages=tuple(self._language_identity(n) for n in self._model.languages()),
+                model=None if self._model is None else self._model.identity(),
+                languages=()
+                if self._model is None
+                else tuple(self._language_identity(n) for n in self._model.languages()),
                 endpoints=tuple(reachable),
             )
             await self._advertiser.start(advertisement)
