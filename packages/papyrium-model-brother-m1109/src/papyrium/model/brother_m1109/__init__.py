@@ -63,7 +63,7 @@ class BrotherM1109(PrinterModel):
         super().__init__(name=name, **kwargs)
         self._mechanism = EscpMechanism(
             font=options.nine_row_font(font),
-            nlq_font=options.nlq_font(nlq_font),
+            nlq_fonts=(options.nlq_font(nlq_font),),
             **options.paper_options(
                 paper_width=paper_width,
                 form_length=form_length,

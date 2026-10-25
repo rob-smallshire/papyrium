@@ -1,5 +1,7 @@
 """Mechanism settings for ESC/P printers that differ from the FX-80."""
 
+import logging
+
 from helpers import ESC, LEFT, LINE, dots, run
 
 from papyrium.language.escp import CharacterSet
@@ -100,23 +102,55 @@ def test_a_printer_can_power_on_in_nlq():
     assert dots(b"A", nlq=True, near_letter_quality=True) == [(LEFT + 36, 0), (LEFT + 36, 20)]
 
 
-def _nlq_font():
+def _nlq_font(column=0):
     from papyrium.core.testing import MemoryDotFont
 
-    # A: column 0 of the first pass's top pin, and column 1 of the second pass's.
+    # A: one column of the first pass's top pin, and the next of the second pass's.
     rows = ["." * 24 for _ in range(18)]
-    rows[0] = "#" + rows[0][1:]
-    rows[1] = ".#" + rows[1][2:]
+    rows[0] = "." * column + "#" + rows[0][column + 1 :]
+    rows[1] = "." * (column + 1) + "#" + rows[1][column + 2 :]
     text = "rows 18\ncolumns 24\nU+0041\n" + "\n".join(rows) + "\n"
-    return MemoryDotFont(name="nlq", text=text)
+    return MemoryDotFont(name=f"nlq-{column}", text=text)
+
+
+TWO_TYPEFACES = {"nlq": True, "nlq_fonts": (_nlq_font(0), _nlq_font(4))}
+
+
+def test_esc_k_chooses_the_nlq_typeface():
+    assert dots(ESC + b"x\x01" + ESC + b"k\x01A", **TWO_TYPEFACES) == [
+        (LEFT + 72, 0),
+        (LEFT + 90, 20),
+    ]
+    assert dots(ESC + b"x\x01" + ESC + b"k\x01" + ESC + b"k\x00A", **TWO_TYPEFACES) == [
+        (LEFT, 0),
+        (LEFT + 18, 20),
+    ]
+
+
+def test_esc_k_in_draft_takes_effect_with_nlq():
+    assert dots(ESC + b"k\x01" + ESC + b"x\x01A", **TWO_TYPEFACES)[0] == (LEFT + 72, 0)
+
+
+def test_a_typeface_the_printer_has_no_font_for_prints_in_the_first(caplog):
+    options = {"nlq": True, "nlq_fonts": (_nlq_font(0), None)}
+    with caplog.at_level(logging.WARNING):
+        assert dots(ESC + b"x\x01" + ESC + b"k\x01AA", **options)[:2] == [
+            (LEFT, 0),
+            (LEFT + 18, 20),
+        ]
+    assert caplog.text.count("typeface 1") == 1
+
+
+def test_a_printer_without_nlq_ignores_esc_k():
+    assert dots(ESC + b"k\x01A") == dots(b"A")
 
 
 def test_an_nlq_font_gives_two_passes_on_a_240th_inch_grid():
-    assert dots(ESC + b"x\x01A", nlq=True, nlq_font=_nlq_font()) == [(LEFT, 0), (LEFT + 18, 20)]
+    assert dots(ESC + b"x\x01A", nlq=True, nlq_fonts=(_nlq_font(),)) == [(LEFT, 0), (LEFT + 18, 20)]
 
 
 def test_characters_the_nlq_font_lacks_print_draft_double_struck():
-    assert dots(ESC + b"x\x01B", nlq=True, nlq_font=_nlq_font()) == [
+    assert dots(ESC + b"x\x01B", nlq=True, nlq_fonts=(_nlq_font(),)) == [
         (LEFT + 36, 0),
         (LEFT + 36, 20),
         (LEFT + 108, 360),
@@ -126,11 +160,11 @@ def test_characters_the_nlq_font_lacks_print_draft_double_struck():
 
 def test_nlq_is_always_ten_characters_an_inch():
     data = ESC + b"M" + ESC + b"x\x01AA"
-    assert [x for x, _ in dots(data, nlq=True, nlq_font=_nlq_font())][::2] == [LEFT, LEFT + 432]
+    assert [x for x, _ in dots(data, nlq=True, nlq_fonts=(_nlq_font(),))][::2] == [LEFT, LEFT + 432]
 
 
 def test_enlarged_nlq_doubles_the_grid_and_strikes_each_dot_twice():
-    assert dots(ESC + b"x\x01" + ESC + b"W\x01A", nlq=True, nlq_font=_nlq_font()) == [
+    assert dots(ESC + b"x\x01" + ESC + b"W\x01A", nlq=True, nlq_fonts=(_nlq_font(),)) == [
         (LEFT, 0),
         (LEFT + 18, 0),
         (LEFT + 36, 20),

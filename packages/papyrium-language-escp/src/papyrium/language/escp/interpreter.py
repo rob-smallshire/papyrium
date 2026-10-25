@@ -28,7 +28,7 @@ import logging
 from collections.abc import Callable, Generator, Iterable
 from dataclasses import dataclass, field
 
-from papyrium.core.dotfont import Glyph, code_points
+from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
 from papyrium.language.escp.charsets import character_at, rom_location
@@ -128,6 +128,7 @@ class EscpInterpreter(Interpreter):
         self._paper_text: list[TextMark] = []
         self._sheet_top = 0
         self._missing_characters: set[str] = set()
+        self._missing_typefaces: set[int] = set()
         self._glyph_cache: dict[tuple, tuple[tuple[int, int], ...]] = {}
         self._escapes = self._escape_table()
         self._power_on()
@@ -180,6 +181,7 @@ class EscpInterpreter(Interpreter):
         self._low_codes_printable = False
         self._immediate = False
         self._nlq = mechanism.near_letter_quality
+        self._typeface = 0
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
@@ -375,7 +377,7 @@ class EscpInterpreter(Interpreter):
 
         Downloaded characters and super- and subscripts print in draft.
         """
-        font = self._mechanism.nlq_font
+        font = self._nlq_font()
         if not self._nlq or font is None or self._script is not None:
             return None
         if self._glyph_source(location)[0] != "rom":
@@ -384,6 +386,18 @@ class EscpInterpreter(Interpreter):
         if character == "0" and self._mechanism.slashed_zero:
             character = SLASHED_ZERO
         return font.glyph(character)
+
+    def _nlq_font(self) -> DotFont | None:
+        """The font of the selected NLQ typeface, or the first's if there is none for it."""
+        fonts = self._mechanism.nlq_fonts
+        if not fonts:
+            return None
+        if self._typeface < len(fonts) and fonts[self._typeface] is not None:
+            return fonts[self._typeface]
+        if self._typeface not in self._missing_typefaces:
+            self._missing_typefaces.add(self._typeface)
+            logger.warning("no font for NLQ typeface %d; printing the first", self._typeface)
+        return fonts[0]
 
     def _nlq_dots(self, glyph: Glyph, width: int) -> list[tuple[int, int]]:
         """NLQ dots: two passes 1/216 inch apart, on 24 columns to the cell."""
@@ -706,6 +720,7 @@ class EscpInterpreter(Interpreter):
         }
         if self._mechanism.nlq:
             table["x"] = self._esc_nlq
+            table["k"] = self._esc_typeface
         return table
 
     @staticmethod
@@ -963,6 +978,10 @@ class EscpInterpreter(Interpreter):
 
     def _esc_nlq(self) -> ArgumentReader:
         self._nlq = self._flag((yield))
+
+    def _esc_typeface(self) -> ArgumentReader:
+        """Choose the NLQ typeface; in draft it is kept for the next ESC x 1."""
+        self._typeface = (yield) & 0x7F
 
     def _esc_proportional(self) -> ArgumentReader:
         self._proportional = self._flag((yield))

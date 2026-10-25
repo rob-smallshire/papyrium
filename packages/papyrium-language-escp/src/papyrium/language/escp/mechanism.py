@@ -85,10 +85,12 @@ class EscpMechanism:
     nlq: bool = False
     #: Power on printing near letter quality.
     near_letter_quality: bool = False
-    #: The near letter quality characters: 18 rows, the pins of a first pass
-    #: on even rows and of a second pass 1/216 inch lower on odd rows, by 24
-    #: columns of 1/240 inch to the pica cell. None prints NLQ as draft
-    #: struck twice.
-    nlq_font: DotFont | None = None
+    #: The near letter quality typefaces, in ESC k order: each 18 rows, the
+    #: pins of a first pass on even rows and of a second pass 1/216 inch
+    #: lower on odd rows, by 24 columns of 1/240 inch to the pica cell. None
+    #: for a typeface the printer has but Papyrium has no font for, which
+    #: prints in the first; with no typefaces, NLQ prints as draft struck
+    #: twice.
+    nlq_fonts: tuple[DotFont | None, ...] = ()
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None
