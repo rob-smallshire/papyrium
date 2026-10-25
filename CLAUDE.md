@@ -76,7 +76,10 @@ core that plug-in packages subclass in their own tests.
 ### Layout
 
 A uv workspace of `packages/papyrium-*` members sharing the PEP 420
-`papyrium` namespace (never add `src/papyrium/__init__.py`). `README.md`
+`papyrium` namespace (never add `src/papyrium/__init__.py`). The workspace
+root is also the bare `papyrium` distribution, which ships no code: it
+depends on `papyrium-cli` and every printer model and provides the
+`papyrium` command; `papyrium-cli` alone brings no printer model. `README.md`
 lists the packages. Entry-point groups are `papyrium.transport`,
 `papyrium.language`, `papyrium.model`, `papyrium.font`,
 `papyrium.output` and `papyrium.advertiser`. Positions on the page are whole units of 1/4320 inch

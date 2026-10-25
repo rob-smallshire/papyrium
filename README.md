@@ -24,7 +24,19 @@ network adapter, can drive it.
 
 ## Quick start
 
-From a checkout, with [uv](https://docs.astral.sh/uv/):
+With [uv](https://docs.astral.sh/uv/), run it straight from PyPI:
+
+```sh
+uvx papyrium serve
+```
+
+or install the `papyrium` command for good with `uv tool install papyrium`
+(or `pipx install papyrium`, or `pip install papyrium`). The `papyrium`
+distribution brings the command and every printer model; `papyrium-cli`
+alone brings the command with no printer model, to which you add the
+`papyrium-model-...` packages you want.
+
+From a checkout:
 
 ```sh
 git clone https://github.com/rob-smallshire/papyrium.git

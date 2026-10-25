@@ -1,10 +1,61 @@
 # Papyrium workspace root.
 #
-# A virtual uv workspace: it ships no distribution of its own. It stitches
-# the packages/papyrium-* members into one development environment.
+# This pyproject.toml serves two purposes:
+#
+# 1. It declares the uv workspace that stitches the packages/papyrium-*
+#    members into one development environment.
+#
+# 2. It defines the bare `papyrium` distribution on PyPI, which ships no
+#    code of its own: it depends on the papyrium command and every printer
+#    model, and provides the `papyrium` command, so that `pip install
+#    papyrium` or `uvx papyrium` gives a complete virtual printer.
 #
 # All members contribute to a single PEP 420 implicit namespace package
 # (`papyrium`). No member ever ships src/papyrium/__init__.py.
+
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium"
+version = "0.0.0"
+description = "A virtual vintage printer: the papyrium command with every printer model."
+readme = "README-pypi.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Printing",
+    "Topic :: System :: Emulators",
+]
+dependencies = [
+    "papyrium-cli>=0.0.0",
+    "papyrium-model-epson-fx80>=0.0.0",
+    "papyrium-model-brother-m1109>=0.0.0",
+]
+
+[project.scripts]
+papyrium = "papyrium.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/rob-smallshire/papyrium"
+Repository = "https://github.com/rob-smallshire/papyrium"
+Issues = "https://github.com/rob-smallshire/papyrium/issues"
+
+[tool.setuptools]
+# The bare distribution ships no code, only dependencies and the command.
+packages = []
 
 [tool.uv.workspace]
 members = ["packages/papyrium-*"]

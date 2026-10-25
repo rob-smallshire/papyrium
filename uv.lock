@@ -4,6 +4,7 @@ requires-python = ">=3.12"
 
 [manifest]
 members = [
+    "papyrium",
     "papyrium-advertiser-mdns",
     "papyrium-cli",
     "papyrium-core",
@@ -18,34 +19,6 @@ members = [
     "papyrium-output-pdf",
     "papyrium-output-png",
     "papyrium-transport-raw-tcp",
-]
-
-[manifest.dependency-groups]
-lint = [{ name = "ruff", specifier = ">=0.16" }]
-readme = [
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "pre-commit", specifier = ">=4.7.0" },
-]
-test = [
-    { name = "pypdf", specifier = ">=5.0" },
-    { name = "pytest", specifier = ">=8.3" },
-    { name = "pytest-asyncio", specifier = ">=0.24" },
-]
-workspace = [
-    { name = "papyrium-advertiser-mdns", editable = "packages/papyrium-advertiser-mdns" },
-    { name = "papyrium-cli", editable = "packages/papyrium-cli" },
-    { name = "papyrium-core", editable = "packages/papyrium-core" },
-    { name = "papyrium-exception", editable = "packages/papyrium-exception" },
-    { name = "papyrium-extension", editable = "packages/papyrium-extension" },
-    { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
-    { name = "papyrium-font-m1109-draft", editable = "packages/papyrium-font-m1109-draft" },
-    { name = "papyrium-font-m1109-nlq", editable = "packages/papyrium-font-m1109-nlq" },
-    { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
-    { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
-    { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
-    { name = "papyrium-output-pdf", editable = "packages/papyrium-output-pdf" },
-    { name = "papyrium-output-png", editable = "packages/papyrium-output-png" },
-    { name = "papyrium-transport-raw-tcp", editable = "packages/papyrium-transport-raw-tcp" },
 ]
 
 [[package]]
@@ -318,6 +291,81 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79", size = 313412, upload-time = "2026-08-04T18:15:28.737Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c", size = 129956, upload-time = "2026-08-04T18:15:27.159Z" },
+]
+
+[[package]]
+name = "papyrium"
+version = "0.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "papyrium-cli" },
+    { name = "papyrium-model-brother-m1109" },
+    { name = "papyrium-model-epson-fx80" },
+]
+
+[package.dev-dependencies]
+lint = [
+    { name = "ruff" },
+]
+readme = [
+    { name = "jinja2" },
+    { name = "pre-commit" },
+]
+test = [
+    { name = "pypdf" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+workspace = [
+    { name = "papyrium-advertiser-mdns" },
+    { name = "papyrium-cli" },
+    { name = "papyrium-core" },
+    { name = "papyrium-exception" },
+    { name = "papyrium-extension" },
+    { name = "papyrium-font-draft-9" },
+    { name = "papyrium-font-m1109-draft" },
+    { name = "papyrium-font-m1109-nlq" },
+    { name = "papyrium-language-escp" },
+    { name = "papyrium-model-brother-m1109" },
+    { name = "papyrium-model-epson-fx80" },
+    { name = "papyrium-output-pdf" },
+    { name = "papyrium-output-png" },
+    { name = "papyrium-transport-raw-tcp" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "papyrium-cli", editable = "packages/papyrium-cli" },
+    { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
+    { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
+]
+
+[package.metadata.requires-dev]
+lint = [{ name = "ruff", specifier = ">=0.16" }]
+readme = [
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "pre-commit", specifier = ">=4.7.0" },
+]
+test = [
+    { name = "pypdf", specifier = ">=5.0" },
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+]
+workspace = [
+    { name = "papyrium-advertiser-mdns", editable = "packages/papyrium-advertiser-mdns" },
+    { name = "papyrium-cli", editable = "packages/papyrium-cli" },
+    { name = "papyrium-core", editable = "packages/papyrium-core" },
+    { name = "papyrium-exception", editable = "packages/papyrium-exception" },
+    { name = "papyrium-extension", editable = "packages/papyrium-extension" },
+    { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
+    { name = "papyrium-font-m1109-draft", editable = "packages/papyrium-font-m1109-draft" },
+    { name = "papyrium-font-m1109-nlq", editable = "packages/papyrium-font-m1109-nlq" },
+    { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
+    { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
+    { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
+    { name = "papyrium-output-pdf", editable = "packages/papyrium-output-pdf" },
+    { name = "papyrium-output-png", editable = "packages/papyrium-output-png" },
+    { name = "papyrium-transport-raw-tcp", editable = "packages/papyrium-transport-raw-tcp" },
 ]
 
 [[package]]

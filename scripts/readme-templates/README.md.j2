@@ -9,7 +9,7 @@
 # Papyrium
 
 [![CI](https://github.com/rob-smallshire/papyrium/actions/workflows/ci.yml/badge.svg)](https://github.com/rob-smallshire/papyrium/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)]({{ repo_url("LICENSE") }})
 
 Papyrium is a virtual vintage printer. It runs as a headless service,
 receives the bytes a computer sends to its printer, interprets them as a
@@ -17,10 +17,10 @@ chosen period printer would, lays the result out on emulated paper, and
 writes the pages as PNG images and PDF documents, dot for dot.
 
 <p>
-<img src="{{ page_image("ledger", "ledger", "epson-fx80", options={"stationery": "green-bar"}, crop=(0, 0, 9.5, 3.5)) }}" alt="A condensed ledger report printed by the Epson FX-80 on green-bar listing paper" width="100%">
+<img src="{{ repo_url(page_image("ledger", "ledger", "epson-fx80", options={"stationery": "green-bar"}, crop=(0, 0, 9.5, 3.5)), raw=True) }}" alt="A condensed ledger report printed by the Epson FX-80 on green-bar listing paper" width="100%">
 </p>
 <p>
-<img src="{{ page_image("letter", "letter", "brother-m1109", crop=(0.25, 0.25, 8.25, 3.5)) }}" alt="A letter printed by the Brother M-1109 in near letter quality" width="100%">
+<img src="{{ repo_url(page_image("letter", "letter", "brother-m1109", crop=(0.25, 0.25, 8.25, 3.5)), raw=True) }}" alt="A letter printed by the Brother M-1109 in near letter quality" width="100%">
 </p>
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
@@ -31,7 +31,19 @@ network adapter, can drive it.
 
 ## Quick start
 
-From a checkout, with [uv](https://docs.astral.sh/uv/):
+With [uv](https://docs.astral.sh/uv/), run it straight from PyPI:
+
+```sh
+uvx papyrium serve
+```
+
+or install the `papyrium` command for good with `uv tool install papyrium`
+(or `pipx install papyrium`, or `pip install papyrium`). The `papyrium`
+distribution brings the command and every printer model; `papyrium-cli`
+alone brings the command with no printer model, to which you add the
+`papyrium-model-...` packages you want.
+
+From a checkout:
 
 ```sh
 git clone https://github.com/rob-smallshire/papyrium.git
@@ -164,7 +176,7 @@ package can add to it:
 |---|---|---|---|
 {%- for kind, label in [("transport", "Transports deliver bytes"), ("language", "Languages interpret them"), ("model", "Printer models are what the user chooses"), ("font", "Fonts stand in for character ROMs"), ("output", "Outputs write pages"), ("advertiser", "Advertisers announce printers")] %}
 {%- for plugin in plugins[kind] %}
-| {{ label if loop.first else "" }} | `{{ plugin.name }}` | {{ plugin.description }} | [`{{ plugin.package }}`](packages/{{ plugin.package }}/) |
+| {{ label if loop.first else "" }} | `{{ plugin.name }}` | {{ plugin.description }} | [`{{ plugin.package }}`]({{ repo_url("packages/" ~ plugin.package ~ "/") }}) |
 {%- endfor %}
 {%- endfor %}
 
@@ -174,7 +186,7 @@ workspace, and share the `papyrium` namespace:
 | Package | Contents |
 |---|---|
 {%- for package in packages %}
-| [`{{ package.name }}`](packages/{{ package.name }}/) | {{ package.description }} |
+| [`{{ package.name }}`]({{ repo_url("packages/" ~ package.name ~ "/") }}) | {{ package.description }} |
 {%- endfor %}
 
 `docs/specification.md` is the design as handed over from Beebium.
@@ -205,7 +217,7 @@ pre-commit hook regenerates them, so edit the templates, not the READMEs.
 
 ## Licence
 
-Papyrium is released under the MIT licence; see [`LICENSE`](LICENSE). Each
+Papyrium is released under the MIT licence; see [`LICENSE`]({{ repo_url("LICENSE") }}). Each
 package carries its own copy.
 
 Epson, Brother and the other printer and computer names in this project

@@ -2,7 +2,9 @@
 """Render the workspace's READMEs, and the sample pages they show, from templates.
 
 README.md, the landing page on GitHub, is rendered from
-scripts/readme-templates/README.md.j2. A package whose README states facts
+scripts/readme-templates/README.md.j2, and so is README-pypi.md, the long
+description of the bare papyrium distribution, with links made absolute
+for PyPI. A package whose README states facts
 the code also holds, such as a printer model's options and their defaults,
 keeps a template at packages/<package>/readme/README.md.j2, rendered to
 packages/<package>/README.md.
@@ -16,6 +18,9 @@ installed plug-ins on each axis, and these functions:
 - ``options_table(model, meanings, defaults=...)`` tabulates a printer
   model's options with the defaults its constructor declares. *meanings*
   must name every option the model has, and no others.
+- ``repo_url(path, raw=False)`` gives a link to a file in the repository:
+  relative on GitHub, absolute on PyPI, from raw.githubusercontent.com for
+  an image.
 - ``page_image(image_name, capture, model, crop=..., ...)`` prints the
   capture written by scripts/readme-examples/<capture>.py with the
   ``papyrium`` command, crops the first page to *crop* inches, saves it as
@@ -59,6 +64,11 @@ TEMPLATE_DIRPATH = SCRIPTS_DIRPATH / "readme-templates"
 EXAMPLES_DIRPATH = SCRIPTS_DIRPATH / "readme-examples"
 PACKAGES_DIRPATH = REPO_DIRPATH / "packages"
 IMAGES_DIRPATH = REPO_DIRPATH / "docs" / "images"
+
+#: Where the repository's files are seen from PyPI, whose pages cannot
+#: follow links relative to the repository.
+REPOSITORY_URL = "https://github.com/rob-smallshire/papyrium/blob/master/"
+RAW_REPOSITORY_URL = "https://raw.githubusercontent.com/rob-smallshire/papyrium/master/"
 
 PACKAGE_README_DIRNAME = "readme"
 README_TEMPLATE_FILENAME = "README.md.j2"
@@ -206,6 +216,7 @@ class ImageSet:
     """The sample page images a render produces, by repository path."""
 
     images: dict[Path, Image.Image] = field(default_factory=dict)
+    _paths: dict[tuple, str] = field(default_factory=dict)
 
     def page_image(
         self,
@@ -221,8 +232,15 @@ class ImageSet:
 
         *crop* is (left, top, right, bottom) in inches from the sheet's
         top-left corner. Returns the image's path relative to the
-        repository, for a Markdown image link.
+        repository, for a Markdown image link. Each image is printed once
+        however many READMEs show it.
         """
+        key = (image_name, capture, model, crop, tuple(sorted((options or {}).items())), dpi)
+        if key not in self._paths:
+            self._paths[key] = self._print(image_name, capture, model, crop, options, dpi)
+        return self._paths[key]
+
+    def _print(self, image_name, capture, model, crop, options, dpi) -> str:
         with tempfile.TemporaryDirectory(prefix="papyrium-readme-") as work_dirname:
             work_dirpath = Path(work_dirname)
             capture_filepath = work_dirpath / f"{capture}.prn"
@@ -262,9 +280,24 @@ def _jinja_environment(*template_dirpaths: Path) -> Environment:
     )
 
 
-def _render(template_dirpath: Path, images: ImageSet, **context: object) -> str:
+def _relative_url(path: str, raw: bool = False) -> str:
+    return path
+
+
+def _repository_url(path: str, raw: bool = False) -> str:
+    return (RAW_REPOSITORY_URL if raw else REPOSITORY_URL) + path
+
+
+def _render(
+    template_dirpath: Path,
+    images: ImageSet,
+    *,
+    repo_url: Callable[..., str] = _relative_url,
+    **context: object,
+) -> str:
     template = _jinja_environment(template_dirpath).get_template(README_TEMPLATE_FILENAME)
     return template.render(
+        repo_url=repo_url,
         packages=load_packages(),
         plugins=load_plugins(),
         transcript=render_transcript,
@@ -281,7 +314,13 @@ class RenderTarget:
 
 
 def _targets() -> list[RenderTarget]:
-    targets = [RenderTarget(REPO_DIRPATH / "README.md", partial(_render, TEMPLATE_DIRPATH))]
+    targets = [
+        RenderTarget(REPO_DIRPATH / "README.md", partial(_render, TEMPLATE_DIRPATH)),
+        RenderTarget(
+            REPO_DIRPATH / "README-pypi.md",
+            partial(_render, TEMPLATE_DIRPATH, repo_url=_repository_url),
+        ),
+    ]
     for template_filepath in sorted(
         PACKAGES_DIRPATH.glob(f"papyrium-*/{PACKAGE_README_DIRNAME}/{README_TEMPLATE_FILENAME}")
     ):
