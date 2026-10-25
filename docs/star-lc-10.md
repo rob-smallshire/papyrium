@@ -11,6 +11,14 @@ the LC-10 manual; "C" marks the LC-10 Colour manual (C 64). The manuals
 are copyrighted and are kept, uncommitted, in `docs/local/lc10/` and
 `docs/local/lc10-colour/`.
 
+A third source is Star's *NX-1000 Series / LC-10 Series Technical
+Manual* (ninth edition, 1997), a service manual covering the whole
+family, cited as "TM" with its printed page numbers and kept in
+`docs/local/nx1000-tech/`. It has no command reference, so it settles
+none of the command questions, but it gives the specifications per
+model and board version and describes the mechanism. Where it
+disagrees with the user manuals, the notes say so.
+
 The LC-10 is a nine-pin printer with two personalities chosen by DIP
 switch 1-6: Standard mode, which the manual says behaves like the Epson
 LX-800 (an FX-80 descendant with NLQ), and IBM mode, like the IBM
@@ -42,6 +50,20 @@ Switches 2-2, 2-3, 2-4 (on = 0, with 2-2 as the low bit): 0 USA,
 7 Spain I (17), reading off as 1. This is the same order as `ESC R` 0-7
 on page 64 and the FX-80's numbering. In IBM mode with 1-7 on, the Denmark I
 setting gives Denmark/Norway instead (17).
+
+The TM's switch table (TM 9) agrees except for that footnote: it says
+Denmark/Norway needs 1-6 and 1-7 **both off** (IBM mode with character
+set #1), where both user manuals and their reference cards say 1-7 on.
+The TM is the later document, but the user manuals are consistent with
+each other; this stays an open question.
+
+The TM also gives a different switch table for machines sold to the
+USSR (TM 9): 1-3 chooses the standard or IBM character set, 1-7 is set
+#1 when on (the reverse of the usual sense), 2-2 on means no italics,
+2-3 off makes `ESC 4`/`ESC 5` act on the top bit (MSB) instead of
+italics in Standard mode, and there is no international set switch.
+These machines carry their own ROM (seal suffix `SU`, TM 84, 128) and
+are out of scope for now.
 
 Note that the factory 1-2 makes LF also a carriage return, and 1-8 is
 the switch that makes CR feed a line. A BBC Micro sending CR only needs
@@ -113,6 +135,82 @@ Functions that change printer state:
   the bail is opened (11-12, 26-27).
 - **Clear buffer** (Print Pitch, On Line, Paper Feed held three seconds)
   discards data waiting in the input buffer (28-29).
+
+## Models and board versions (TM introduction, TM 3-5, 15-27, 84-128)
+
+The TM covers one mechanism sold under several names: NX-1000 (outside
+Europe) and LC-10 (Europe), each in monochrome and colour, each with a
+Centronics ("parallel type") or Commodore serial interface ("Commodore
+type", the `C` suffix: LC-10C, NX-1000C). The US colour model was badged
+NX-1000 Rainbow (TM 73). The NX-1000 user manual is therefore the same
+printer as the LC-10.
+
+| Board | Models | Speed draft / NLQ pica | Head pulse | RAM | ROM seal |
+|---|---|---|---|---|---|
+| Ver. 1 | parallel and Commodore, mono and colour | 120 / 30 cps | 380 µs | 8 KB mono, 32 KB colour | `NX1P.1*`, Commodore `NX1C.**` |
+| Ver. 1.5 | parallel, mono and colour | 120 / 30 cps | 380 µs | 8 KB (parts list) | `NX1P.2*` |
+| Ver. 2 | parallel mono only: NX-1000 II, LC-10 II | 150 / 38 cps | 340 µs | 8 KB | `LC2.**` |
+
+(TM 3, 15, 20, 84, 94, 104, 128.) Every version has an M50734 CPU and a
+single 64 KB 27512 EPROM (Star part 08220116), with separate ROMs for
+monochrome and colour; the ROM's internal version is not recorded.
+Version 1.5 moved the parallel interface from an interrupt to polling
+(TM 16). Nothing in the TM suggests that the board versions differ in
+command set or print output, other than Ver. 2's speed. The Ver. 1.5
+parts list shows only the 8 KB RAM even for its colour ROM, which sits
+oddly with the colour type's 8K data buffer (TM 3).
+
+### Parallel type (TM 3-4, 11)
+
+The specification repeats the user manual's (matrices, graphics modes,
+14 international sets, 192 draft or 78 NLQ download characters, column
+widths 80/96/137/160, line spacing 1/6 standard, 1/8, n/72, n/216
+programmable), adding that the data buffer is 4K on monochrome and 8K
+on colour machines (one line when download characters are in use). The
+ACK pulse is given as about 9 µs, not the user manual's 5 µs (TM 11).
+
+### Commodore type (TM 4-5, 10, 12)
+
+Not Epson- or IBM-compatible in the same way, and only relevant if
+Papyrium ever serves a Commodore emulator:
+
+- Commodore serial bus (6-pin DIN), device 4 or 5 by switch; a one-line
+  buffer only.
+- A Commodore mode with the Commodore character sets (standard or
+  business case, each in a standard or "DIN" form with international
+  letters), and an ASCII mode by switch 1-5 (TM 10).
+- Ten international sets: England, USA, France, Germany, Denmark I,
+  Denmark II, Sweden I, Italy, Spain, Sweden II.
+- 192 draft or **80** NLQ download characters (parallel: 78).
+- Block graphics 7 x 11; bit images only at 60, 120 and 240 dpi, with
+  7-dot as well as 8-dot forms; no 72, 80 or 90 dpi modes.
+- The colour ribbon is black/blue/red/yellow (see LC-10 Colour below).
+
+## Mechanism (TM 20-28)
+
+- Nine wires in one column; each dot is a solenoid pulse of 380 µs
+  (340 µs on Ver. 2) (TM 20, 25).
+- The carriage is driven by a four-phase stepping motor through a
+  timing belt; pitch is produced by changing the carriage speed, not by
+  a finer step, and the carriage accelerates and decelerates over 36
+  steps (TM 21, 25). A photo-interrupter at the left of the frame is the
+  home position from which every printing position is counted (TM 28).
+- Paper is fed by a second four-phase stepping motor; the **minimum feed
+  is 1/216 inch** (TM 27), which is presumably also the micro-feed step.
+  NLQ's half-dot (1/144 inch) second pass is not a whole number of
+  1/216 steps, so the TM and the user manual's "half a dot" (83, 94)
+  cannot both be exact; one third of a dot pitch (1/216) would match the
+  M-1109. This is an open question.
+- Editing works a line at a time: the CPU edits until CR (or CR LF) or a
+  full line, then prints (TM 20).
+- Draft prints in either direction, logic seeking; NLQ and graphics
+  print unidirectionally (TM 3).
+- The printer knows the feed method: a switch on the release lever
+  reports friction or tractor (TM 27-28), which is why commands such as
+  `ESC j` can be ignored under friction feed. A switch on the bail lever
+  starts automatic loading.
+- The ribbon advances by the carriage's movement in either direction
+  (TM 26).
 
 ## Paper, printable area and interface (7-12, 53-57)
 
@@ -547,11 +645,37 @@ the same (C 14-17, C 53-54, C 97-104). Differences:
   digit: 0 black, 1 red, 2 blue, 3 violet, 4 yellow, 5 orange, 6 green.
   Ignored when a colour ribbon is not fitted. The manual's BASIC sample
   changes colour freely within a line and within double-height text
-  (C 41-43).
-- **Ribbon**: a four-band black, blue, red and yellow fabric cartridge,
-  rated at a million draft characters per colour (C 53). The manual does
-  not say how violet, orange and green are produced; overprinting red
-  and blue, red and yellow, and blue and yellow is the natural reading.
+  (C 41-43). On the Centronics colour model, which is the one Papyrium
+  would emulate, "red" is printed with the magenta band and "blue" with
+  the cyan band (see the ribbon below), so the seven colours are black,
+  magenta, cyan, violet (magenta + cyan), yellow, orange (magenta +
+  yellow) and green (cyan + yellow).
+- **Ribbon**: a four-band fabric cartridge, rated at a million draft
+  characters per colour (C 53). The user manual calls the bands black,
+  blue, red and yellow. The TM disagrees for the Centronics colour type:
+  black, **cyan, magenta**, yellow (TM 4); only the Commodore colour type
+  has black/blue/red/yellow (TM 5). Since the LC-10 Colour described by
+  the user manual is a Centronics machine, its "blue" and "red" are cyan
+  and magenta. Neither manual says how violet, orange and green are
+  made; printing one primary over the other on the same dots is the
+  only way four bands can give them, and an independent review of the
+  NX-1000 Rainbow describes green as yellow then cyan over the same line
+  (Other sources).
+- **How the bands are changed** (TM 26, 33-34, 49, 77): the colour
+  carriage carries a colour ribbon holder that a lift cam, lift lever
+  and ribbon change levers raise or lower, so a different horizontal
+  band of the ribbon lies in front of the pins. The TM lists these parts
+  and their lubrication but does not describe the sequence. Colour
+  machines alone need the home position detector set 2.4 to 3.0 mm from
+  the frame (TM 33), which suggests the band is changed by a carriage
+  movement at the left end, timed from the home position. The colour
+  ribbon holder must be adjusted vertically (with two screws on early
+  parts) so the cartridge is square to the head; when it is wrong, the
+  self test shows the neighbouring band, for example yellow where red
+  was wanted (TM 34). That is a fault mode, not behaviour to emulate,
+  but it suggests yellow lies next to red (magenta) on the ribbon.
+- **Memory**: 32 KB of RAM instead of 8 KB on the Ver. 1 board (TM 15,
+  84), for an 8K input buffer.
 - **Embedded commands** (C 34-36, C 59-70, C 88): a capital letter in
   doubled parentheses followed by a digit, sent as ordinary text, act as
   commands. Bytes: 40 40 letter 41 41 then the digit character.
@@ -570,7 +694,7 @@ the same (C 14-17, C 53-54, C 97-104). Differences:
   commands prints as a blank line, and the commands take no space on
   the line (C 36). `((S))` does not move the base line; double height is
   NLQ (C 70).
-- **Data buffer** 8K instead of 4K (C 53).
+- **Data buffer** 8K instead of 4K (C 53; TM 3 agrees).
 - **Short self test** prints seven lines, each in a different colour
   (C 12).
 - `ESC x 1` is documented as selecting Courier unless a style was chosen
@@ -617,7 +741,9 @@ New work:
 5. **NLQ download characters** (46-byte form) and the restricted draft
    code range and attribute meaning.
 6. **Colour** (LC-10 Colour): a per-dot colour in the page model, `ESC r`,
-   and rendering of the four ribbon bands and their mixtures, plus the
+   and rendering of the four ribbon bands (black, cyan, magenta, yellow
+   on the Centronics model) with violet, orange and green as overprints
+   of two primaries, plus the
    embedded `((X))n` command recogniser, which must sit in front of
    ordinary text handling yet still capture every byte.
 7. Model options for friction versus tractor feed (several reverse feeds
@@ -628,16 +754,19 @@ New work:
 - The international set numbering on page 106 (3 Denmark I, 4 Sweden,
   5 Italy, 6 England) disagrees with `ESC R` on page 64 and the DIP
   switch table (3 England, 4 Denmark I, 5 Sweden, 6 Italy). Page 64
-  matches the Epson convention and is presumably right.
+  matches the Epson convention and is presumably right. The TM lists
+  the sets only by name (TM 3), so it does not settle this.
 - The IBM download command (84) is shown as `ESC =` in the ASCII column
   and the command summary but as 38 (`&`) in the decimal and hex
   columns. The Proprinter uses `ESC =`; which does the LC-10 accept?
+  The TM has no command reference.
 - `FS 5` is printed with hex 1C 33 (61); decimal 28 53 is surely right.
 - `ESC J` is said to be ignored under friction feed (72), which would
   make it useless on single sheets; probably copied from `ESC j`.
 - The NLQ matrices for condensed pica and condensed elite (18 rows)
   suggest NLQ condensed exists; whether NLQ elite and condensed are
-  separate designs or derived is not said.
+  separate designs or derived is not said. The TM repeats the same
+  matrices (TM 3) and adds nothing.
 - Whether `ESC w` grows upward from the base line (69-70) while `ESC h`
   hangs from the cap line; the two descriptions of "base line" are hard
   to reconcile without samples.
@@ -645,7 +774,13 @@ New work:
 - The draft download attribute is described as left space and cell
   width (83), the FX-80 as first and last column; is the LC-10's
   arithmetic really different? The NLQ attribute uses right space.
-- Whether `ESC @` erases download characters or resets the top of form.
+- Whether `ESC @` erases download characters or resets the top of form
+  (the TM only says the INPUT-PRIME line resets to the power-up state,
+  TM 11, 23).
+- Whether Denmark/Norway is selected by switches with 1-7 on (user
+  manuals, 17) or off (TM 9).
+- The NLQ inter-pass feed: "half a dot", 1/144 inch (83, 94), is not a
+  multiple of the TM's 1/216 inch minimum feed (TM 27).
 - Whether margin commands clear the buffer or reset tab stops, and the
   power-on margins.
 - What `ESC a` does with tabs, `ESC $` and mixed pitches on a justified
@@ -654,11 +789,51 @@ New work:
 - What an unknown escape sequence does.
 - Whether codes 0-31 that are not controls are swallowed or print as
   spaces in Standard mode.
-- How violet, orange and green are made on the Colour, how colour
-  passes order on a line, and whether `ESC r` affects graphics and
-  download characters (the sample prints download characters in each
-  colour, so it does).
+- The order of colour passes on a line, how many passes a mixed colour
+  takes (presumably the lighter primary first, as the Antic review
+  describes for green), how a line with several colours is printed, and
+  whether `ESC r` affects graphics (the sample prints download
+  characters in each colour, so it affects those). The mixtures
+  themselves are now settled as overprinted primaries.
+- How the band is physically selected (the TM names a lift cam and
+  levers and a colour-only home position adjustment, but not the
+  sequence), and so whether band changes cost time or extra carriage
+  movements; this matters only for timing, not for the page.
 - Where `((` sequences that do not form a valid command go: printed as
   text, or swallowed?
-- The micro-feed step size and the head's first printing position on
-  the paper are not given.
+- The head's first printing position on the paper is not given. The
+  micro-feed step is presumably the 1/216 inch minimum feed (TM 27).
+
+## Other sources
+
+Leads found by web research, not authorities; none has been checked
+against the printer.
+
+- **VICE's Star NL-10 driver**, `vice/src/printerdrv/drv-nl10.c`
+  (GPL-2.0-or-later, so oracle use only). The NL-10 is the LC-10's
+  predecessor. The driver runs only inside a VICE machine and needs
+  VICE's `nl10.bin` character ROM, which is Star's copyright and whose
+  use is undecided.
+  https://github.com/VICE-Team/svn-mirror/blob/main/vice/src/printerdrv/drv-nl10.c
+- **Antic, February 1989**, review of the NX-1000 Rainbow (the US
+  colour model): green is printed as yellow and then cyan over the same
+  line, and green NLQ double-strike can take up to six head passes per
+  line.
+  https://www.atarimagazines.com/v7n10/nx1000rainbow.php
+- **Acorn RISC OS !Printers notes**: the LC-10 is driven as an Epson
+  EX-800; colour is printed one pass per colour per band, and dark
+  colours can contaminate the light bands of the ribbon.
+  https://4corn.co.uk/archive/acornftp/riscos3/36/36DiscImage/Printing/Printers/Star/Read_Me
+- **Ghostscript's `epsonc` driver** (`devices/gdevepsc.c`,
+  AGPL-3.0-or-later, oracle use only): selects colour with `ESC r` and
+  prints one pass per colour per band, lightest colour first.
+- **Atari ST 1st Word Plus driver tables**, freeware: "LC10 Color" by
+  Ralf Fitzner and "Star LC10" by Detlef Laube.
+  https://www.atariuptodate.de/en/4243/lc10-color and
+  https://atariuptodate.de/en/10684/star-lc10
+- **NX-1000 user manual**, for the same printer under its non-European
+  name:
+  https://minuszerodegrees.net/manuals/Star%20Micronics/dot_matrix/Star%20Micronics%20-%20NX-1000%20-%20Users%20Manual.pdf
+- **Firmware**: no public dump of the LC-10 family's ROM is known. Per
+  the TM it is a single 64 KB 27512 EPROM (Star part 08220116) beside an
+  M50734 CPU (TM 15, 84).
