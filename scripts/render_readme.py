@@ -21,6 +21,8 @@ installed plug-ins on each axis, and these functions:
 - ``repo_url(path, raw=False)`` gives a link to a file in the repository:
   relative on GitHub, absolute on PyPI, from raw.githubusercontent.com for
   an image.
+- ``demo_image(image_name, model, crop=..., ...)`` does the same for a
+  printer model's demonstration page, printed with ``papyrium demo``.
 - ``page_image(image_name, capture, model, crop=..., ...)`` prints the
   capture written by scripts/readme-examples/<capture>.py with the
   ``papyrium`` command, crops the first page to *crop* inches, saves it as
@@ -83,9 +85,12 @@ PACKAGE_ORDER = (
     "papyrium-language-escp",
     "papyrium-model-epson-fx80",
     "papyrium-model-brother-m1109",
+    "papyrium-model-epson-lx800",
     "papyrium-font-draft-9",
     "papyrium-font-m1109-draft",
     "papyrium-font-m1109-nlq",
+    "papyrium-font-lx800-draft",
+    "papyrium-font-lx800-nlq-roman",
     "papyrium-output-png",
     "papyrium-output-pdf",
     "papyrium-advertiser-mdns",
@@ -235,22 +240,49 @@ class ImageSet:
         repository, for a Markdown image link. Each image is printed once
         however many READMEs show it.
         """
-        key = (image_name, capture, model, crop, tuple(sorted((options or {}).items())), dpi)
+        key = ("page", image_name, capture, model, crop, _items(options), dpi)
         if key not in self._paths:
-            self._paths[key] = self._print(image_name, capture, model, crop, options, dpi)
+
+            def arguments(work_dirpath: Path) -> list[str]:
+                capture_filepath = work_dirpath / f"{capture}.prn"
+                _run_example(capture, str(capture_filepath), cwd=work_dirpath)
+                return ["render", str(capture_filepath), "--model", model]
+
+            self._paths[key] = self._print(image_name, arguments, crop, options, dpi)
         return self._paths[key]
 
-    def _print(self, image_name, capture, model, crop, options, dpi) -> str:
+    def demo_image(
+        self,
+        image_name: str,
+        model: str,
+        *,
+        height: float,
+        options: Mapping[str, str] | None = None,
+        dpi: int = 100,
+    ) -> str:
+        """Print *model*'s demonstration page and keep its top *height* inches.
+
+        Returns the image's path relative to the repository, as page_image does.
+        """
+        crop = (0, 0, None, height)
+        key = ("demo", image_name, model, crop, _items(options), dpi)
+        if key not in self._paths:
+            self._paths[key] = self._print(
+                image_name, lambda _: ["demo", model], crop, options, dpi
+            )
+        return self._paths[key]
+
+    def _print(self, image_name, arguments, crop, options, dpi) -> str:
+        """Print with the papyrium command and keep a crop of the first page.
+
+        *arguments* gives the command's arguments up to the options, for a
+        working directory it may write into.
+        """
         with tempfile.TemporaryDirectory(prefix="papyrium-readme-") as work_dirname:
             work_dirpath = Path(work_dirname)
-            capture_filepath = work_dirpath / f"{capture}.prn"
-            _run_example(capture, str(capture_filepath), cwd=work_dirpath)
             command = [
                 str(Path(sys.executable).parent / "papyrium"),
-                "render",
-                str(capture_filepath),
-                "--model",
-                model,
+                *arguments(work_dirpath),
                 "--output",
                 "png",
                 "--output-option",
@@ -263,11 +295,18 @@ class ImageSet:
                 command += ["--model-option", f"{key}={value}"]
             subprocess.run(command, check=True, env=_environment())
             with Image.open(work_dirpath / "page-0001.png") as page:
-                box = tuple(round(inches * dpi) for inches in crop)
+                # A right edge of None is the page's own.
+                box = tuple(
+                    page.width if inches is None else round(inches * dpi) for inches in crop
+                )
                 image = page.crop(box)
         image_filepath = IMAGES_DIRPATH / f"{image_name}.png"
         self.images[image_filepath] = image
         return str(image_filepath.relative_to(REPO_DIRPATH))
+
+
+def _items(options: Mapping[str, str] | None) -> tuple:
+    return tuple(sorted((options or {}).items()))
 
 
 def _jinja_environment(*template_dirpaths: Path) -> Environment:
@@ -303,6 +342,7 @@ def _render(
         transcript=render_transcript,
         options_table=render_options_table,
         page_image=images.page_image,
+        demo_image=images.demo_image,
         **context,
     )
 
@@ -329,7 +369,11 @@ def _targets() -> list[RenderTarget]:
         targets.append(
             RenderTarget(
                 package_dirpath / "README.md",
-                partial(_render, template_filepath.parent, package=package),
+                # Package READMEs are also shown on PyPI, which cannot follow
+                # links relative to the repository.
+                partial(
+                    _render, template_filepath.parent, package=package, repo_url=_repository_url
+                ),
             )
         )
     return targets

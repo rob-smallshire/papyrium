@@ -22,6 +22,19 @@ Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
 
+## Printers
+
+Each printer model has a demonstration page, printed here by Papyrium
+itself; `papyrium demo MODEL` prints one.
+
+<table>
+<tr>
+<td width="33%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-brother-m1109/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="33%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="33%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+</tr>
+</table>
+
 ## Quick start
 
 With [uv](https://docs.astral.sh/uv/), run it straight from PyPI:
@@ -110,10 +123,11 @@ uv run papyrium serve --model brother-m1109 -M near-letter-quality=yes -M statio
 
 The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
 strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
-`music-ruled`. A font stands in for each printer's character ROM, which is
-never copied: `draft-9` is an original design, and the M-1109's fonts are
-reconstructed from its printed output. Any font can be replaced by a dot
-font file, with `-M font=PATH`.
+`music-ruled`. A font stands in for each printer's character ROM:
+`draft-9`, the FX-80's, is an original design; the M-1109's are
+reconstructed from its printed output; and the LX-800's are extracted from
+its firmware. Any font can be replaced by a dot font file, with
+`-M font=PATH`.
 
 ## Printing from a BBC Micro in Beebium
 
@@ -226,21 +240,21 @@ workspace, and share the `papyrium` namespace:
 | [`papyrium-language-escp`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-language-escp/) | The Epson ESC/P printer language for Papyrium's 9-pin dot-matrix models |
 | [`papyrium-model-epson-fx80`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/) | The Epson FX-80 9-pin dot-matrix printer, emulated for Papyrium |
 | [`papyrium-model-brother-m1109`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-brother-m1109/) | The Brother M-1109 9-pin dot-matrix printer, emulated for Papyrium |
+| [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) | The Epson LX-800 9-pin dot-matrix printer, emulated for Papyrium |
 | [`papyrium-font-draft-9`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-draft-9/) | draft-9, a 9-pin dot-matrix font in the style of 1980s printers, designed for Papyrium |
 | [`papyrium-font-m1109-draft`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-m1109-draft/) | m1109-draft, the Brother M-1109's draft characters, reconstructed for Papyrium |
 | [`papyrium-font-m1109-nlq`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-m1109-nlq/) | m1109-nlq, the Brother M-1109's near letter quality characters, reconstructed for Papyrium |
+| [`papyrium-font-lx800-draft`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-draft/) | lx800-draft, the Epson LX-800's draft characters, from its firmware, for Papyrium |
+| [`papyrium-font-lx800-nlq-roman`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-nlq-roman/) | lx800-nlq-roman, the Epson LX-800's near letter quality Roman characters, from its firmware, for Papyrium |
 | [`papyrium-output-png`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-output-png/) | PNG output for Papyrium: one raster image per page, dots drawn as dots |
 | [`papyrium-output-pdf`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-output-pdf/) | PDF output for Papyrium: one document per job, dots as vector dots |
 | [`papyrium-advertiser-mdns`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-advertiser-mdns/) | Announces Papyrium printers on the local network with multicast DNS (Bonjour, Avahi) |
 | [`papyrium-cli`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-cli/) | The papyrium command: run a virtual vintage printer, replay its jobs and inspect them |
-| [`papyrium-font-lx800-draft`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-draft/) | lx800-draft, the Epson LX-800's draft characters, from its firmware, for Papyrium |
-| [`papyrium-font-lx800-nlq-roman`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-nlq-roman/) | lx800-nlq-roman, the Epson LX-800's near letter quality Roman characters, from its firmware, for Papyrium |
-| [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) | The Epson LX-800 9-pin dot-matrix printer, emulated for Papyrium |
 
 `docs/specification.md` is the design as handed over from Beebium.
-`docs/epson-fx80.md` and `docs/brother-m1109.md` record the behaviour
-Papyrium follows, from the manufacturers' manuals, and `CLAUDE.md` records
-the working practices.
+`docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md` and
+`docs/star-lc-10.md` record the behaviour Papyrium follows, from the
+manufacturers' manuals, and `CLAUDE.md` records the working practices.
 
 ## Development
 

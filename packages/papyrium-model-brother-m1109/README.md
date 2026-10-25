@@ -7,6 +7,13 @@ speaks ESC/P through `papyrium-language-escp`. Its IBM personality, Mode
 II, is not modelled. `docs/brother-m1109.md` records the behaviour
 followed and how it differs from the FX-80.
 
+## Demonstration page
+
+<img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-brother-m1109.png" alt="The brother-m1109 demonstration page" width="100%">
+
+Print it yourself, as PNG and PDF, with `papyrium demo brother-m1109`; `-M`
+options set the printer up, such as `-M stationery=green-bar`.
+
 Registered as `brother-m1109` on the `papyrium.model` axis. The options
 model the printer's DIP switches and paper:
 

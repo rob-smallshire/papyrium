@@ -13,6 +13,13 @@ from the LX-800's firmware ROM. The dump available has Cyrillic where the
 Western LX-800 has its second NLQ typeface, Sans Serif, so `ESC k 1` prints
 in Roman unless a Sans Serif font is given.
 
+## Demonstration page
+
+<img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-epson-lx800.png" alt="The epson-lx800 demonstration page" width="100%">
+
+Print it yourself, as PNG and PDF, with `papyrium demo epson-lx800`; `-M`
+options set the printer up, such as `-M stationery=green-bar`.
+
 Registered as `epson-lx800` on the `papyrium.model` axis. The options
 model the printer's DIP switches and paper:
 

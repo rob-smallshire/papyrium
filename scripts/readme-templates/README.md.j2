@@ -29,6 +29,19 @@ Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
 
+## Printers
+
+Each printer model has a demonstration page, printed here by Papyrium
+itself; `papyrium demo MODEL` prints one.
+
+<table>
+<tr>
+{%- for model in plugins["model"] %}
+<td width="{{ (100 / plugins["model"]|length)|round|int }}%" valign="top"><a href="{{ repo_url("packages/" ~ model.package ~ "/") }}"><img src="{{ repo_url(demo_image("demo-top-" ~ model.name, model.name, height=3.35), raw=True) }}" alt="The top of the {{ model.name }} demonstration page" width="100%"></a><br><code>{{ model.name }}</code></td>
+{%- endfor %}
+</tr>
+</table>
+
 ## Quick start
 
 With [uv](https://docs.astral.sh/uv/), run it straight from PyPI:
@@ -87,10 +100,11 @@ uv run papyrium serve --model brother-m1109 -M near-letter-quality=yes -M statio
 
 The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
 strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
-`music-ruled`. A font stands in for each printer's character ROM, which is
-never copied: `draft-9` is an original design, and the M-1109's fonts are
-reconstructed from its printed output. Any font can be replaced by a dot
-font file, with `-M font=PATH`.
+`music-ruled`. A font stands in for each printer's character ROM:
+`draft-9`, the FX-80's, is an original design; the M-1109's are
+reconstructed from its printed output; and the LX-800's are extracted from
+its firmware. Any font can be replaced by a dot font file, with
+`-M font=PATH`.
 
 ## Printing from a BBC Micro in Beebium
 
@@ -193,9 +207,9 @@ workspace, and share the `papyrium` namespace:
 {%- endfor %}
 
 `docs/specification.md` is the design as handed over from Beebium.
-`docs/epson-fx80.md` and `docs/brother-m1109.md` record the behaviour
-Papyrium follows, from the manufacturers' manuals, and `CLAUDE.md` records
-the working practices.
+`docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md` and
+`docs/star-lc-10.md` record the behaviour Papyrium follows, from the
+manufacturers' manuals, and `CLAUDE.md` records the working practices.
 
 ## Development
 

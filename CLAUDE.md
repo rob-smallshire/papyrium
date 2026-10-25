@@ -128,6 +128,12 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   and files already on PyPI are left out, so a release that stopped part
   way, as when PyPI limits new projects, is resumed with
   `gh workflow run release.yml -f tag=vX`.
+- **Every printer model has a demonstration page**, `demo()`: a job we
+  write ourselves (in its package's `demo.py`, with
+  `papyrium.language.escp.writing` for ESC/P) that shows the printer at
+  its best. The conformance suite checks it prints without warnings, each
+  model pins it as golden pages, its README and the root README's
+  gallery show it, and `papyrium demo MODEL` prints it.
 - **Generated READMEs.** `README.md`, the printer models' READMEs and
   `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
   templates (`scripts/readme-templates/`, `packages/*/readme/`), running
