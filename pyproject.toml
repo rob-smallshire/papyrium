@@ -43,6 +43,7 @@ dependencies = [
     "papyrium-cli>=0.1.0",
     "papyrium-model-epson-fx80>=0.1.0",
     "papyrium-model-brother-m1109>=0.1.0",
+    "papyrium-model-epson-lx800>=0.1.0",
 ]
 
 [project.scripts]
@@ -65,6 +66,7 @@ papyrium-output-pdf = { workspace = true }
 papyrium-advertiser-mdns = { workspace = true }
 papyrium-model-epson-fx80 = { workspace = true }
 papyrium-model-brother-m1109 = { workspace = true }
+papyrium-model-epson-lx800 = { workspace = true }
 papyrium-language-escp = { workspace = true }
 papyrium-font-draft-9 = { workspace = true }
 papyrium-font-m1109-draft = { workspace = true }
@@ -104,6 +106,7 @@ workspace = [
     "papyrium-language-escp",
     "papyrium-model-epson-fx80",
     "papyrium-model-brother-m1109",
+    "papyrium-model-epson-lx800",
     "papyrium-output-pdf",
     "papyrium-exception",
     "papyrium-extension",
@@ -219,6 +222,11 @@ search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 
 [[tool.bumpversion.files]]
+filename = "packages/papyrium-model-epson-lx800/src/papyrium/model/epson_lx800/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
 filename = "packages/papyrium-model-epson-fx80/src/papyrium/model/epson_fx80/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
@@ -260,6 +268,7 @@ testpaths = [
     "packages/papyrium-language-escp/tests",
     "packages/papyrium-model-epson-fx80/tests",
     "packages/papyrium-model-brother-m1109/tests",
+    "packages/papyrium-model-epson-lx800/tests",
     "packages/papyrium-output-pdf/tests",
     "packages/papyrium-advertiser-mdns/tests",
 ]

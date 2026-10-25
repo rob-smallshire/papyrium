@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papyrium-model-epson-lx800"
+dynamic = ["version"]
+authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
+description = "The Epson LX-800 9-pin dot-matrix printer, emulated for Papyrium."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = [
+    "papyrium-core>=0.1.0",
+    "papyrium-extension>=0.1.0",
+    "papyrium-font-lx800-draft>=0.1.0",
+    "papyrium-font-lx800-nlq-roman>=0.1.0",
+    "papyrium-language-escp>=0.1.0",
+]
+
+[project.entry-points."papyrium.model"]
+epson-lx800 = "papyrium.model.epson_lx800:EpsonLX800"
+
+[tool.setuptools.dynamic]
+version = { attr = "papyrium.model.epson_lx800.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

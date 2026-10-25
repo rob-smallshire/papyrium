@@ -18,6 +18,7 @@ members = [
     "papyrium-language-escp",
     "papyrium-model-brother-m1109",
     "papyrium-model-epson-fx80",
+    "papyrium-model-epson-lx800",
     "papyrium-output-pdf",
     "papyrium-output-png",
     "papyrium-transport-raw-tcp",
@@ -411,6 +412,7 @@ dependencies = [
     { name = "papyrium-cli" },
     { name = "papyrium-model-brother-m1109" },
     { name = "papyrium-model-epson-fx80" },
+    { name = "papyrium-model-epson-lx800" },
 ]
 
 [package.dev-dependencies]
@@ -443,6 +445,7 @@ workspace = [
     { name = "papyrium-language-escp" },
     { name = "papyrium-model-brother-m1109" },
     { name = "papyrium-model-epson-fx80" },
+    { name = "papyrium-model-epson-lx800" },
     { name = "papyrium-output-pdf" },
     { name = "papyrium-output-png" },
     { name = "papyrium-transport-raw-tcp" },
@@ -453,6 +456,7 @@ requires-dist = [
     { name = "papyrium-cli", editable = "packages/papyrium-cli" },
     { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
     { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
+    { name = "papyrium-model-epson-lx800", editable = "packages/papyrium-model-epson-lx800" },
 ]
 
 [package.metadata.requires-dev]
@@ -481,6 +485,7 @@ workspace = [
     { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
     { name = "papyrium-model-brother-m1109", editable = "packages/papyrium-model-brother-m1109" },
     { name = "papyrium-model-epson-fx80", editable = "packages/papyrium-model-epson-fx80" },
+    { name = "papyrium-model-epson-lx800", editable = "packages/papyrium-model-epson-lx800" },
     { name = "papyrium-output-pdf", editable = "packages/papyrium-output-pdf" },
     { name = "papyrium-output-png", editable = "packages/papyrium-output-png" },
     { name = "papyrium-transport-raw-tcp", editable = "packages/papyrium-transport-raw-tcp" },
@@ -669,6 +674,26 @@ requires-dist = [
     { name = "papyrium-core", editable = "packages/papyrium-core" },
     { name = "papyrium-extension", editable = "packages/papyrium-extension" },
     { name = "papyrium-font-draft-9", editable = "packages/papyrium-font-draft-9" },
+    { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
+]
+
+[[package]]
+name = "papyrium-model-epson-lx800"
+source = { editable = "packages/papyrium-model-epson-lx800" }
+dependencies = [
+    { name = "papyrium-core" },
+    { name = "papyrium-extension" },
+    { name = "papyrium-font-lx800-draft" },
+    { name = "papyrium-font-lx800-nlq-roman" },
+    { name = "papyrium-language-escp" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "papyrium-core", editable = "packages/papyrium-core" },
+    { name = "papyrium-extension", editable = "packages/papyrium-extension" },
+    { name = "papyrium-font-lx800-draft", editable = "packages/papyrium-font-lx800-draft" },
+    { name = "papyrium-font-lx800-nlq-roman", editable = "packages/papyrium-font-lx800-nlq-roman" },
     { name = "papyrium-language-escp", editable = "packages/papyrium-language-escp" },
 ]
 

@@ -131,3 +131,10 @@ def test_ibm_characters_are_never_italic():
     upright = dots(ESC + b"t\x01\xe0", font=font)
     assert upright == [(LEFT + 36, 0)]
     assert dots(ESC + b"4" + ESC + b"t\x01\xe0", font=font) == upright
+
+
+def test_full_justification_leaves_leading_spaces_alone():
+    xs = sorted({x for x, y in dots(ESC + b"a\x03 A A\r", **_nlq()) if y == 0})
+    # The leading space keeps its width; only the gap between the A's grows.
+    assert xs[0] == LEFT + 432
+    assert xs[-1] == LEFT + FULL_LINE - 432

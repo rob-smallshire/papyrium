@@ -605,7 +605,11 @@ class EscpInterpreter(Interpreter):
         if spare <= 0:
             return
         if mode == 3:
-            gaps = [index for index in range(last) if _is_space(entries[index])]
+            # Spaces leading the line keep their width; the gaps are between words.
+            first = 0
+            while _is_space(entries[first]):
+                first += 1
+            gaps = [index for index in range(first, last) if _is_space(entries[index])]
             if not gaps:
                 return
             share, extra = divmod(spare, len(gaps))

@@ -17,7 +17,7 @@ writes the pages as PNG images and PDF documents, dot for dot.
 </p>
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
-and the Brother M-1109, speaking Epson's ESC/P. The first client is
+and LX-800 and the Brother M-1109, speaking Epson's ESC/P. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
@@ -77,6 +77,8 @@ $ papyrium list-models
 │               │ its Mode I.                                                  │
 │ epson-fx80    │ Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking │
 │               │ ESC/P.                                                       │
+│ epson-lx800   │ Epson LX-800: an 80-column, 9-pin dot-matrix printer         │
+│               │ speaking ESC/P.                                              │
 └───────────────┴──────────────────────────────────────────────────────────────┘
 
 $ papyrium list-fonts
@@ -201,6 +203,7 @@ package can add to it:
 | Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium-language-escp`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-language-escp/) |
 | Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium-model-brother-m1109`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-brother-m1109/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-fx80`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/) |
+|  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium-font-draft-9`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-draft-9/) |
 |  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium-font-lx800-draft`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-draft/) |
 |  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium-font-lx800-nlq-roman`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-nlq-roman/) |
@@ -231,6 +234,7 @@ workspace, and share the `papyrium` namespace:
 | [`papyrium-cli`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-cli/) | The papyrium command: run a virtual vintage printer, replay its jobs and inspect them |
 | [`papyrium-font-lx800-draft`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-draft/) | lx800-draft, the Epson LX-800's draft characters, from its firmware, for Papyrium |
 | [`papyrium-font-lx800-nlq-roman`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lx800-nlq-roman/) | lx800-nlq-roman, the Epson LX-800's near letter quality Roman characters, from its firmware, for Papyrium |
+| [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) | The Epson LX-800 9-pin dot-matrix printer, emulated for Papyrium |
 
 `docs/specification.md` is the design as handed over from Beebium.
 `docs/epson-fx80.md` and `docs/brother-m1109.md` record the behaviour
