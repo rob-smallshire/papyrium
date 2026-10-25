@@ -78,3 +78,27 @@ async def test_close_drops_open_connections():
         await connection.send(b"X")
         assert await receive(transport, 1) == b"X"
     assert await asyncio.wait_for(connection._reader.read(), 1.0) == b""
+
+
+def test_has_no_endpoint_until_open():
+    assert _make_transport().endpoints() == ()
+
+
+async def test_reports_its_endpoint_once_open():
+    async with _make_transport() as transport:
+        (endpoint,) = transport.endpoints()
+        assert endpoint.protocol == "appsocket"
+        assert endpoint.port == transport.port
+        assert endpoint.addresses == ("127.0.0.1",)
+        assert endpoint.local_only
+
+
+def test_listens_on_every_interface_given_an_empty_host():
+    assert RawTcpTransport.all_interfaces_options() == {"host": ""}
+
+
+def test_describes_listening_on_every_interface(caplog):
+    from papyrium.transport.raw_tcp import _listening_place
+
+    assert _listening_place("", 9100) == "every interface, port 9100"
+    assert _listening_place("127.0.0.1", 9100) == "127.0.0.1:9100"

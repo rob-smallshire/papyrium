@@ -2,12 +2,39 @@
 
 from __future__ import annotations
 
+import ipaddress
 from abc import abstractmethod
 from collections.abc import AsyncIterator, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from papyrium.core.options import construct
 from papyrium.extension import Extension
+
+
+@dataclass(frozen=True)
+class Endpoint:
+    """Somewhere a transport listens: its protocol, port and bound addresses.
+
+    *protocol* names the protocol a sender speaks there, such as
+    ``appsocket`` for raw bytes over TCP. *addresses* are as bound, so an
+    unspecified address (``0.0.0.0`` or ``::``) stands for every interface.
+    """
+
+    protocol: str
+    port: int
+    addresses: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if not 0 < self.port < 65536:
+            raise ValueError(f"an endpoint needs a port from 1 to 65535, not {self.port}")
+        if not self.addresses:
+            raise ValueError("an endpoint needs at least one address")
+
+    @property
+    def local_only(self) -> bool:
+        """Whether only this machine can reach the endpoint: every address is loopback."""
+        return all(ipaddress.ip_address(address).is_loopback for address in self.addresses)
 
 
 class Transport(Extension):
@@ -43,6 +70,18 @@ class Transport(Extension):
         of the same name; see :func:`papyrium.core.options.construct`.
         """
         return construct(cls, name=name, config=config)
+
+    @classmethod
+    def all_interfaces_options(cls) -> dict[str, str]:
+        """Options that make this transport listen on every network interface.
+
+        Empty for a transport that does not listen on the network.
+        """
+        return {}
+
+    def endpoints(self) -> tuple[Endpoint, ...]:
+        """Where this transport listens while open; none for one off the network."""
+        return ()
 
     @abstractmethod
     async def open(self) -> None:

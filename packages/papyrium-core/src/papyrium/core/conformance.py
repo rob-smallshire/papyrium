@@ -103,6 +103,14 @@ class TransportConformance:
             else:
                 raise AssertionError("iteration produced data or ended after a disconnect")
 
+    async def test_endpoints_are_where_it_listens_once_open(self):
+        from papyrium.core.transport import Endpoint
+
+        async with self.make_transport() as transport:
+            endpoints = transport.endpoints()
+            assert isinstance(endpoints, tuple)
+            assert all(isinstance(endpoint, Endpoint) for endpoint in endpoints)
+
     async def test_iteration_ends_after_close(self):
         transport = self.make_transport()
         async with transport:

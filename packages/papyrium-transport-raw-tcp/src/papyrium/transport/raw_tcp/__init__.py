@@ -8,13 +8,16 @@ import logging
 from collections.abc import AsyncIterator
 
 from papyrium.core.channel import ChunkChannel
-from papyrium.core.transport import Transport
+from papyrium.core.transport import Endpoint, Transport
 
 __version__ = "0.0.0"
 
 __all__ = ["RawTcpTransport", "DEFAULT_PORT"]
 
 logger = logging.getLogger(__name__)
+
+#: The protocol a sender speaks: raw bytes over TCP, as AppSocket or JetDirect.
+APPSOCKET = "appsocket"
 
 #: The JetDirect / AppSocket raw printing port.
 DEFAULT_PORT = 9100
@@ -33,8 +36,8 @@ class RawTcpTransport(Transport):
     One connection is read at a time, as a real printer has one input;
     a later connection waits until the earlier one ends.
 
-    Options: ``host`` (default ``localhost``), ``port`` (default 9100;
-    0 picks a free port).
+    Options: ``host`` (default ``localhost``; empty for every interface),
+    ``port`` (default 9100; 0 picks a free port).
     """
 
     def __init__(
@@ -63,10 +66,20 @@ class RawTcpTransport(Transport):
         """The listening port; the bound port once open if 0 was asked for."""
         return self._port
 
+    @classmethod
+    def all_interfaces_options(cls) -> dict[str, str]:
+        return {"host": ""}
+
+    def endpoints(self) -> tuple[Endpoint, ...]:
+        if self._server is None:
+            return ()
+        addresses = tuple(dict.fromkeys(s.getsockname()[0] for s in self._server.sockets))
+        return (Endpoint(protocol=APPSOCKET, port=self._port, addresses=addresses),)
+
     async def open(self) -> None:
         self._server = await asyncio.start_server(self._handle, self._host, self._port)
         self._port = self._server.sockets[0].getsockname()[1]
-        logger.info("listening for raw TCP on %s:%d", self._host, self._port)
+        logger.info("listening for raw TCP on %s", _listening_place(self._host, self._port))
 
     async def close(self) -> None:
         if self._server is not None:
@@ -104,3 +117,7 @@ class RawTcpTransport(Transport):
                 await self._channel.send(chunk)
         except ConnectionError as error:
             logger.warning("connection from %s failed: %s", peer, error)
+
+
+def _listening_place(host: str, port: int) -> str:
+    return f"{host}:{port}" if host else f"every interface, port {port}"
