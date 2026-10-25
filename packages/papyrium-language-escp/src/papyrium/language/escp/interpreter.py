@@ -416,10 +416,13 @@ class EscpInterpreter(Interpreter):
         for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
             dx = column * step
             dy = (row // 2) * pin_pitch + (row % 2) * DOUBLE_STRIKE_OFFSET
-            result.append((dx, dy))
+            passes = [(dx, dy)]
             if self._is_double_width():
                 # Enlarged characters strike every dot twice, side by side.
-                result.append((dx + step // 2, dy))
+                passes.append((dx + step // 2, dy))
+            if self._emphasized and self._mechanism.nlq_emphasized:
+                passes.extend([(x + step, y) for x, y in passes])
+            result.extend(passes)
         return result
 
     def _report_missing(self, character: str, instead: str) -> None:
@@ -572,6 +575,8 @@ class EscpInterpreter(Interpreter):
     def _carriage_return(self) -> None:
         self._print_line()
         self._x = self._left_margin
+        if self._mechanism.carriage_return_ends_one_line_enlarged:
+            self._one_line_double_width = False
         if self._mechanism.auto_line_feed:
             self._advance_line()
 
@@ -729,6 +734,9 @@ class EscpInterpreter(Interpreter):
             "j": self._esc_reverse_feed,
             "p": self._esc_proportional,
             "s": self._esc_skip_argument,
+            "\x19": self._esc_skip_argument,
+            "e": self._esc_regular_tabs,
+            "f": self._esc_skip,
         }
         if self._mechanism.nlq:
             table["x"] = self._esc_nlq
@@ -741,13 +749,16 @@ class EscpInterpreter(Interpreter):
         return value in (1, ord("1"))
 
     def _esc_master_select(self) -> ArgumentReader:
-        """Pitch, weight and width only; italic, underline and the rest are untouched."""
+        """Pitch, weight and width, and on some printers italic and underline."""
         n = yield
         self._elite = bool(n & 0x01)
         self._condensed = bool(n & 0x04)
         self._emphasized = bool(n & 0x08)
         self._double_strike = bool(n & 0x10)
         self._double_width = bool(n & 0x20)
+        if self._mechanism.master_select_italic_underline:
+            self._italic = bool(n & 0x40)
+            self._underline = bool(n & 0x80)
 
     def _esc_select_user_set(self) -> ArgumentReader:
         n = yield
@@ -937,6 +948,10 @@ class EscpInterpreter(Interpreter):
         """Every eight pica columns from the left margin."""
         return [column * PICA_WIDTH for column in range(8, self._mechanism.columns, 8)]
 
+    def _margin_tabs(self) -> list[int]:
+        """The tab stops after a margin is set: cleared, or the defaults again."""
+        return [] if self._mechanism.margins_clear_tabs else self._default_tabs()
+
     def _right_limit(self, *, text: bool) -> int:
         """The right margin; at power on, condensed text stops short of it."""
         if self._right_margin is not None:
@@ -959,7 +974,7 @@ class EscpInterpreter(Interpreter):
         full_width = self._mechanism.columns * PICA_WIDTH
         if self._left_margin + self._narrowest_line() <= right <= full_width:
             self._right_margin = right
-            self._tabs = self._default_tabs()
+            self._tabs = self._margin_tabs()
 
     def _esc_left_margin(self) -> ArgumentReader:
         n = yield
@@ -968,7 +983,7 @@ class EscpInterpreter(Interpreter):
         # The head stays put; the margin applies from the next carriage return.
         if left + self._narrowest_line() <= self._right_limit(text=False):
             self._left_margin = left
-            self._tabs = self._default_tabs()
+            self._tabs = self._margin_tabs()
 
     def _esc_character_set(self) -> ArgumentReader:
         n = yield
@@ -990,6 +1005,34 @@ class EscpInterpreter(Interpreter):
 
     def _esc_nlq(self) -> ArgumentReader:
         self._nlq = self._flag((yield))
+
+    def _esc_regular_tabs(self) -> ArgumentReader:
+        """Horizontal (0) or vertical (1) tab stops every *s* columns or lines."""
+        kind = (yield) & 0x7F
+        s = yield
+        if s == 0:
+            logger.debug("ignoring tab stops every 0 columns or lines")
+        elif kind in (0, ord("0")):
+            width = self._tab_unit()
+            right = self._right_limit(text=True) - self._left_margin
+            self._tabs = list(range(s * width, right, s * width))
+        elif kind in (1, ord("1")):
+            step = s * self._line_spacing
+            stops = list(range(step, self._form_length, step))
+            self._vertical_tab_channels[self._vertical_tab_channel] = stops
+            self._vertical_tabs = stops
+
+    def _esc_skip(self) -> ArgumentReader:
+        """Print *s* spaces (0), or feed *s* lines without a carriage return (1)."""
+        kind = (yield) & 0x7F
+        s = yield
+        if kind in (0, ord("0")):
+            for _ in range(min(s, 127)):
+                self._character(0x20)
+        elif kind in (1, ord("1")):
+            self._print_line()
+            for _ in range(s):
+                self._advance_line()
 
     def _esc_typeface(self) -> ArgumentReader:
         """Choose the NLQ typeface; in draft it is kept for the next ESC x 1."""

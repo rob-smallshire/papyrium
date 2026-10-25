@@ -99,5 +99,13 @@ class EscpMechanism:
     #: printed, since the head cannot fire a pin so soon: the ROM stores
     #: characters with such dots, and the printer prints them once.
     prints_adjacent_dots_once: bool = False
+    #: ESC ! bits 6 and 7 set italic and underline.
+    master_select_italic_underline: bool = False
+    #: A carriage return ends SO's one-line enlarged mode.
+    carriage_return_ends_one_line_enlarged: bool = False
+    #: ESC l and ESC Q clear the tab stops rather than restore the defaults.
+    margins_clear_tabs: bool = False
+    #: Near letter quality prints emphasized, rather than masking it.
+    nlq_emphasized: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None
