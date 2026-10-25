@@ -2,8 +2,9 @@
 
 One-off tools that reconstructed the Brother M-1109's draft characters
 (`packages/papyrium-font-m1109-draft`) from the printed pages of its
-owner's manual. They read the 400 dpi page scans in `docs/local/m1109/`,
-which are not committed, and write their working files there.
+owner's manual. They read the 400 dpi page scans in
+`docs/local/brother-m1109/m1109-user-guide-pages/` and write their working
+files to `docs/local/brother-m1109/glyph-work/`; neither is committed.
 
 The scan cannot resolve neighbouring dots, so dots are fitted rather than
 read: for each character, the dot pattern on the printer's lattice (rows

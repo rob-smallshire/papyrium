@@ -8,7 +8,7 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-from cache import DATA_DIRPATH
+from cache import DATA_DIRPATH, PAGES_DIRPATH
 from cells import load
 from classify import PX, PY
 from lines import find_lines
@@ -19,7 +19,7 @@ RADIUS = 3.25
 
 
 def measure(page_index, page):
-    ink = load(DATA_DIRPATH / "pages" / f"p-{int(page_index):03d}.png")
+    ink = load(PAGES_DIRPATH / f"p-{int(page_index):03d}.png")
     lines = {line.top: line for line in find_lines(ink, pitch=40.25)}
     found = []
     for entry in page:

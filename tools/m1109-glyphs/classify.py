@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from cache import DATA_DIRPATH
+from cache import DATA_DIRPATH, PAGES_DIRPATH
 from cells import load
 from fit import BLUR, COLUMN_PITCH, ROW_PITCH, Fitter
 from lines import find_lines
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     result = {}
     t = templates()
     for page_index in sys.argv[2:]:
-        page_filepath = DATA_DIRPATH / "pages" / f"p-{int(page_index):03d}.png"
+        page_filepath = PAGES_DIRPATH / f"p-{int(page_index):03d}.png"
         result[page_index] = classify_page(page_filepath, t)
         print(page_index, sum(len(line["cells"]) for line in result[page_index]), flush=True)
     out_filepath.write_text(json.dumps(result))

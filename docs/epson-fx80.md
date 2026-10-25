@@ -4,7 +4,7 @@ Facts about the FX-80 that Papyrium's `escp` language and `epson-fx80`
 model rely on, restated in our own words from Epson's *FX Series Printer
 User's Manual* (1984): Volume 1, Tutorial (T) and Volume 2, Reference (R).
 Page numbers are the printed ones. The manuals themselves are copyrighted
-and are kept, uncommitted, in `docs/local/`.
+and are kept, uncommitted, in `docs/local/epson-fx80/`.
 
 ## Factory settings and DIP switches (R 295-299)
 

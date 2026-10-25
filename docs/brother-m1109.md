@@ -4,7 +4,7 @@ Facts about the Brother M-1109 that Papyrium's `escp` language and an
 `m1109` printer model rely on, restated in our own words from Brother's
 *M-1109 Owner's Manual* (1985). Page numbers are the printed ones (the
 scan's image index is not the page number). The manual is copyrighted and
-is kept, uncommitted, in `docs/local/m1109/`.
+is kept, uncommitted, in `docs/local/brother-m1109/`.
 
 The scan lacks printed pages 100 (`ESC Y`), 106-107, 122-123 and 125;
 what is said about those subjects below comes from other pages.

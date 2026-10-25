@@ -8,13 +8,12 @@ Manual*. Page numbers are the **printed** ones, not the scan's PDF page
 index (the LC-10 scan runs eight pages ahead of the printed numbers in
 the body, the LC-10 Colour scan seven). Unprefixed page numbers refer to
 the LC-10 manual; "C" marks the LC-10 Colour manual (C 64). The manuals
-are copyrighted and are kept, uncommitted, in `docs/local/lc10/` and
-`docs/local/lc10-colour/`.
+are copyrighted and are kept, uncommitted, in `docs/local/star-lc10/`.
 
 A third source is Star's *NX-1000 Series / LC-10 Series Technical
 Manual* (ninth edition, 1997), a service manual covering the whole
 family, cited as "TM" with its printed page numbers and kept in
-`docs/local/nx1000-tech/`. It has no command reference, so it settles
+`docs/local/star-lc10/` too. It has no command reference, so it settles
 none of the command questions, but it gives the specifications per
 model and board version and describes the mechanism. Where it
 disagrees with the user manuals, the notes say so.

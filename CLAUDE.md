@@ -20,7 +20,11 @@ in its repository.
 
 Printer behaviour comes from the manufacturers' manuals. They are
 copyrighted, so they live uncommitted in `docs/local/` (ignored by git),
-with plain-text extractions beside them. What Papyrium takes from them is
+one directory per printer named for maker and model (`epson-fx80/`,
+`brother-m1109/`, `star-lc10/`, ...). Each manual has a plain name, with
+its text beside it as `<manual>.txt` and, for a scan OCRed with
+`tools/manual-ocr/ocr.sh`, its page images and per-page text in
+`<manual>-pages/`. What Papyrium takes from them is
 restated in our own words, with page references, in committed notes:
 `docs/epson-fx80.md` for the FX-80, `docs/brother-m1109.md` for the
 Brother M-1109 and `docs/star-lc-10.md` for the Star LC-10 and LC-10

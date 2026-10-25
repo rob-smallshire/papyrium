@@ -17,7 +17,7 @@ import sys
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
-from cache import DATA_DIRPATH
+from cache import PAGES_DIRPATH
 from cells import load
 from fit import BLUR
 from lines import find_lines
@@ -131,7 +131,7 @@ def fit_cell(job):
 
 
 def main(out_filepath):
-    ink = load(DATA_DIRPATH / "pages" / f"p-{PAGE_INDEX:03d}.png")
+    ink = load(PAGES_DIRPATH / f"p-{PAGE_INDEX:03d}.png")
     blurred = ndimage.gaussian_filter(ink.astype(float), BLUR)
     lines = find_lines(ink, pitch=CELL)
     # The four NLQ lines lie between the heading and the draft sample.

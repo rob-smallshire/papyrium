@@ -9,8 +9,12 @@ import numpy as np
 from cells import cells, load
 
 HERE = Path(__file__).parent
-#: The manual's page scans and everything derived from them, kept out of git.
-DATA_DIRPATH = HERE.parent.parent / "docs" / "local" / "m1109"
+#: The M-1109's manuals and their scans, kept out of git.
+_PRINTER_DIRPATH = HERE.parent.parent / "docs" / "local" / "brother-m1109"
+#: The owner's manual's 400 dpi page scans, p-NNN.png, with their OCR.
+PAGES_DIRPATH = _PRINTER_DIRPATH / "m1109-user-guide-pages"
+#: The glyph tools' working files: caches, fits, classifications.
+DATA_DIRPATH = _PRINTER_DIRPATH / "glyph-work"
 #: Character table scans: Mode I national sets, then Mode II sets 1 and 2.
 TABLES = {
     "usa": 107,
@@ -35,7 +39,7 @@ def cached(name):
     cache_filepath = DATA_DIRPATH / "cache" / f"{name}.npz"
     if not cache_filepath.exists():
         cache_filepath.parent.mkdir(exist_ok=True)
-        ink = load(DATA_DIRPATH / "pages" / f"p-{TABLES[name]:03d}.png")
+        ink = load(PAGES_DIRPATH / f"p-{TABLES[name]:03d}.png")
         boxes = cells(ink)
         np.savez_compressed(cache_filepath, ink=ink, boxes=np.array([boxes[c] for c in range(256)]))
     data = np.load(cache_filepath)
