@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from papyrium.core.language import Language
+from papyrium.core.language import Language, LanguageIdentity
 from papyrium.language.escp.charsets import CharacterSet, parse_character_set
 from papyrium.language.escp.interpreter import EscpInterpreter
 from papyrium.language.escp.mechanism import EscpMechanism
@@ -26,3 +26,7 @@ class EscpLanguage(Language):
     international character sets; bit-image graphics; user-defined
     characters; form, tab and margin control.
     """
+
+    def identity(self) -> LanguageIdentity:
+        # Epson's 9-pin printers name ESC/P in their IEEE 1284 device IDs so.
+        return LanguageIdentity(name="ESC/P", command_set="ESCP9")

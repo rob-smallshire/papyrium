@@ -1,9 +1,9 @@
-"""A reusable conformance suite for Transport implementations.
+"""Reusable conformance suites, one for each extension axis.
 
-Subclass :class:`TransportConformance` in a transport package's test suite,
-implement :meth:`~TransportConformance.make_transport` and
-:meth:`~TransportConformance.connect`, and pytest runs the inherited
-contract checks against your transport.
+Subclass the suite for an axis in a plug-in package's test suite, for
+example :class:`TransportConformance`, implement its ``make_...`` methods
+(and :meth:`~TransportConformance.connect` for a transport), and pytest runs
+the inherited contract checks against your plug-in.
 
 This module deliberately imports no test framework, so it is safe to import
 anywhere; the concrete subclass lives in a test module that pytest collects.
@@ -208,6 +208,22 @@ class PrinterModelConformance:
         for page in self._pages([self.sample_job()]):
             for x, y in page.dots:
                 assert 0 <= x < page.width and 0 <= y < page.height, (page.number, x, y)
+
+
+class LanguageConformance:
+    """The contract every :class:`~papyrium.core.language.Language` must satisfy."""
+
+    def make_language(self):
+        """Return the language to exercise. Override this."""
+        raise NotImplementedError
+
+    def test_kind_is_language(self):
+        assert type(self.make_language()).kind() == "language"
+
+    def test_has_an_identity(self):
+        from papyrium.core.language import LanguageIdentity
+
+        assert isinstance(self.make_language().identity(), LanguageIdentity)
 
 
 #: The printable ASCII characters every dot font must cover.

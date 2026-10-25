@@ -20,3 +20,14 @@ class TestJsonOutputConformance(OutputConformance):
 def test_model_keeps_its_config():
     model = ByteDotModel.from_config(name="byte-dot", config={"width": "100"})
     assert model.config == {"width": "100"}
+
+
+def test_language_identity_rejects_device_id_delimiters():
+    import pytest
+
+    from papyrium.core.language import LanguageIdentity
+
+    with pytest.raises(ValueError, match="command_set"):
+        LanguageIdentity(name="ESC/P", command_set="ESCP;9")
+    with pytest.raises(ValueError, match="name"):
+        LanguageIdentity(name="", command_set="ESCP9")
