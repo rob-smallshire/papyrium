@@ -120,11 +120,11 @@ def _is_space(entry: _Entry) -> bool:
     return bool(entry.text) and all(mark.character == " " for mark in entry.text)
 
 
-def _shift(entry: _Entry, dx: int) -> None:
-    """Move a buffered character *dx* to the right."""
+def _shift(entry: _Entry, dx: int, dy: int = 0) -> None:
+    """Move a buffered character *dx* to the right and *dy* down."""
     entry.x_before += dx
-    entry.dots = [(x + dx, y) for x, y in entry.dots]
-    entry.text = [replace(mark, x=mark.x + dx) for mark in entry.text]
+    entry.dots = [(x + dx, y + dy) for x, y in entry.dots]
+    entry.text = [replace(mark, x=mark.x + dx, y=mark.y + dy) for mark in entry.text]
 
 
 def _printable_once(glyph: Glyph) -> Glyph:
@@ -325,9 +325,7 @@ class EscpInterpreter(Interpreter):
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
-            self._end_line()
-            self._x = self._left_margin
-            self._advance_line()
+            self._wrap()
             width, step, offset, glyph_key = self._character_layout(location)
         dots = self._character_dots(location, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
@@ -342,9 +340,7 @@ class EscpInterpreter(Interpreter):
     def _nlq_character(self, location: int, glyph: Glyph) -> None:
         width = PICA_WIDTH * (2 if self._is_double_width() else 1)
         if self._x + width > self._right_limit(text=True):
-            self._end_line()
-            self._x = self._left_margin
-            self._advance_line()
+            self._wrap()
         dots = self._nlq_dots(glyph, width)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
@@ -583,6 +579,36 @@ class EscpInterpreter(Interpreter):
             self._paper_dots.extend(entry.dots)
             self._paper_text.extend(entry.text)
         self._line.clear()
+
+    def _wrap(self) -> None:
+        """Print a full line and start the next, as for CR LF.
+
+        Under full justification the word the line filled in is carried to
+        the next line whole, rather than split.
+        """
+        carried = self._take_unfinished_word()
+        end = self._x
+        self._end_line()
+        self._x = self._left_margin
+        top = self._y
+        self._advance_line()
+        if carried:
+            dx = self._x - carried[0].x_before
+            for entry in carried:
+                _shift(entry, dx, self._y - top)
+            self._line.extend(carried)
+            self._x += end - carried[0].x_before + dx
+
+    def _take_unfinished_word(self) -> list[_Entry]:
+        """Under full justification, the characters after the line's last space."""
+        if self._justification != 3 or (self._mechanism.justify_nlq_only and not self._nlq):
+            return []
+        spaces = [index for index, entry in enumerate(self._line) if _is_space(entry)]
+        if not spaces or spaces[-1] == len(self._line) - 1:
+            return []
+        carried = self._line[spaces[-1] + 1 :]
+        del self._line[spaces[-1] + 1 :]
+        return carried
 
     def _end_line(self) -> None:
         """Print the line at its end, justified as ESC a asks."""

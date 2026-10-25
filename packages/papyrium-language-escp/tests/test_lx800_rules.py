@@ -138,3 +138,11 @@ def test_full_justification_leaves_leading_spaces_alone():
     # The leading space keeps its width; only the gap between the A's grows.
     assert xs[0] == LEFT + 432
     assert xs[-1] == LEFT + FULL_LINE - 432
+
+
+def test_full_justification_carries_a_word_that_does_not_fit_to_the_next_line():
+    # 78 A's, a space and a 4-letter word: the line fills inside the word.
+    data = ESC + b"a\x03" + b"A" * 78 + b" BBBB\r"
+    # B has no NLQ glyph, so prints in draft: its top dot at column 1 of its cell.
+    second = sorted(x for x, y in dots(data, **_nlq()) if y == LINE)
+    assert second == [LEFT + 36 + 432 * k for k in range(4)]

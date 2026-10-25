@@ -292,7 +292,10 @@ apart (A-16, A-17). Set margins before tabs (C-2).
 
 Full justification (n = 3) is done when the buffer fills or at CR, VT,
 LF or FF, so a paragraph must contain no CRs; HT and BS are invalid
-except under n = 0; justification works only in NLQ (A-26).
+except under n = 0; justification works only in NLQ (A-26). The manual
+does not say where a filled line breaks; since a paragraph must contain
+no CRs, the printer must form the lines itself, so Papyrium carries the
+word the line filled in to the next line whole (an inference).
 
 ### Character sets
 
