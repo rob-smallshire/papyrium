@@ -322,17 +322,60 @@ def render(
         model_options = {**setup.get("options", {}), **model_options}
     model = MODELS.create(model_name or _DEFAULT_MODEL_NAME, model_options)
     outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
-    target_dirpath = output_dirpath or default_dirpath
-    target_dirpath.mkdir(parents=True, exist_ok=True)
-    rendering = JobRendering(model, outputs, target_dirpath)
-    with open(capture_filepath, "rb") as capture:
-        while chunk := capture.read(_READ_SIZE):
-            rendering.feed(chunk)
-    table = TableContent(title=f"{rendering.page_count} pages from {capture_filepath}")
+
+    def chunks():
+        with open(capture_filepath, "rb") as capture:
+            while chunk := capture.read(_READ_SIZE):
+                yield chunk
+
+    return _print_job(
+        chunks(), model, outputs, output_dirpath or default_dirpath, source=str(capture_filepath)
+    )
+
+
+def _print_job(chunks, model, outputs, dirpath: Path, *, source: str) -> Reports:
+    """Print a job's bytes with *model* into *outputs*, reporting the files written."""
+    dirpath.mkdir(parents=True, exist_ok=True)
+    rendering = JobRendering(model, outputs, dirpath)
+    for chunk in chunks:
+        rendering.feed(chunk)
+    filepaths = rendering.finish()
+    table = TableContent(title=f"{rendering.page_count} pages from {source}")
     table.add_column("path", "File", header=True)
-    for filepath in rendering.finish():
+    for filepath in filepaths:
         table.add_row(path=str(filepath))
     return Reports(files=Report(data=table))
+
+
+@cli.command()
+@click.argument("model_name", metavar="MODEL")
+@_MODEL_OPTION
+@_OUTPUT
+@_OUTPUT_OPTION
+@click.option(
+    "--output-dir",
+    "output_dirpath",
+    default=None,
+    type=click.Path(file_okay=False, path_type=Path),
+    help="Where to write pages; default: papyrium-demo-MODEL.",
+)
+@report_output(reports={"files": "Files written."})
+def demo(
+    model_name: str,
+    model_options: dict[str, str],
+    output_names: tuple[str, ...],
+    output_options: dict[str, dict[str, str]],
+    output_dirpath: Path | None,
+):
+    """Print a printer model's demonstration page, showing what it can do.
+
+    The page is a job Papyrium writes itself for the model; ``-M`` options
+    set the printer up, for example its paper, as for ``serve``.
+    """
+    model = MODELS.create(model_name, model_options)
+    outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
+    target_dirpath = output_dirpath or Path(f"papyrium-demo-{model_name}")
+    return _print_job([model.demo()], model, outputs, target_dirpath, source=f"{model_name}'s demo")
 
 
 @cli.command("list-jobs")

@@ -199,3 +199,30 @@ def test_serving_a_model_that_is_not_installed_suggests_capturing_only():
     assert result.exit_code != 0
     assert "no-such-printer" in result.output
     assert "--capture-only" in result.output
+
+
+def test_demo_prints_a_models_demonstration_page(run, tmp_path):
+    result = run("demo", "epson-lx800", "--output-dir", str(tmp_path), "--as", "json")
+    assert result.exit_code == 0
+    assert (tmp_path / "page-0001.png").is_file()
+    assert (tmp_path / "job.pdf").is_file()
+    assert "page-0001.png" in result.output
+
+
+def test_demo_takes_model_and_output_options(run, tmp_path):
+    result = run(
+        "demo", "brother-m1109", "-M", "stationery=green-bar", "-o", "png",
+        "-O", "png.dpi=60", "--output-dir", str(tmp_path), "--as", "json",
+    )  # fmt: skip
+    assert result.exit_code == 0
+    from PIL import Image
+
+    with Image.open(tmp_path / "page-0001.png") as image:
+        assert image.mode == "RGB" and image.width == 570
+    assert not (tmp_path / "job.pdf").exists()
+
+
+def test_demo_of_an_unknown_model_is_a_configuration_error(run, tmp_path):
+    result = run("demo", "no-such-printer", "--output-dir", str(tmp_path))
+    assert result.exit_code == 78
+    assert "no-such-printer" in result.output
