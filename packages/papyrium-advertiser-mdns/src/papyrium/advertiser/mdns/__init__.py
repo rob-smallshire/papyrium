@@ -22,7 +22,7 @@ from zeroconf.asyncio import AsyncZeroconf
 from papyrium.core.advertising import Advertisement, Advertiser
 from papyrium.core.transport import Endpoint
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["MdnsAdvertiser", "service_infos"]
 

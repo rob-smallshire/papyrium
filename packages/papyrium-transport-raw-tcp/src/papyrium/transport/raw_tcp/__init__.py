@@ -10,7 +10,7 @@ from collections.abc import AsyncIterator
 from papyrium.core.channel import ChunkChannel
 from papyrium.core.transport import Endpoint, Transport
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["RawTcpTransport", "DEFAULT_PORT"]
 

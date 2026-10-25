@@ -5,7 +5,7 @@ from __future__ import annotations
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["BrotherM1109"]
 

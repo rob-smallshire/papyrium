@@ -19,7 +19,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "papyrium"
-version = "0.0.0"
+version = "0.1.0"
 description = "A virtual vintage printer: the papyrium command with every printer model."
 readme = "README-pypi.md"
 license = "MIT"
@@ -40,9 +40,9 @@ classifiers = [
     "Topic :: System :: Emulators",
 ]
 dependencies = [
-    "papyrium-cli>=0.0.0",
-    "papyrium-model-epson-fx80>=0.0.0",
-    "papyrium-model-brother-m1109>=0.0.0",
+    "papyrium-cli>=0.1.0",
+    "papyrium-model-epson-fx80>=0.1.0",
+    "papyrium-model-brother-m1109>=0.1.0",
 ]
 
 [project.scripts]
@@ -125,7 +125,7 @@ readme = [
 # which commits and tags v<version>; pushing the tag releases to PyPI.
 # A test checks that every installed papyrium distribution agrees.
 [tool.bumpversion]
-current_version = "0.0.0"
+current_version = "0.1.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from papyrium.core.dotfont import DataDotFont
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["M1109DraftFont"]
 

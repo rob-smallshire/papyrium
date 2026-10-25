@@ -7,7 +7,7 @@ from papyrium.language.escp.charsets import CharacterSet, parse_character_set
 from papyrium.language.escp.interpreter import EscpInterpreter
 from papyrium.language.escp.mechanism import EscpMechanism
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = [
     "CharacterSet",

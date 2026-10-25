@@ -12,13 +12,13 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
-    "papyrium-core>=0.0.0",
-    "papyrium-exception>=0.0.0",
-    "papyrium-extension>=0.0.0",
-    "papyrium-transport-raw-tcp>=0.0.0",
-    "papyrium-output-png>=0.0.0",
-    "papyrium-output-pdf>=0.0.0",
-    "papyrium-advertiser-mdns>=0.0.0",
+    "papyrium-core>=0.1.0",
+    "papyrium-exception>=0.1.0",
+    "papyrium-extension>=0.1.0",
+    "papyrium-transport-raw-tcp>=0.1.0",
+    "papyrium-output-png>=0.1.0",
+    "papyrium-output-pdf>=0.1.0",
+    "papyrium-advertiser-mdns>=0.1.0",
     "click>=8.1.7",
     "asyoulikeit>=1.5.1",
 ]

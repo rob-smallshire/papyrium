@@ -10,7 +10,7 @@ from papyrium.core.output import Document, Output
 from papyrium.core.page import UNITS_PER_INCH, Page, TextMark
 from papyrium.core.stationery import Circle
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["PdfOutput"]
 

@@ -40,7 +40,7 @@ import stevedore.extension
 from papyrium.exception import ConfigurationError
 from papyrium.extension._text import first_line, normalize_name, strip_lines
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 #: Entry-point namespaces are formed as ``"<NAMESPACE_PREFIX>.<kind>"``.
 NAMESPACE_PREFIX = "papyrium"

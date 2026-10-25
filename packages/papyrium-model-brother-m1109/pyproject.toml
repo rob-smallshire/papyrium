@@ -12,11 +12,11 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
-    "papyrium-core>=0.0.0",
-    "papyrium-extension>=0.0.0",
-    "papyrium-font-m1109-draft>=0.0.0",
-    "papyrium-font-m1109-nlq>=0.0.0",
-    "papyrium-language-escp>=0.0.0",
+    "papyrium-core>=0.1.0",
+    "papyrium-extension>=0.1.0",
+    "papyrium-font-m1109-draft>=0.1.0",
+    "papyrium-font-m1109-nlq>=0.1.0",
+    "papyrium-language-escp>=0.1.0",
 ]
 
 [project.entry-points."papyrium.model"]

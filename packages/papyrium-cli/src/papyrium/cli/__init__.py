@@ -39,7 +39,7 @@ from papyrium.core.spooler import Spooler
 from papyrium.exception import ConfigurationError, DataError, handled_errors
 from papyrium.extension import describe_extension
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["cli"]
 

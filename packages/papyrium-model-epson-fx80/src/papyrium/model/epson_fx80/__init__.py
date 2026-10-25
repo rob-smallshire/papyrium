@@ -6,7 +6,7 @@ from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism
 from papyrium.language.escp.options import character_set_option, nine_row_font, paper_options
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 __all__ = ["EpsonFx80"]
 
