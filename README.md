@@ -81,16 +81,20 @@ $ papyrium list-models
 
 $ papyrium list-fonts
                                      Fonts                                      
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name        ┃ Description                                                    ┃
-┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ draft-9     │ An original 9-pin draft font in the style of 1980s dot-matrix  │
-│             │ printers.                                                      │
-│ m1109-draft │ The Brother M-1109's draft font, reconstructed from printed    │
-│             │ output.                                                        │
-│ m1109-nlq   │ The Brother M-1109's NLQ font, reconstructed from printed      │
-│             │ output.                                                        │
-└─────────────┴────────────────────────────────────────────────────────────────┘
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name            ┃ Description                                                ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ draft-9         │ An original 9-pin draft font in the style of 1980s         │
+│                 │ dot-matrix printers.                                       │
+│ lx800-draft     │ The Epson LX-800's draft font, extracted from its firmware │
+│                 │ ROM.                                                       │
+│ lx800-nlq-roman │ The Epson LX-800's NLQ Roman font, extracted from its      │
+│                 │ firmware ROM.                                              │
+│ m1109-draft     │ The Brother M-1109's draft font, reconstructed from        │
+│                 │ printed output.                                            │
+│ m1109-nlq       │ The Brother M-1109's NLQ font, reconstructed from printed  │
+│                 │ output.                                                    │
+└─────────────────┴────────────────────────────────────────────────────────────┘
 ```
 
 Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
@@ -198,6 +202,8 @@ package can add to it:
 | Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium-model-brother-m1109`](packages/papyrium-model-brother-m1109/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-fx80`](packages/papyrium-model-epson-fx80/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium-font-draft-9`](packages/papyrium-font-draft-9/) |
+|  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium-font-lx800-draft`](packages/papyrium-font-lx800-draft/) |
+|  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium-font-lx800-nlq-roman`](packages/papyrium-font-lx800-nlq-roman/) |
 |  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium-font-m1109-draft`](packages/papyrium-font-m1109-draft/) |
 |  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium-font-m1109-nlq`](packages/papyrium-font-m1109-nlq/) |
 | Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium-output-pdf`](packages/papyrium-output-pdf/) |
@@ -223,6 +229,8 @@ workspace, and share the `papyrium` namespace:
 | [`papyrium-output-pdf`](packages/papyrium-output-pdf/) | PDF output for Papyrium: one document per job, dots as vector dots |
 | [`papyrium-advertiser-mdns`](packages/papyrium-advertiser-mdns/) | Announces Papyrium printers on the local network with multicast DNS (Bonjour, Avahi) |
 | [`papyrium-cli`](packages/papyrium-cli/) | The papyrium command: run a virtual vintage printer, replay its jobs and inspect them |
+| [`papyrium-font-lx800-draft`](packages/papyrium-font-lx800-draft/) | lx800-draft, the Epson LX-800's draft characters, from its firmware, for Papyrium |
+| [`papyrium-font-lx800-nlq-roman`](packages/papyrium-font-lx800-nlq-roman/) | lx800-nlq-roman, the Epson LX-800's near letter quality Roman characters, from its firmware, for Papyrium |
 
 `docs/specification.md` is the design as handed over from Beebium.
 `docs/epson-fx80.md` and `docs/brother-m1109.md` record the behaviour

@@ -192,7 +192,8 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   reconstructions of a printer's characters from its printed output, as
   `m1109-draft` is from the M-1109 manual's pages (`tools/m1109-glyphs/`).
   Whether a printer's ROM may be used, for its characters or otherwise,
-  is Rob's decision, case by case; without it, a reconstruction never
+  is Rob's decision, case by case (yes for the LX-800's, which gives
+  `lx800-draft` and `lx800-nlq-roman` through `tools/lx800-rom/`); without it, a reconstruction never
   comes from reading a ROM, and no ROM image is ever committed.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask
   beebium-architect about Beebium's behaviour.
