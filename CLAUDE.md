@@ -161,16 +161,19 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   where two threads genuinely share state.
 - **No backward compatibility** before 1.0; change the API freely.
 - **Never silently discard a failure**; log why.
-- **No copyrighted material**: no ROM images or dumps, commercial software
-  or its output, and no manuals. Test captures come from BASIC programs
+- **No copyrighted material** without Rob's decision: no ROM images or
+  dumps, commercial software or its output, and no manuals. Test captures come from BASIC programs
   this project writes itself. Fonts are kept as swappable data.
-- **Own implementations, others as oracles.** Papyrium's languages are
-  implemented from public documentation (printer manuals, specifications),
-  not from other implementations' source. Existing interpreters (EscaPy,
-  PostScript via Ghostscript, hp2xx, and so on) are used as test oracles:
-  run as separate processes, never imported, never distributed, never
-  read as a basis for our code. Compare layout and behaviour, not pixels,
-  where an oracle renders differently (EscaPy uses outline fonts).
+- **Own implementations, others by licence.** Papyrium's languages are
+  implemented from public documentation (printer manuals, specifications).
+  Whether another implementation's code may be reused depends on its
+  licence, which Rob decides case by case: permissively licensed code
+  (MIT, BSD, Apache-2.0) may be adapted with its notice kept; anything
+  else, such as GPL or AGPL code (EscaPy, Ghostscript), is used only as a
+  test oracle: run as a separate process, never imported, never
+  distributed, never read as a basis for our code. Compare layout and
+  behaviour, not pixels, where an oracle renders differently (EscaPy uses
+  outline fonts).
 - Ghostscript, if used for a PostScript model, runs as a subprocess the
   user installs; never link `libgs`. Any plug-in that imports AGPL code is
   a separately distributed package and needs Rob's licence decision.
@@ -178,6 +181,8 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   our own design, carry a licence that permits redistribution, or are
   reconstructions of a printer's characters from its printed output, as
   `m1109-draft` is from the M-1109 manual's pages (`tools/m1109-glyphs/`).
-  A reconstruction never comes from reading a ROM.
+  Whether a printer's ROM may be used, for its characters or otherwise,
+  is Rob's decision, case by case; without it, a reconstruction never
+  comes from reading a ROM, and no ROM image is ever committed.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask
   beebium-architect about Beebium's behaviour.
