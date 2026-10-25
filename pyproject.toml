@@ -77,7 +77,7 @@ papyrium-exception = { workspace = true }
 papyrium-extension = { workspace = true }
 
 [tool.uv]
-default-groups = ["test", "lint", "readme", "workspace"]
+default-groups = ["test", "lint", "readme", "release", "workspace"]
 
 # PyPI, not any index in a developer's own uv configuration, so that
 # uv.lock records public URLs that CI and other contributors can fetch.
@@ -112,10 +112,115 @@ test = [
 lint = [
     "ruff>=0.16",
 ]
+release = [
+    "bump-my-version>=1.0",
+]
 readme = [
     "jinja2>=3.1.6",
     "pre-commit>=4.7.0",
 ]
+
+# Every distribution shares one version, bumped together with
+#     uv run bump-my-version bump minor   (or major, patch)
+# which commits and tags v<version>; pushing the tag releases to PyPI.
+# A test checks that every installed papyrium distribution agrees.
+[tool.bumpversion]
+current_version = "0.0.0"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+message = "Bump papyrium to {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+# The family's own dependencies on each other require the version
+# released with them; a package depending on no other has none.
+[[tool.bumpversion.files]]
+glob = "pyproject.toml"
+regex = true
+search = '"(papyrium-[a-z0-9-]+)>={current_version}"'
+replace = '"\1>={new_version}"'
+ignore_missing_version = true
+
+[[tool.bumpversion.files]]
+glob = "packages/papyrium-*/pyproject.toml"
+regex = true
+search = '"(papyrium-[a-z0-9-]+)>={current_version}"'
+replace = '"\1>={new_version}"'
+ignore_missing_version = true
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-advertiser-mdns/src/papyrium/advertiser/mdns/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-cli/src/papyrium/cli/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-core/src/papyrium/core/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-exception/src/papyrium/exception/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-extension/src/papyrium/extension/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-font-draft-9/src/papyrium/font/draft_9/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-font-m1109-draft/src/papyrium/font/m1109_draft/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-font-m1109-nlq/src/papyrium/font/m1109_nlq/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-language-escp/src/papyrium/language/escp/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-model-brother-m1109/src/papyrium/model/brother_m1109/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-model-epson-fx80/src/papyrium/model/epson_fx80/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-output-pdf/src/papyrium/output/pdf/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-output-png/src/papyrium/output/png/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "packages/papyrium-transport-raw-tcp/src/papyrium/transport/raw_tcp/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
 
 [tool.pytest.ini_options]
 # importlib mode is required for PEP 420 namespace packages; the default

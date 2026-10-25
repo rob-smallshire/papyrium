@@ -178,3 +178,15 @@ def test_render_an_unknown_model_is_a_configuration_error(run, tmp_path):
     result = run("render", str(capture_filepath), "--model", "teletype")
     assert result.exit_code == 78
     assert "teletype" in result.output
+
+
+def test_every_papyrium_distribution_shares_one_version():
+    from importlib.metadata import distributions
+
+    versions = {
+        dist.metadata["Name"]: dist.version
+        for dist in distributions()
+        if dist.metadata["Name"] == "papyrium" or dist.metadata["Name"].startswith("papyrium-")
+    }
+    assert "papyrium-cli" in versions
+    assert len(set(versions.values())) == 1, versions
