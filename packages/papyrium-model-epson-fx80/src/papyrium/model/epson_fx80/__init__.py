@@ -7,6 +7,7 @@ from papyrium.language.escp import EscpInterpreter, EscpMechanism
 from papyrium.language.escp.charsets import FX_CHARACTER_SETS
 from papyrium.language.escp.mechanism import FX_COMMANDS
 from papyrium.language.escp.options import character_set_option, nine_row_font, paper_options
+from papyrium.model.epson_fx80 import demo
 
 __version__ = "0.1.0"
 
@@ -89,6 +90,9 @@ class EpsonFx80(PrinterModel):
 
     def languages(self) -> tuple[str, ...]:
         return ("escp",)
+
+    def demo(self) -> bytes:
+        return demo.demo()
 
     def create_interpreter(self) -> Interpreter:
         return EscpInterpreter(self._mechanism)

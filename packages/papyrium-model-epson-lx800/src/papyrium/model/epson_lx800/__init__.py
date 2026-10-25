@@ -6,6 +6,7 @@ from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 from papyrium.language.escp.charsets import LX800_CHARACTER_SETS
 from papyrium.language.escp.mechanism import FX_COMMANDS
+from papyrium.model.epson_lx800 import demo
 
 __version__ = "0.1.0"
 
@@ -107,6 +108,9 @@ class EpsonLX800(PrinterModel):
 
     def languages(self) -> tuple[str, ...]:
         return ("escp",)
+
+    def demo(self) -> bytes:
+        return demo.demo()
 
     def create_interpreter(self) -> Interpreter:
         return EscpInterpreter(self._mechanism)

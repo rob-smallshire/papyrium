@@ -109,6 +109,9 @@ class ByteDotModel(PrinterModel):
         # Its one rule is its own; it speaks no installed language.
         return ()
 
+    def demo(self) -> bytes:
+        return b"Byte Dot\x0cprints a dot for every byte"
+
 
 class _JsonDocument(Document):
     def __init__(self, dirpath: Path, filename: str, documents: list) -> None:

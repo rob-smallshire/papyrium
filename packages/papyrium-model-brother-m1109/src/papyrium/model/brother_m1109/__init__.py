@@ -5,6 +5,7 @@ from __future__ import annotations
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 from papyrium.language.escp.charsets import M1109_CHARACTER_SETS
+from papyrium.model.brother_m1109 import demo
 
 __version__ = "0.1.0"
 
@@ -97,6 +98,9 @@ class BrotherM1109(PrinterModel):
 
     def languages(self) -> tuple[str, ...]:
         return ("escp",)
+
+    def demo(self) -> bytes:
+        return demo.demo()
 
     def create_interpreter(self) -> Interpreter:
         return EscpInterpreter(self._mechanism)

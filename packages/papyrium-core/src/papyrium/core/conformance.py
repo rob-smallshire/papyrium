@@ -225,6 +225,16 @@ class PrinterModelConformance:
         assert isinstance(languages, tuple)
         assert set(languages) <= installed, sorted(set(languages) - installed)
 
+    def test_demo_prints_a_page_without_warnings(self, caplog):
+        import logging
+
+        demo = self.make_model().demo()
+        assert isinstance(demo, bytes) and demo
+        with caplog.at_level(logging.WARNING):
+            pages = self._pages([demo])
+        assert pages and any(not page.is_blank for page in pages)
+        assert not [record for record in caplog.records if record.levelno >= logging.WARNING]
+
     def test_dots_lie_on_the_page(self):
         for page in self._pages([self.sample_job()]):
             for x, y in page.dots:

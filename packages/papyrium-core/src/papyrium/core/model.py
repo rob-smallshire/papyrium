@@ -83,6 +83,10 @@ class PrinterModel(Extension):
         return dict(getattr(self, "_config", {}))
 
     @abstractmethod
+    def demo(self) -> bytes:
+        """A job showing what this printer can do, written by Papyrium itself."""
+
+    @abstractmethod
     def create_interpreter(self) -> Interpreter:
         """Start interpreting a new job, with the printer freshly initialised."""
 
