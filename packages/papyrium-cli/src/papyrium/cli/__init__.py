@@ -29,10 +29,10 @@ from papyrium.cli.plugins import (
     parse_options,
     parse_output_options,
 )
+from papyrium.core.instance import PrinterInstance
 from papyrium.core.jobs import CAPTURE_FILENAME, JOB_RECORD_FILENAME, JobRecord, JobStore
 from papyrium.core.rendering import JobRenderer, JobRendering
 from papyrium.core.spooler import Spooler
-from papyrium.core.transport import Transport
 from papyrium.exception import ConfigurationError, DataError, handled_errors
 from papyrium.extension import describe_extension
 
@@ -180,35 +180,16 @@ def serve(
         listener=renderer,
     )
     logging.basicConfig(level=logging.INFO, format="papyrium: %(message)s")
-    asyncio.run(_serve_until_signalled(transport, spooler, renderer))
+    asyncio.run(_serve_until_signalled(PrinterInstance(transport, spooler, renderer)))
 
 
-async def serve_until(
-    transport: Transport, spooler: Spooler, renderer: JobRenderer | None, stop: asyncio.Event
-) -> None:
-    """Open the transport, spool and render, and shut down gracefully when *stop* is set."""
-    render_task = None if renderer is None else asyncio.create_task(renderer.run())
-    await transport.open()
-    spool_task = asyncio.create_task(spooler.run())
-    try:
-        await stop.wait()
-    finally:
-        await transport.close()
-        await spool_task
-        if renderer is not None:
-            renderer.close()
-            await render_task
-
-
-async def _serve_until_signalled(
-    transport: Transport, spooler: Spooler, renderer: JobRenderer | None
-) -> None:
+async def _serve_until_signalled(instance: PrinterInstance) -> None:
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     for signal_number in (signal.SIGINT, signal.SIGTERM):
         with contextlib.suppress(NotImplementedError):
             loop.add_signal_handler(signal_number, stop.set)
-    await serve_until(transport, spooler, renderer, stop)
+    await instance.run(stop)
 
 
 @cli.command()
