@@ -114,6 +114,10 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   tags `vX`; pushing the tag runs `.github/workflows/release.yml`, which
   runs the CI workflow, checks the tag matches the version, builds every
   distribution and publishes them to PyPI with the `PYPI_TOKEN` secret.
+  Builds are reproducible (`SOURCE_DATE_EPOCH` from the tagged commit)
+  and files already on PyPI are left out, so a release that stopped part
+  way, as when PyPI limits new projects, is resumed with
+  `gh workflow run release.yml -f tag=vX`.
 - **Generated READMEs.** `README.md`, the printer models' READMEs and
   `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
   templates (`scripts/readme-templates/`, `packages/*/readme/`), running
