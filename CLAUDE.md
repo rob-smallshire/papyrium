@@ -62,6 +62,11 @@ core that plug-in packages subclass in their own tests.
 
 ### Domain rules
 
+- Where a printer claims to emulate another (the LC-10's Standard mode
+  an Epson LX-800, its IBM mode an IBM Proprinter II), model the emulated
+  printer first, from its own manual, and build the emulating printer on
+  it as a variant: the copy is then measured against the original it
+  copied, and the original is a model in its own right.
 - Connection lifetime is not job lifetime. A disconnect never ends a job.
 - Every byte is appended to the job's raw `.prn` capture before
   interpretation. A capture replayed with the same model configuration
