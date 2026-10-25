@@ -5,6 +5,7 @@ from __future__ import annotations
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism
 from papyrium.language.escp.charsets import FX_CHARACTER_SETS
+from papyrium.language.escp.mechanism import FX_COMMANDS
 from papyrium.language.escp.options import character_set_option, nine_row_font, paper_options
 
 __version__ = "0.1.0"
@@ -76,6 +77,7 @@ class EpsonFx80(PrinterModel):
             user_defined_characters=user_defined_characters,
             # The FX-80 feeds down a row to underline below the descenders.
             underline_row=9,
+            commands=FX_COMMANDS,
         )
 
     @property

@@ -141,3 +141,11 @@ def test_identity_and_language():
     model = EpsonFx80(name="epson-fx80")
     assert model.identity().display_name == "Epson FX-80"
     assert model.languages() == ("escp",)
+
+
+def test_obeys_only_the_fx80s_commands():
+    from papyrium.language.escp.mechanism import FX_COMMANDS
+
+    commands = EpsonFx80(name="epson-fx80").mechanism.commands
+    assert commands == FX_COMMANDS
+    assert not set("aefkxt\x19") & commands

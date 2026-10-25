@@ -14,6 +14,9 @@ from papyrium.language.escp.charsets import FX_CHARACTER_SETS, CharacterSet
 #: other low codes print: BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1-DC4, CAN, ESC.
 FX_CONTROLS = frozenset({7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 24, 27})
 
+#: The characters after ESC of the FX-80's commands.
+FX_COMMANDS = frozenset("\x0e\x0f!#%&*-/0123456789:<=>?@ABCDEFGHIJKLMNOPQRSTUWYZ^bijlps")
+
 
 @dataclass(frozen=True)
 class EscpMechanism:
