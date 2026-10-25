@@ -59,3 +59,37 @@ def test_esc_em_is_accepted_and_ignored():
     assert dots(ESC + b"\x194A") == dots(b"A")
     (page,) = run(ESC + b"\x194A")
     assert [mark.character for mark in page.text] == ["A"]
+
+
+def _nlq(**options):
+    from test_variants import _nlq_font
+
+    return {"nlq": True, "nlq_fonts": (_nlq_font(),), "near_letter_quality": True, **options}
+
+
+FULL_LINE = 80 * 432
+
+
+def _first_x(data, **options):
+    return min(x for x, _ in dots(data, **options))
+
+
+def test_esc_a_centres_or_right_aligns_a_line():
+    # Two NLQ characters, 864 units wide, on an 80-column line.
+    assert _first_x(ESC + b"a\x01AA\r", **_nlq()) == LEFT + (FULL_LINE - 864) // 2
+    assert _first_x(ESC + b"a\x02AA\r", **_nlq()) == LEFT + FULL_LINE - 864
+    assert _first_x(ESC + b"a\x00AA\r", **_nlq()) == LEFT
+
+
+def test_full_justification_widens_the_spaces():
+    data = ESC + b"a\x03A A A\r"
+    xs = sorted({x for x, y in dots(data, **_nlq()) if y == 0})
+    # The two spaces share the spare room; the last A ends at the margin.
+    assert xs[0] == LEFT
+    assert xs[-1] == LEFT + FULL_LINE - 432
+    assert xs[2] - xs[1] == xs[1] - xs[0]
+
+
+def test_justification_can_be_for_nlq_only():
+    assert _first_x(ESC + b"a\x02AA\r", justify_nlq_only=True) == LEFT + 36
+    assert _first_x(ESC + b"a\x02AA\r") == LEFT + FULL_LINE - 864 + 36

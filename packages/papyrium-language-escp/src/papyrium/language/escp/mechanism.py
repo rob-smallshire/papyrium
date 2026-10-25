@@ -107,5 +107,7 @@ class EscpMechanism:
     margins_clear_tabs: bool = False
     #: Near letter quality prints emphasized, rather than masking it.
     nlq_emphasized: bool = False
+    #: ESC a justifies only near letter quality lines.
+    justify_nlq_only: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None

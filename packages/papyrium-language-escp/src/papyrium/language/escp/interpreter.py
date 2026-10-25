@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Generator, Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
@@ -116,6 +116,17 @@ class _UserCharacter:
 _BLANK = ("blank",)
 
 
+def _is_space(entry: _Entry) -> bool:
+    return bool(entry.text) and all(mark.character == " " for mark in entry.text)
+
+
+def _shift(entry: _Entry, dx: int) -> None:
+    """Move a buffered character *dx* to the right."""
+    entry.x_before += dx
+    entry.dots = [(x + dx, y) for x, y in entry.dots]
+    entry.text = [replace(mark, x=mark.x + dx) for mark in entry.text]
+
+
 def _printable_once(glyph: Glyph) -> Glyph:
     """*glyph* without any dot that follows a printed dot in the same row."""
     printed: set[tuple[int, int]] = set()
@@ -191,6 +202,7 @@ class EscpInterpreter(Interpreter):
         self._immediate = False
         self._nlq = mechanism.near_letter_quality
         self._typeface = 0
+        self._justification = 0
         self._line_spacing = inches(1) // 6
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
@@ -307,7 +319,7 @@ class EscpInterpreter(Interpreter):
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
-            self._print_line()
+            self._end_line()
             self._x = self._left_margin
             self._advance_line()
             width, step, offset, glyph_key = self._character_layout(location)
@@ -324,7 +336,7 @@ class EscpInterpreter(Interpreter):
     def _nlq_character(self, location: int, glyph: Glyph) -> None:
         width = PICA_WIDTH * (2 if self._is_double_width() else 1)
         if self._x + width > self._right_limit(text=True):
-            self._print_line()
+            self._end_line()
             self._x = self._left_margin
             self._advance_line()
         dots = self._nlq_dots(glyph, width)
@@ -566,6 +578,41 @@ class EscpInterpreter(Interpreter):
             self._paper_text.extend(entry.text)
         self._line.clear()
 
+    def _end_line(self) -> None:
+        """Print the line at its end, justified as ESC a asks."""
+        self._justify()
+        self._print_line()
+
+    def _justify(self) -> None:
+        mode = self._justification
+        if not mode or not self._line or (self._mechanism.justify_nlq_only and not self._nlq):
+            return
+        entries = self._line
+        # Trailing spaces take no part: the text ends at the last other character.
+        last = len(entries) - 1
+        while last >= 0 and _is_space(entries[last]):
+            last -= 1
+        if last < 0:
+            return
+        end = entries[last + 1].x_before if last + 1 < len(entries) else self._x
+        spare = self._right_limit(text=True) - end
+        if spare <= 0:
+            return
+        if mode == 3:
+            gaps = [index for index in range(last) if _is_space(entries[index])]
+            if not gaps:
+                return
+            share, extra = divmod(spare, len(gaps))
+            shift = 0
+            for index, entry in enumerate(entries[: last + 1]):
+                _shift(entry, shift)
+                if index in gaps:
+                    shift += share + (1 if gaps.index(index) < extra else 0)
+        else:
+            shift = spare // 2 if mode == 1 else spare
+            for entry in entries:
+                _shift(entry, shift)
+
     def _cancel(self) -> None:
         """Discard the text in the buffer, returning the head to where it began."""
         if self._line:
@@ -573,7 +620,7 @@ class EscpInterpreter(Interpreter):
             self._line.clear()
 
     def _carriage_return(self) -> None:
-        self._print_line()
+        self._end_line()
         self._x = self._left_margin
         if self._mechanism.carriage_return_ends_one_line_enlarged:
             self._one_line_double_width = False
@@ -581,7 +628,7 @@ class EscpInterpreter(Interpreter):
             self._advance_line()
 
     def _line_feed(self) -> None:
-        self._print_line()
+        self._end_line()
         self._x = self._left_margin
         self._advance_line()
 
@@ -601,7 +648,7 @@ class EscpInterpreter(Interpreter):
             self._eject_page()
 
     def _form_feed(self) -> None:
-        self._print_line()
+        self._end_line()
         self._x = self._left_margin
         self._one_line_double_width = False
         self._advance(self._form_top + self._form_length - self._y)
@@ -612,7 +659,7 @@ class EscpInterpreter(Interpreter):
         if not self._vertical_tabs:
             self._line_feed()
         elif below:
-            self._print_line()
+            self._end_line()
             self._x = self._left_margin
             self._one_line_double_width = False
             self._advance(below[0] - position)
@@ -736,6 +783,7 @@ class EscpInterpreter(Interpreter):
             "s": self._esc_skip_argument,
             "\x19": self._esc_skip_argument,
             "e": self._esc_regular_tabs,
+            "a": self._esc_justify,
             "f": self._esc_skip,
         }
         if self._mechanism.nlq:
@@ -1005,6 +1053,15 @@ class EscpInterpreter(Interpreter):
 
     def _esc_nlq(self) -> ArgumentReader:
         self._nlq = self._flag((yield))
+
+    def _esc_justify(self) -> ArgumentReader:
+        """Justify lines left (0), centred (1), right (2) or full (3)."""
+        n = (yield) & 0x7F
+        n = n - ord("0") if ord("0") <= n <= ord("3") else n
+        if 0 <= n <= 3:
+            self._justification = n
+        else:
+            logger.debug("ignoring justification %d", n)
 
     def _esc_regular_tabs(self) -> ArgumentReader:
         """Horizontal (0) or vertical (1) tab stops every *s* columns or lines."""
