@@ -97,7 +97,7 @@ def test_listens_on_every_interface_given_an_empty_host():
     assert RawTcpTransport.all_interfaces_options() == {"host": ""}
 
 
-def test_describes_listening_on_every_interface(caplog):
+def test_describes_listening_on_every_interface():
     from papyrium.transport.raw_tcp import _listening_place
 
     assert _listening_place("", 9100) == "every interface, port 9100"

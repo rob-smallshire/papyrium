@@ -6,11 +6,14 @@ import enum
 import json
 import logging
 import re
+import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from papyrium.exception import DataError
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +22,9 @@ CAPTURE_FILENAME = "capture.prn"
 
 #: The job's metadata as JSON.
 JOB_RECORD_FILENAME = "job.json"
+
+#: The printer's own record, beside its jobs: its UUID.
+PRINTER_RECORD_FILENAME = "printer.json"
 
 _JOB_DIRNAME_PATTERN = re.compile(r"^job-(\d+)$")
 
@@ -194,6 +200,29 @@ class JobStore:
         )
         logger.info("job %d started in %s", number, job.dirpath)
         return job
+
+    def printer_uuid(self) -> uuid.UUID:
+        """The UUID of the printer whose jobs these are, created on first use.
+
+        One output directory holds one printer's jobs, so the UUID is kept
+        beside them and stays the same across restarts and renames.
+
+        Raises:
+            DataError: The printer record exists but cannot be read.
+        """
+        record_filepath = self._output_dirpath / PRINTER_RECORD_FILENAME
+        if record_filepath.exists():
+            try:
+                return uuid.UUID(json.loads(record_filepath.read_text())["uuid"])
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                raise DataError(f"cannot read the printer record {record_filepath}") from error
+        printer_uuid = uuid.uuid4()
+        self._output_dirpath.mkdir(parents=True, exist_ok=True)
+        temporary_filepath = record_filepath.with_suffix(".tmp")
+        temporary_filepath.write_text(json.dumps({"uuid": str(printer_uuid)}, indent=2) + "\n")
+        temporary_filepath.replace(record_filepath)
+        logger.info("new printer %s", printer_uuid)
+        return printer_uuid
 
     def records(self) -> list[JobRecord]:
         """The records of every job in the store, in job number order.

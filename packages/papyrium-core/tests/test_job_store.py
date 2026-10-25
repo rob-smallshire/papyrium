@@ -124,3 +124,34 @@ def test_printer_setup_is_recorded_for_replay(tmp_path):
     job = store.create_job(transport_name="raw-tcp", printer_setup=setup)
     assert _record(job)["printer"] == setup
     assert store.records()[0].printer_setup == setup
+
+
+def test_a_printer_gets_a_uuid_on_first_use_and_keeps_it(tmp_path):
+    import uuid
+
+    from papyrium.core.jobs import PRINTER_RECORD_FILENAME
+
+    first = JobStore(tmp_path).printer_uuid()
+    assert first.version == 4
+    assert JobStore(tmp_path).printer_uuid() == first
+    assert json.loads((tmp_path / PRINTER_RECORD_FILENAME).read_text()) == {"uuid": str(first)}
+    assert JobStore(tmp_path / "other").printer_uuid() != first
+    assert isinstance(first, uuid.UUID)
+
+
+def test_an_unreadable_printer_record_is_a_data_error(tmp_path):
+    import pytest
+
+    from papyrium.core.jobs import PRINTER_RECORD_FILENAME
+    from papyrium.exception import DataError
+
+    (tmp_path / PRINTER_RECORD_FILENAME).write_text("{not json")
+    with pytest.raises(DataError, match=PRINTER_RECORD_FILENAME):
+        JobStore(tmp_path).printer_uuid()
+
+
+def test_printer_uuid_does_not_count_as_a_job(tmp_path):
+    store = JobStore(tmp_path)
+    store.printer_uuid()
+    assert store.records() == []
+    assert store.create_job(transport_name="raw-tcp").number == 1

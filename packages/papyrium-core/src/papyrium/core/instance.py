@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import asyncio
 
+from papyrium.core.model import ModelIdentity
 from papyrium.core.rendering import JobRenderer
 from papyrium.core.spooler import Spooler
 from papyrium.core.transport import Transport
+
+
+def default_printer_name(identity: ModelIdentity) -> str:
+    """The name a printer goes by unless given one, such as ``Brother M-1109 (Papyrium)``."""
+    return f"{identity.display_name} (Papyrium)"
 
 
 class PrinterInstance:

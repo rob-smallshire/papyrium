@@ -48,3 +48,11 @@ async def test_captures_without_a_renderer(tmp_path):
     await asyncio.wait_for(run, 5.0)
     assert (tmp_path / "job-0001" / "capture.prn").read_bytes() == b"AB"
     assert not (tmp_path / "job-0001" / "pages.json").exists()
+
+
+def test_a_printer_is_named_after_its_model_by_default():
+    from papyrium.core.instance import default_printer_name
+    from papyrium.core.model import ModelIdentity
+
+    identity = ModelIdentity(manufacturer="Brother", model="M-1109")
+    assert default_printer_name(identity) == "Brother M-1109 (Papyrium)"

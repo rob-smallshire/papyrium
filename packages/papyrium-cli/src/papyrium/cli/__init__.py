@@ -29,7 +29,7 @@ from papyrium.cli.plugins import (
     parse_options,
     parse_output_options,
 )
-from papyrium.core.instance import PrinterInstance
+from papyrium.core.instance import PrinterInstance, default_printer_name
 from papyrium.core.jobs import CAPTURE_FILENAME, JOB_RECORD_FILENAME, JobRecord, JobStore
 from papyrium.core.rendering import JobRenderer, JobRendering
 from papyrium.core.spooler import Spooler
@@ -147,6 +147,12 @@ _OUTPUT_OPTION = click.option(
     show_default=True,
     help="Seconds without bytes after which a job ends; 0 never ends one.",
 )
+@click.option(
+    "--name",
+    "printer_name",
+    default=None,
+    help="The printer's name; default: its model's, such as 'Epson FX-80 (Papyrium)'.",
+)
 def serve(
     transport_name: str,
     transport_options: dict[str, str],
@@ -157,6 +163,7 @@ def serve(
     capture_only: bool,
     output_dirpath: Path,
     idle_timeout_seconds: float,
+    printer_name: str | None,
 ) -> None:
     """Run a printer until interrupted, printing every job it receives.
 
@@ -164,7 +171,8 @@ def serve(
     raw bytes (``capture.prn``), a record (``job.json``) and its pages, as
     written by each ``--output``, which appear as the paper is ejected. A
     job ends after ``--idle-timeout`` seconds without bytes, or at
-    shutdown; a disconnect never ends one.
+    shutdown; a disconnect never ends one. The printer keeps a UUID in
+    ``--output-dir``, and each job records it with the printer's name.
     """
     transport = TRANSPORTS.create(transport_name, transport_options)
     model = MODELS.create(model_name, model_options)
@@ -172,11 +180,17 @@ def serve(
     if not capture_only:
         outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
         renderer = JobRenderer(model, outputs)
+    store = JobStore(output_dirpath)
     spooler = Spooler(
         transport,
-        JobStore(output_dirpath),
+        store,
         idle_timeout_seconds=idle_timeout_seconds,
-        printer_setup={"model": model_name, "options": model.config},
+        printer_setup={
+            "model": model_name,
+            "options": model.config,
+            "name": printer_name or default_printer_name(model.identity()),
+            "uuid": str(store.printer_uuid()),
+        },
         listener=renderer,
     )
     logging.basicConfig(level=logging.INFO, format="papyrium: %(message)s")
