@@ -8,7 +8,7 @@ from pathlib import Path
 
 from papyrium.core.channel import ChunkChannel
 from papyrium.core.dotfont import DotFont, Glyph, parse_dot_font
-from papyrium.core.model import Interpreter, PrinterModel
+from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.core.output import Document, Output
 from papyrium.core.page import Page
 from papyrium.core.transport import Transport
@@ -100,6 +100,13 @@ class ByteDotModel(PrinterModel):
 
     def create_interpreter(self) -> Interpreter:
         return _ByteDotInterpreter(self._width, self._height)
+
+    def identity(self) -> ModelIdentity:
+        return ModelIdentity(manufacturer="Papyrium", model="Byte Dot")
+
+    def languages(self) -> tuple[str, ...]:
+        # Its one rule is its own; it speaks no installed language.
+        return ()
 
 
 class _JsonDocument(Document):

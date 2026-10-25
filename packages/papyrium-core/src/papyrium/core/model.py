@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from papyrium.core.options import construct
@@ -26,6 +27,29 @@ class Interpreter(ABC):
     @abstractmethod
     def finish(self) -> list[Page]:
         """End the job, returning any part-printed page."""
+
+
+@dataclass(frozen=True)
+class ModelIdentity:
+    """Who a printer is: its manufacturer and model, as on its case.
+
+    These also name it in an IEEE 1284 device ID (``MFG`` and ``MDL``),
+    so neither may contain ``:`` or ``;``.
+    """
+
+    manufacturer: str
+    model: str
+
+    def __post_init__(self) -> None:
+        for field in ("manufacturer", "model"):
+            value = getattr(self, field)
+            if not value or set(value) & {":", ";"}:
+                raise ValueError(f"{field} must be non-empty without ':' or ';', not {value!r}")
+
+    @property
+    def display_name(self) -> str:
+        """As a person would name the printer, such as ``Brother M-1109``."""
+        return f"{self.manufacturer} {self.model}"
 
 
 class PrinterModel(Extension):
@@ -61,3 +85,16 @@ class PrinterModel(Extension):
     @abstractmethod
     def create_interpreter(self) -> Interpreter:
         """Start interpreting a new job, with the printer freshly initialised."""
+
+    @abstractmethod
+    def identity(self) -> ModelIdentity:
+        """Which printer this is."""
+
+    @abstractmethod
+    def languages(self) -> tuple[str, ...]:
+        """The command languages this printer accepts as configured, by plug-in name.
+
+        A printer whose switches choose one personality at power-on
+        accepts only that one, so this reports the configured printer, not
+        every language its model can speak.
+        """

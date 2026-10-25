@@ -133,3 +133,9 @@ def test_three_lines_sit_centred_in_the_first_band_of_listing_paper():
     bottom = max(y for _, y in page.dots) + radius
     # The band runs from 1/2 to 1 inch; the ink has equal room above and below.
     assert top - BAND_HEIGHT == 2 * BAND_HEIGHT - bottom
+
+
+def test_identity_and_language():
+    model = EpsonFx80(name="epson-fx80")
+    assert model.identity().display_name == "Epson FX-80"
+    assert model.languages() == ("escp",)

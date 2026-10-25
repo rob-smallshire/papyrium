@@ -31,3 +31,15 @@ def test_language_identity_rejects_device_id_delimiters():
         LanguageIdentity(name="ESC/P", command_set="ESCP;9")
     with pytest.raises(ValueError, match="name"):
         LanguageIdentity(name="", command_set="ESCP9")
+
+
+def test_model_identity_gives_a_display_name_and_rejects_device_id_delimiters():
+    import pytest
+
+    from papyrium.core.model import ModelIdentity
+
+    assert ModelIdentity(manufacturer="Brother", model="M-1109").display_name == "Brother M-1109"
+    with pytest.raises(ValueError, match="model"):
+        ModelIdentity(manufacturer="Brother", model="M:1109")
+    with pytest.raises(ValueError, match="manufacturer"):
+        ModelIdentity(manufacturer="", model="M-1109")

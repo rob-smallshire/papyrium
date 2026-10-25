@@ -204,6 +204,19 @@ class PrinterModelConformance:
     def test_no_bytes_print_no_pages(self):
         assert self._pages([]) == []
 
+    def test_has_an_identity(self):
+        from papyrium.core.model import ModelIdentity
+
+        assert isinstance(self.make_model().identity(), ModelIdentity)
+
+    def test_names_only_installed_languages(self):
+        from papyrium.extension import list_extensions, namespace_for
+
+        installed = set(list_extensions(namespace_for("language")))
+        languages = self.make_model().languages()
+        assert isinstance(languages, tuple)
+        assert set(languages) <= installed, sorted(set(languages) - installed)
+
     def test_dots_lie_on_the_page(self):
         for page in self._pages([self.sample_job()]):
             for x, y in page.dots:

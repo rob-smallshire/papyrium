@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from papyrium.core.model import Interpreter, PrinterModel
+from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism
 from papyrium.language.escp.options import character_set_option, nine_row_font, paper_options
 
@@ -80,6 +80,12 @@ class EpsonFx80(PrinterModel):
     @property
     def mechanism(self) -> EscpMechanism:
         return self._mechanism
+
+    def identity(self) -> ModelIdentity:
+        return ModelIdentity(manufacturer="Epson", model="FX-80")
+
+    def languages(self) -> tuple[str, ...]:
+        return ("escp",)
 
     def create_interpreter(self) -> Interpreter:
         return EscpInterpreter(self._mechanism)
