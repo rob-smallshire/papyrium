@@ -25,6 +25,14 @@ A client looking only for Papyrium printers can match "Papyrium" in `ty`
 or `note`, or in the instance name, and can recognise a particular printer
 by its `uuid` across renames and restarts.
 
+There is no `_papyrium` DNS-SD subtype. python-zeroconf indexes a service
+under a single type, so a service registered under the subtype answers only
+browses for the subtype: once its announcements end, browsers of the plain
+`_pdl-datastream._tcp` type, such as printer dialogs and CUPS, no longer
+find it (python-zeroconf issues 1287 and 1093). Appearing as an ordinary
+printer matters more, so the plain type is used, and the TXT record is how
+a client tells Papyrium apart.
+
 Only endpoints the network can reach are announced; an unspecified address
 stands for every address of its family on this machine except loopback.
 The services name their own host, `papyrium-<8 hex digits>.local.`, so
