@@ -97,7 +97,9 @@ ESC = b"\x1b"
 
 
 def mechanism(**options):
-    return EscpMechanism(font=MemoryDotFont(name="test", text=FONT_TEXT), **options)
+    """The test mechanism, with the test font unless *options* gives another."""
+    options.setdefault("font", MemoryDotFont(name="test", text=FONT_TEXT))
+    return EscpMechanism(**options)
 
 
 def run(data, **options):

@@ -116,6 +116,15 @@ class _UserCharacter:
 _BLANK = ("blank",)
 
 
+def _printable_once(glyph: Glyph) -> Glyph:
+    """*glyph* without any dot that follows a printed dot in the same row."""
+    printed: set[tuple[int, int]] = set()
+    for column, row in sorted(glyph.dots):
+        if (column - 1, row) not in printed:
+            printed.add((column, row))
+    return Glyph(frozenset(printed))
+
+
 class EscpInterpreter(Interpreter):
     """Interprets ESC/P for a 9-pin printer described by an :class:`EscpMechanism`."""
 
@@ -454,7 +463,10 @@ class EscpInterpreter(Interpreter):
         )
         dots = self._glyph_cache.get(key)
         if dots is None:
-            dots = tuple(self._style_dots(self._glyph(location), step, offset, italic))
+            glyph = self._glyph(location)
+            if self._mechanism.prints_adjacent_dots_once:
+                glyph = _printable_once(glyph)
+            dots = tuple(self._style_dots(glyph, step, offset, italic))
             if glyph_source[0] != "ram":
                 self._glyph_cache[key] = dots
         return dots

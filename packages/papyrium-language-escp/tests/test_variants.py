@@ -170,3 +170,19 @@ def test_enlarged_nlq_doubles_the_grid_and_strikes_each_dot_twice():
         (LEFT + 36, 20),
         (LEFT + 54, 20),
     ]
+
+
+def _bar_font():
+    from papyrium.core.testing import MemoryDotFont
+
+    # A: a bar across columns 0-4 of the top row.
+    rows = ["#####......"] + ["..........."] * 8
+    text = "rows 9\ncolumns 11\nU+0020\n" + "\n".join(["..........."] * 9) + "\n\nU+0041\n"
+    return MemoryDotFont(name="bar", text=text + "\n".join(rows) + "\n")
+
+
+def test_dots_in_successive_columns_can_print_once():
+    font = _bar_font()
+    assert [x for x, _ in dots(b"A", font=font)] == [LEFT + 36 * c for c in range(5)]
+    printed = dots(b"A", font=font, prints_adjacent_dots_once=True)
+    assert [x for x, _ in printed] == [LEFT, LEFT + 72, LEFT + 144]

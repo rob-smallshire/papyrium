@@ -92,5 +92,9 @@ class EscpMechanism:
     #: prints in the first; with no typefaces, NLQ prints as draft struck
     #: twice.
     nlq_fonts: tuple[DotFont | None, ...] = ()
+    #: A dot in the column after a printed one in the same row is not
+    #: printed, since the head cannot fire a pin so soon: the ROM stores
+    #: characters with such dots, and the printer prints them once.
+    prints_adjacent_dots_once: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None
