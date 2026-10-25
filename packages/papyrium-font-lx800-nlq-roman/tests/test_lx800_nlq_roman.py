@@ -45,3 +45,8 @@ def test_descenders_reach_the_ninth_pin():
     for character in "gpqy,":
         assert max(row for _, row in font.glyph(character).dots) >= 16, character
     assert max(row for _, row in font.glyph("H").dots) < 16
+
+
+def test_covers_the_ibm_pc_symbols_and_spain_iis_vowels():
+    characters = _font().characters()
+    assert set("áíóúÇâêëïîôûÿ¢ƒªº⌐¬½¼«»αΓπΣσµτΦΘΩδ∞ε∩≡±≥≤⌠⌡÷≈∙·√ⁿ²■") <= characters

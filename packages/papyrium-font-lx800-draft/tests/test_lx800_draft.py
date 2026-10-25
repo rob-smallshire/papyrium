@@ -51,3 +51,13 @@ def test_the_last_two_columns_are_left_for_spacing():
     font = _font()
     for character in font.characters():
         assert all(column < 9 for column, _ in font.glyph(character).dots), character
+
+
+def test_has_spain_iis_accented_vowels():
+    font = _font()
+    for accented, plain in zip("áíóú", "aiou"):
+        body = {(c, r) for c, r in font.glyph(plain).dots if r >= 2}
+        assert body < font.glyph(accented).dots, accented
+    # Above the x-height, only the accent, not the i's dot as well.
+    acute = font.glyph("é").dots - font.glyph("e").dots
+    assert {(c, r) for c, r in font.glyph("í").dots if r < 2} == acute

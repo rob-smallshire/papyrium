@@ -56,6 +56,12 @@ DRAFT_ROWS, DRAFT_COLUMNS = 9, 11
 # NLQ: little-endian pointer tables to variable-length records.
 NLQ_ASCII_POINTERS = 0x3278  # 94 records, "!" to "~"
 NLQ_INTERNATIONAL_POINTERS = 0x3236  # locations 0-31 (and one more)
+NLQ_IBM_POINTERS = 0x3336
+#: The IBM PC characters NLQ_IBM_POINTERS points to, in order: those of the
+#: upper half of code page 437 that are neither box drawing nor among the
+#: international characters, except that the degree sign is here too and
+#: phi is not.
+NLQ_IBM_CHARACTERS = "Çâêëïîôûÿ¢ƒáíóúªº⌐¬½¼«»αΓπΣσµτΦΘΩδ∞ε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■"
 NLQ_ROWS, NLQ_COLUMNS = 18, 24
 
 
@@ -169,12 +175,20 @@ def main(rom_filepath: Path) -> None:
     draft = {chr(code): draft_glyph(rom, code) for code in range(0x20, 0x7F)}
     draft.update({c: draft_glyph(rom, location) for location, c in enumerate(INTERNATIONAL)})
     draft[SLASHED_ZERO] = draft_glyph(rom, 127)
+    # The ROM's draft a, i, o and u acute are not decoded yet: compose them
+    # from its vowels and the acute accent of its own e acute.
+    # The vowel keeps only its dots from row 2 down, so the i loses its dot.
+    acute = draft["é"] - draft["e"]
+    for accented, plain in zip("áíóú", "aiou"):
+        draft[accented] = {(c, r) for c, r in draft[plain] if r >= 2} | acute
     DRAFT_FILEPATH.write_text(
         font_text(
             ["lx800-draft: the Epson LX-800's draft characters.", *PROVENANCE,
              "Columns are 1/120 inch apart; the last two are spacing. A character",
              "with a descender sits a pin lower. Dots in successive columns are",
-             "kept as the ROM has them; the printer prints such a dot once."],
+             "kept as the ROM has them; the printer prints such a dot once.",
+             "The a, i, o and u acute are composed from the ROM's vowels and the",
+             "accent of its e acute."],
             DRAFT_ROWS, DRAFT_COLUMNS, clipped("draft", draft, DRAFT_COLUMNS),
         ),
         encoding="ascii",
@@ -185,6 +199,9 @@ def main(rom_filepath: Path) -> None:
         nlq[chr(0x21 + index)] = nlq_glyph(rom, _pointer(rom, NLQ_ASCII_POINTERS, index))
     for location, character in enumerate(INTERNATIONAL):
         nlq[character] = nlq_glyph(rom, _pointer(rom, NLQ_INTERNATIONAL_POINTERS, location))
+    for index, character in enumerate(NLQ_IBM_CHARACTERS):
+        if character not in nlq:
+            nlq[character] = nlq_glyph(rom, _pointer(rom, NLQ_IBM_POINTERS, index))
     NLQ_FILEPATH.write_text(
         font_text(
             ["lx800-nlq-roman: the Epson LX-800's near letter quality Roman.", *PROVENANCE,
