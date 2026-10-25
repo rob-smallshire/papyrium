@@ -247,6 +247,43 @@ class LanguageConformance:
         assert isinstance(self.make_language().identity(), LanguageIdentity)
 
 
+def sample_advertisement():
+    """An advertisement for a printer on port 9100 of every interface."""
+    import uuid
+
+    from papyrium.core.advertising import Advertisement
+    from papyrium.core.language import LanguageIdentity
+    from papyrium.core.model import ModelIdentity
+    from papyrium.core.transport import Endpoint
+
+    return Advertisement(
+        name="Conformance Printer (Papyrium)",
+        printer_uuid=uuid.UUID("00000000-0000-4000-8000-000000000001"),
+        model=ModelIdentity(manufacturer="Epson", model="FX-80"),
+        languages=(LanguageIdentity(name="ESC/P", command_set="ESCP9"),),
+        endpoints=(Endpoint(protocol="appsocket", port=9100, addresses=("0.0.0.0",)),),
+    )
+
+
+class AdvertiserConformance:
+    """The contract every :class:`~papyrium.core.advertising.Advertiser` must satisfy."""
+
+    def make_advertiser(self):
+        """Return a fresh advertiser to exercise. Override this."""
+        raise NotImplementedError
+
+    def test_kind_is_advertiser(self):
+        assert type(self.make_advertiser()).kind() == "advertiser"
+
+    async def test_starts_and_stops(self):
+        advertiser = self.make_advertiser()
+        await advertiser.start(sample_advertisement())
+        await advertiser.stop()
+
+    async def test_stop_before_start_does_nothing(self):
+        await self.make_advertiser().stop()
+
+
 #: The printable ASCII characters every dot font must cover.
 PRINTABLE_ASCII = frozenset(chr(code) for code in range(0x20, 0x7F))
 

@@ -6,6 +6,7 @@ import json
 from collections.abc import AsyncIterator
 from pathlib import Path
 
+from papyrium.core.advertising import Advertisement, Advertiser
 from papyrium.core.channel import ChunkChannel
 from papyrium.core.dotfont import DotFont, Glyph, parse_dot_font
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
@@ -166,3 +167,25 @@ class MemoryDotFont(DotFont):
 
     def characters(self) -> frozenset[str]:
         return frozenset(self._data.glyphs)
+
+
+class MemoryAdvertiser(Advertiser):
+    """Keeps what it is asked to announce in :attr:`advertisements`, for inspection.
+
+    With *fail*, starting raises, as an advertiser that cannot reach its
+    network would.
+    """
+
+    def __init__(self, name: str, *, fail: bool = False, **kwargs) -> None:
+        super().__init__(name=name, **kwargs)
+        self._fail = fail
+        self.advertisements: list[Advertisement] = []
+        self.stopped = False
+
+    async def start(self, advertisement: Advertisement) -> None:
+        if self._fail:
+            raise OSError("no network")
+        self.advertisements.append(advertisement)
+
+    async def stop(self) -> None:
+        self.stopped = True
