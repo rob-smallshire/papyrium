@@ -9,7 +9,8 @@ Brother M-1109's additions, and Spain II and Latin America the Epson
 LX-800's. Each printer numbers its sets for ``ESC R`` in its own order.
 
 Characters some sets need beyond the 32 international ones are at
-locations 0x100 and up, clear of the italic bit (0x80).
+locations 0x100 and up, and the IBM PC table's at 0x200 and up, clear of
+the italic bit (0x80).
 """
 
 from __future__ import annotations
@@ -34,6 +35,10 @@ INTERNATIONAL_CHARACTERS = tuple(
 EXTRA_LOCATION = 0x100
 EXTRA_CHARACTERS = ("á", "í", "ó", "ú")
 _A_ACUTE, _I_ACUTE, _O_ACUTE, _U_ACUTE = (EXTRA_LOCATION + i for i in range(4))
+
+#: The upper half of the IBM PC character set (code page 437), which ESC t 1
+#: puts at codes 128-255, at locations 0x200 on.
+IBM_LOCATION = 0x200
 
 
 class CharacterSet(enum.IntEnum):
@@ -109,6 +114,8 @@ def rom_location(code: int, character_set: CharacterSet) -> int:
 
 def character_at(location: int) -> str:
     """The character at an upright ROM *location*."""
+    if location >= IBM_LOCATION:
+        return bytes([0x80 + location - IBM_LOCATION]).decode("cp437")
     if location >= EXTRA_LOCATION:
         return EXTRA_CHARACTERS[location - EXTRA_LOCATION]
     if location < len(INTERNATIONAL_CHARACTERS):

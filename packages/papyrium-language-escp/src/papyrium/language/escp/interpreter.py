@@ -31,7 +31,7 @@ from dataclasses import dataclass, field, replace
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
-from papyrium.language.escp.charsets import character_at, rom_location
+from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
 from papyrium.language.escp.mechanism import EscpMechanism
 
 logger = logging.getLogger(__name__)
@@ -198,6 +198,7 @@ class EscpInterpreter(Interpreter):
         self._msb: int | None = None
         self._character_set = mechanism.character_set
         self._high_codes_printable = mechanism.high_codes_printable
+        self._graphics_table = mechanism.graphics_table
         self._low_codes_printable = False
         self._immediate = False
         self._nlq = mechanism.near_letter_quality
@@ -303,6 +304,8 @@ class EscpInterpreter(Interpreter):
     def _location(self, byte: int) -> int:
         """The character location *byte* prints: the national sets redirect some codes."""
         code = byte & 0x7F
+        if byte & 0x80 and self._graphics_table:
+            return IBM_LOCATION + code
         if code >= 0x20:
             code = rom_location(code, self._character_set)
         return code | (byte & 0x80)
@@ -315,7 +318,10 @@ class EscpInterpreter(Interpreter):
             return
         # The ROM keeps italic characters at 128-255; the RAM has its own there.
         from_rom = self._glyph_source(location)[0] == "rom"
-        italic = self._italic or (from_rom and bool(location & ITALIC))
+        # The IBM PC table's characters are never italic.
+        italic = location < IBM_LOCATION and (
+            self._italic or (from_rom and bool(location & ITALIC))
+        )
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
@@ -784,6 +790,7 @@ class EscpInterpreter(Interpreter):
             "\x19": self._esc_skip_argument,
             "e": self._esc_regular_tabs,
             "a": self._esc_justify,
+            "t": self._esc_character_table,
             "f": self._esc_skip,
         }
         if self._mechanism.nlq:
@@ -1053,6 +1060,14 @@ class EscpInterpreter(Interpreter):
 
     def _esc_nlq(self) -> ArgumentReader:
         self._nlq = self._flag((yield))
+
+    def _esc_character_table(self) -> ArgumentReader:
+        """Codes 128-255 from the italic table (0) or the IBM PC one (1); not digits."""
+        n = yield
+        if n in (0, 1):
+            self._graphics_table = bool(n)
+        else:
+            logger.debug("ignoring character table %d", n)
 
     def _esc_justify(self) -> ArgumentReader:
         """Justify lines left (0), centred (1), right (2) or full (3)."""

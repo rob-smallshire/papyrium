@@ -93,3 +93,41 @@ def test_full_justification_widens_the_spaces():
 def test_justification_can_be_for_nlq_only():
     assert _first_x(ESC + b"a\x02AA\r", justify_nlq_only=True) == LEFT + 36
     assert _first_x(ESC + b"a\x02AA\r") == LEFT + FULL_LINE - 864 + 36
+
+
+def _text(data, **options):
+    (page,) = run(data, **options)
+    return "".join(mark.character for mark in page.text)
+
+
+def test_esc_t_chooses_the_ibm_pc_table_for_the_high_codes():
+    assert _text(b"\xc1") == "A"  # The italic table: an italic A.
+    assert _text(ESC + b"t\x01\xc1\xe0\xb3") == "┴α│"
+    assert _text(ESC + b"t\x01" + ESC + b"t\x00\xc1") == "A"
+
+
+def test_the_ibm_tables_accented_letters_need_esc_6():
+    assert _text(ESC + b"t\x01\x80A") == "A"
+    assert _text(ESC + b"t\x01" + ESC + b"6\x80\x81") == "Çü"
+
+
+def test_the_power_on_table_is_the_mechanisms():
+    assert _text(b"\xe0", graphics_table=True) == "α"
+
+
+def test_esc_t_takes_only_the_bytes_0_and_1():
+    assert _text(ESC + b"t1\xc1") == "A"
+
+
+def test_ibm_characters_are_never_italic():
+    from papyrium.core.testing import MemoryDotFont
+
+    # α: one dot at column 1 of the top row, which italic would move right.
+    blank = "\n".join(["..........."] * 9)
+    alpha = "\n".join([".#........."] + ["..........."] * 8)
+    font = MemoryDotFont(
+        name="alpha", text=f"rows 9\ncolumns 11\nU+0020\n{blank}\n\nU+03B1\n{alpha}\n"
+    )
+    upright = dots(ESC + b"t\x01\xe0", font=font)
+    assert upright == [(LEFT + 36, 0)]
+    assert dots(ESC + b"4" + ESC + b"t\x01\xe0", font=font) == upright

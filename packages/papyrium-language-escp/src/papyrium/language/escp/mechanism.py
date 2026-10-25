@@ -107,6 +107,9 @@ class EscpMechanism:
     margins_clear_tabs: bool = False
     #: Near letter quality prints emphasized, rather than masking it.
     nlq_emphasized: bool = False
+    #: Power on with codes 128-255 from the IBM PC table rather than the
+    #: italic one (ESC t 1).
+    graphics_table: bool = False
     #: ESC a justifies only near letter quality lines.
     justify_nlq_only: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
