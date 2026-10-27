@@ -159,6 +159,21 @@ $9472  code  ibm_dc2                   DC2 in IBM mode: pica, from elite or cond
 
 # -- Characters ------------------------------------------------------------
 
+$D55F  code  print_quadruple_line      Print a line of quadruple-size characters
+$D871  code  emit_double_size          An enlarged character's columns, one blank-separated pair each (double size)
+$D8E2  code  emit_quadruple_size       An enlarged character's columns, two blank-separated pairs each (quadruple size)
+$DF01  code  emit_pair                 Send A, then a blank column
+$DF09  code  emit_four                 Send A four times
+$E010  code  enlarged_column           The next column of an enlarged character, ORed with the one before, in each pass
+$E06C  code  enlarged_head_byte        Build the head byte of an enlarged character from its two passes' bytes
+$E09F  code  double_size_byte          Four rows of each pass interleaved, one pin each, the half chosen by $01 bits 1-2
+$E104  code  quadruple_size_byte       Two rows of each pass, two pins each, the band chosen by $01 bits 1-2
+$E4E6  code  block_graphics_record     Find a block graphics record: the base $A29E plus 11 times the record
+$E718  code  enlarged_setup            An enlarged character's columns, from its NLQ table by pitch
+$F79F  code  script_column             Superscript or subscript: every other row of a column, by pass
+$F854  code  even_rows_low             The even bits of A packed into its low four ($F855: the odd bits)
+$F867  code  odd_rows_high             The odd bits of A packed into its high four ($F868: the even bits)
+$FC7D  code  double_width_columns      Each column ORed with the one before, then a blank
 $F818  code  add_lines                 Add underline and overline to a column, unless the character is block graphics ($30 bit 4)
 $C9A7  code  print_line                The line sequencer: print a line by its mode
 $CA37  code  print_draft_line          Plain draft, one pass

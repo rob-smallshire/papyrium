@@ -117,13 +117,14 @@ class CharacterGenerator:
         """The dots of an enlarged NLQ character, its columns *step* apart.
 
         Each of the glyph's rows, half a pin apart, becomes *height_scale* / 2
-        rows of pins, and each column *width_scale* columns, its dots
-        repeated every other column across them to fill the gap, as the Star
-        LC-10 doubles them.
+        rows of pins, and each column *width_scale* columns, as the Star
+        LC-10 enlarges them: it sends each column, ORed with the one before
+        it, *width_scale* / 2 times every other column, so a column's dots
+        repeat every other column across its own place and the next's.
         """
         result = []
         pins = max(1, height_scale // 2)
-        repeats = range(0, width_scale + 1, 2) if width_scale > 1 else (0,)
+        repeats = range(0, 2 * width_scale - 1, 2) if width_scale > 1 else (0,)
         for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
             for pin in range(pins):
                 dy = (row * pins + pin) * pin_pitch

@@ -37,15 +37,17 @@ def test_double_size_advances_two_columns_and_feeds_two_lines():
     assert printed[8][1] == 2 * LINE
 
 
-def test_quadruple_size_takes_two_pins_a_row_and_three_columns_a_column():
+def test_quadruple_size_takes_two_pins_a_row_and_four_columns_a_column():
+    # The LC-10 sends each column, ORed with the one before, twice every
+    # other column ($D8E2), so its dots repeat across its place and the next's.
     assert _sorted(ESC + b"h\x02A") == sorted(
-        [(LEFT + x, y) for x in (0, 36, 72) for y in (0, PIN)]
-        + [(LEFT + x, y) for x in (72, 108, 144) for y in (2 * PIN, 3 * PIN)]
+        [(LEFT + x, y) for x in (0, 36, 72, 108) for y in (0, PIN)]
+        + [(LEFT + x, y) for x in (72, 108, 144, 180) for y in (2 * PIN, 3 * PIN)]
     )
 
 
 def test_quadruple_size_feeds_four_lines():
-    assert dots(ESC + b"h\x02A\nA", **NLQ)[12][1] == 4 * LINE
+    assert dots(ESC + b"h\x02A\nA", **NLQ)[16][1] == 4 * LINE
 
 
 def test_esc_h_0_returns_to_normal_size():

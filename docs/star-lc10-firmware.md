@@ -451,18 +451,34 @@ superscript and subscript. The line sequencer has a branch for each
 `$CC7A`, its upper and lower halves to `$CC54` and `$CC46`, double's
 upper and lower halves to `$CB4E` and `$CB19`.
 
-Papyrium follows this: double size turns each 1/144 inch NLQ row into
-a 1/72 inch pin row, two passes 8 pins apart covering the character,
-and repeats each 1/240 inch column's dots two columns on to fill the
-widened gap (`$FC7D`). Quadruple size is taken to do the same twice
-over, two pins a row and three columns a column; that is inferred, not
-traced. A line holding enlarged characters feeds as far as the largest
-asks, even after normal size returns, as the sequencer's deferred feed
-does.
+An enlarged character always comes from its NLQ table, pica or elite
+by pitch (`$E718`). Each column the head prints is the character's
+column ORed with the one before it, in each pass (`$E010`), and the head
+byte is built from the two passes' bytes (`$E06C`):
 
-Superscript and subscript appear to be made by keeping every other row
-of the character's columns, the pass choosing which (`$E2F8`); this is
-not yet confirmed.
+- Double size (`$E09F`) interleaves four rows of the first pass with
+  four of the second, so each 1/144 inch NLQ row becomes one 1/72 inch
+  pin; `$01` bits 1 and 2 choose which half of the character a pass
+  prints.
+- Quadruple size (`$E104`) gives each NLQ row two pins, the first pass's
+  bit and then the second's, two rows of each pass to a head byte;
+  `$01` bits 1 and 2 choose which of four bands.
+
+Columns go to the head in pairs, the column then a blank (`$DF01`). The
+double size line (`$D871`) sends one pair for each column of the
+character, the quadruple line (`$D55F`, `$D8E2`) two. Taking the output
+columns as 1/240 inch apart, which makes the characters two and four
+times as wide, a column's dots print 0 and 2 columns on in double size
+and 0, 2, 4 and 6 in quadruple, its own place and, through the OR, the
+next column's. Papyrium prints them so. A line holding enlarged
+characters feeds as far as the largest asks, even after normal size
+returns, as the sequencer's deferred feed does.
+
+Superscript and subscript keep every other row of a character's columns
+(`$F79F`): `$F854` and `$F855` pack the even or odd bits of a column byte
+into its lower four pins for subscript, `$F867` and `$F868` into its
+upper four for superscript, the pass and whether the character is
+lowered choosing which.
 
 ## Colour
 
@@ -510,7 +526,6 @@ technical manual, worked by the carriage at the home position.
 
 ## Not yet decoded
 
-- How the enlarged sizes build their columns and which rows each pass
-  prints (the routines around `$E2F8` and `$D2B5`-`$D4A3`), and the
-  feeds between their passes.
-- Superscript and subscript, to confirm.
+- The feeds between the enlarged sizes' passes (`$CB65` on), and the
+  carriage speeds each size chooses (`$D376` on), which would confirm
+  the output column pitch taken above.
