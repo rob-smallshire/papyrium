@@ -299,3 +299,11 @@ def test_a_full_form_of_line_feeds_reaches_the_top_offset_of_the_next_sheet():
     first, second = run(b"\n" * 66 + b"A", top_offset=LINE // 2)
     assert first.dots == ()
     assert second.dots == ((LEFT + 36, LINE // 2),)
+
+
+def test_line_feed_may_leave_the_head_where_it_is():
+    assert dots(b"AA\nA", line_feed_returns=False) == [
+        (LEFT + 36, 0),
+        (LEFT + PICA + 36, 0),
+        (LEFT + 2 * PICA + 36, LINE),
+    ]

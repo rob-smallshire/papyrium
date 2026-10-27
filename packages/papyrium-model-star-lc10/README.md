@@ -30,6 +30,7 @@ the printer's DIP switches and paper:
 | Option | Default | Meaning |
 |---|---|---|
 | `form-length` | `11` | Form length in inches (switch 1-1 gives 11 or 12) |
+| `auto-carriage-return` | `yes` | A line feed also returns the head to the left margin (switch 1-2) |
 | `graphics-table` | `no` | Codes 128-254 from IBM character set #2 rather than italics (switch 1-7 off) |
 | `auto-line-feed` | `no` | Each carriage return also feeds a line (switch 1-8 off) |
 | `character-set` | `usa` | Power-on international set: any of the thirteen `ESC R` sets, by name or number (switches 2-2 to 2-4 give 0-7) |
@@ -41,15 +42,15 @@ the printer's DIP switches and paper:
 
 Star's additions to ESC/P are obeyed: absolute and relative positioning
 (`ESC $`, `ESC \`), both margins at once (`ESC X`), extra space between
-characters (`ESC SP`), moving to a column (`ESC f 0`), the slashed zero (`ESC ~`), overline (`ESC _`),
-the top margin (`ESC c`), reverse line feed and top of page (`ESC LF`, `ESC FF`) and the macro (`ESC +`). Character
-sizes print as the LC-10 prints them, always in near letter quality:
-double and quadruple size and their halves (`ESC h`), double height on
-the base line (`ESC w`), and `ESC [ @`.
+characters (`ESC SP`), moving to a column (`ESC f 0`), the slashed zero
+(`ESC ~`), overline (`ESC _`), the top margin (`ESC c`), reverse line
+feed and top of page (`ESC LF`, `ESC FF`) and the macro (`ESC +`).
+Character sizes print as the LC-10 prints them, always in near letter
+quality: double and quadruple size and their halves (`ESC h`), double
+height on the base line (`ESC w`), and `ESC [ @`.
 
-Not modelled yet: IBM mode (switch 1-6), proportional spacing in elite, LF without a carriage return (switch
-1-2), download characters as the LC-10 defines them, and the LC-10
-Colour.
+Not modelled yet: IBM mode (switch 1-6), proportional spacing in elite,
+download characters as the LC-10 defines them, and the LC-10 Colour.
 
 ## Licence
 

@@ -45,8 +45,10 @@ class StarLC10(PrinterModel):
 
     Options model its DIP switches, at their factory settings by default,
     and its paper: form-length in inches (11, switch 1-1; 12 with it off),
-    graphics-table (no, switch 1-7 off: codes 128-254 from IBM character
-    set #2 rather than italics), auto-line-feed (no, switch 1-8 off),
+    auto-carriage-return (yes, switch 1-2: a line feed also returns the
+    head to the left margin), graphics-table (no, switch 1-7 off: codes
+    128-254 from IBM character set #2 rather than italics),
+    auto-line-feed (no, switch 1-8 off),
     character-set (usa, switches 2-2 to 2-4, or any of the thirteen ESC R
     sets), paper-width in inches (9.5 for fanfold, 8.5 for a sheet),
     top-offset in inches (19/36), stationery (fanfold, or sheet and the
@@ -62,6 +64,7 @@ class StarLC10(PrinterModel):
         form_length: str = "11",
         graphics_table: bool = False,
         auto_line_feed: bool = False,
+        auto_carriage_return: bool = True,
         character_set: str = "usa",
         paper_width: str | None = None,
         top_offset: str = "19/36",
@@ -85,6 +88,7 @@ class StarLC10(PrinterModel):
             columns=80,
             condensed_columns=137,
             auto_line_feed=auto_line_feed,
+            line_feed_returns=auto_carriage_return,
             character_set=options.character_set_option(character_set, LX800_CHARACTER_SETS),
             character_sets=LX800_CHARACTER_SETS,
             graphics_table=graphics_table,

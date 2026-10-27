@@ -96,3 +96,8 @@ def test_block_graphics_are_twelve_dots_high_so_lines_join():
     rows = sorted({y for _, y in page.dots})
     pin = 4320 // 72
     assert rows == [rows[0] + n * pin for n in range(12)]
+
+
+def test_switch_1_2_makes_line_feed_return_the_head():
+    assert _mechanism().line_feed_returns
+    assert not _mechanism(auto_carriage_return=False).line_feed_returns

@@ -61,6 +61,8 @@ class EscpMechanism:
     dot_diameter: int = inches(Fraction(1, 72))
     #: Treat each carriage return as carriage return and line feed.
     auto_line_feed: bool = False
+    #: A line feed also returns the head to the left margin.
+    line_feed_returns: bool = True
     #: The power-on international character set.
     character_set: CharacterSet = CharacterSet.USA
     #: Power-on skip-over-perforation, in lines; 0 for none.

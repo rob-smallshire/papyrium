@@ -714,7 +714,8 @@ class EscpInterpreter(Interpreter):
 
     def _line_feed(self) -> None:
         self._end_line()
-        self._x = self._left_margin
+        if self._mechanism.line_feed_returns:
+            self._x = self._left_margin
         self._advance_line()
 
     def _advance_line(self) -> None:
