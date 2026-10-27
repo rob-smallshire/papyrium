@@ -1,6 +1,6 @@
 """Download characters: ESC = and ESC I 4-7."""
 
-from proprinter_helpers import ESC, LEFT, NLQ_STEP, PICA, PIN, STEP, dots
+from proprinter_helpers import ESC, HALF_ROW, LEFT, NLQ_STEP, PICA, PIN, STEP, dots, faces
 
 
 def download(start, *characters):
@@ -76,3 +76,55 @@ def test_bytes_short_of_a_whole_character_are_skipped():
     count = 13 + 2 + 3
     data = ESC + b"=" + bytes([count, 0, 20, ord("A")]) + bytes(character()) + b"\x80\x80\x80"
     assert dots(data + ESC + b"I\x04AA") == [(LEFT, 0), (LEFT + PICA, 0)]
+
+
+# NLQ II download characters: ESC = with printer ID 21 (TR 4-19 to 4-23).
+
+
+def nlq_ii_download(start, *characters):
+    """ESC = defining NLQ II *characters*, each two attribute bytes and 23
+    columns of a first-pass and a second-pass byte, from code *start*."""
+    data = b"".join(bytes(character) for character in characters)
+    count = len(data) + 2
+    return ESC + b"=" + bytes([count % 256, count // 256, 21, start]) + data
+
+
+def nlq_ii_character(kind=0, columns=((0x80, 0x80),)):
+    data = [byte for column in columns for byte in column]
+    return [kind, 0, *data, *[0] * (46 - len(data))]
+
+
+def test_esc_i_7_prints_downloaded_nlq_ii_characters():
+    data = nlq_ii_download(ord("A"), nlq_ii_character())
+    resident = [(LEFT + 2 * NLQ_STEP, 0)]
+    assert dots(data + ESC + b"I\x03A", **faces()) == resident
+    assert dots(data + ESC + b"I\x07A", **faces()) == [(LEFT, 0), (LEFT, HALF_ROW)]
+
+
+def test_esc_i_7_prints_resident_nlq_ii_for_codes_not_downloaded():
+    data = nlq_ii_download(ord("B"), nlq_ii_character())
+    assert dots(data + ESC + b"I\x07A", **faces()) == [(LEFT + 2 * NLQ_STEP, 0)]
+
+
+def test_a_descending_nlq_ii_character_starts_two_rows_lower():
+    data = nlq_ii_download(ord("A"), nlq_ii_character(kind=0x80))
+    assert dots(data + ESC + b"I\x07A", **faces()) == [(LEFT, PIN), (LEFT, PIN + HALF_ROW)]
+
+
+def test_line_drawing_carries_rows_15_and_16_down_to_row_24():
+    data = nlq_ii_download(ord("A"), nlq_ii_character(kind=0x01, columns=((0x01, 0x01),)))
+    rows = range(14, 24)
+    expected = sorted((LEFT, (row // 2) * PIN + (row % 2) * HALF_ROW) for row in rows)
+    assert dots(data + ESC + b"I\x07A", **faces()) == expected
+
+
+def test_esc_equals_1_0_21_restores_the_resident_nlq_ii_characters():
+    data = nlq_ii_download(ord("A"), nlq_ii_character()) + ESC + b"=\x01\x00\x15"
+    assert dots(data + ESC + b"I\x07A", **faces()) == [(LEFT + 2 * NLQ_STEP, 0)]
+
+
+def test_nlq_ii_drops_a_dot_after_one_in_its_row_unless_emphasized():
+    two = nlq_ii_character(columns=((0x80, 0), (0x80, 0)))
+    data = nlq_ii_download(ord("A"), two) + ESC + b"I\x07"
+    assert dots(data + b"A", **faces()) == [(LEFT, 0)]
+    assert dots(data + ESC + b"EA", **faces()) == [(LEFT, 0), (LEFT + NLQ_STEP, 0)]

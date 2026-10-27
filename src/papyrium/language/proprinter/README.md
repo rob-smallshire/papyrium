@@ -28,6 +28,8 @@ Proportional spacing takes each character's width and offset from IBM's
 table (`PROPORTIONAL_WIDTHS`), in draft and, on its finer grid, in NLQ;
 download characters take theirs from their attribute byte.
 
-Not yet: NLQ II download characters, which are skipped; double height.
+NLQ II download characters (`ESC =` with printer ID 21) print with
+`ESC I 7`. Not yet: double height, which IBM's manuals do not describe
+for the 9-wire printers.
 
 Registered as `proprinter` on the `papyrium.language` axis.

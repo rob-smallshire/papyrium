@@ -296,7 +296,19 @@ graphics (176-223 and 244) are never underscored or overscored.
 - Column bytes: one bit a wire, bit 7 the top wire of the eight used
   (TR 4-15).
 - The draft download area can hold a Fastfont instead; the NLQ II area
-  needs the 8K buffer (TR 4-9, 4-19).
+  needs the 8K buffer (TR 4-9, 4-19), which Papyrium takes as fitted.
+- NLQ II characters (TR 4-19 to 4-23): `ESC =` count1 count2 21 start,
+  then for each character 48 bytes, count1 + 256 count2 being 48 times
+  the characters plus 2. Attribute byte 1: bit 7 a descender, rows 3 to
+  18 rather than 1 to 16; bits 1-0 01 for line drawing (rows 15 and 16
+  carried down to 24) and 10 for shading (rows 1 to 8 repeated as 17 to
+  24). Attribute byte 2 is reserved. Then 23 columns of two bytes, the
+  first giving rows 1, 3, ... 15 (the first pass) and the second rows 2,
+  4, ... 16, bit 7 the top; the 24th column is blank. A dot following one
+  in its row is dropped except in emphasized printing, so a design's
+  runs should be odd. `ESC = 1 0 21` restores the resident characters,
+  and `ESC I 7` prints the downloaded ones, the resident ones for codes
+  not downloaded.
 
 ## Where Papyrium decides
 
@@ -311,8 +323,8 @@ The manuals leave some combinations open; the `proprinter` language
 - Fastfont masks condensed, as 12 cpi does, and ignores `ESC G`.
 - `ESC X` counts its columns as the Star LC-10's manual shows for its IBM
   mode: `ESC X 12 92` leaves twelve elite columns, an inch, to the left.
-- NLQ II download characters are skipped, their bytes counted; double
-  height prints at single height.
+- Double height prints at single height: the manuals list it among the
+  9-wire printers' speeds but do not say how it is made.
 - Proportional spacing uses the Figure A-1 widths and offsets
   (`papyrium.language.proprinter.widths`) in every face, NLQ and NLQ II
   doubling them on their finer grid. The figure has nothing that says

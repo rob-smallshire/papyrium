@@ -24,6 +24,7 @@ from papyrium.language.escp.charsets import (
     SET_2_LOW_CODES,
     rom_location,
 )
+from papyrium.language.escp.generator import printable_once
 from papyrium.language.escp.interpreter import (
     DC2,
     DC3,
@@ -65,6 +66,10 @@ NLQ_II_DOWNLOAD_ID = 21
 #: column bytes.
 DOWNLOAD_CHARACTER_BYTES = 13
 
+#: Bytes for each NLQ II download character: two attribute bytes and two
+#: bytes, a pass each, for each of 23 columns.
+NLQ_II_DOWNLOAD_CHARACTER_BYTES = 48
+
 #: The kinds of download character, in attribute byte 1's low two bits.
 ORDINARY, LINE_DRAWING, SHADING_KIND = 0, 1, 2
 
@@ -88,6 +93,9 @@ class ProprinterInterpreter(EscpInterpreter):
         # until characters are downloaded into it.
         self._ram_holds_rom = True
         self._shading_downloads: set[int] = set()
+        # The NLQ II download area, by location; codes not downloaded print
+        # the resident NLQ II characters.
+        self._nlq_ii_downloads: dict[int, Glyph] = {}
 
     # -- Character sets -----------------------------------------------------
 
@@ -155,14 +163,19 @@ class ProprinterInterpreter(EscpInterpreter):
         super()._print_location(location)
 
     def _nlq_ii_glyph(self, location: int) -> Glyph | None:
-        """The resident NLQ II character for *location*, or None to print draft."""
-        if self._face & DOWNLOAD:
-            logger.debug("NLQ II download characters are not modelled; printing resident ones")
-        character = self._rom_character(location)
-        glyph = self._mechanism.nlq_ii_font.glyph(character)
+        """The NLQ II character for *location*, downloaded with ESC I 7, or
+        None to print draft. A dot following one in its row is dropped,
+        except in emphasized printing (TR 4-8)."""
+        glyph = None
+        if self._user_set_selected:
+            glyph = self._nlq_ii_downloads.get(location)
         if glyph is None:
-            self._report_missing(character, "printing draft")
-        return glyph
+            character = self._rom_character(location)
+            glyph = self._mechanism.nlq_ii_font.glyph(character)
+            if glyph is None:
+                self._report_missing(character, "printing draft")
+                return None
+        return glyph if self._emphasized else printable_once(glyph)
 
     def _is_shading(self, location: int) -> bool:
         if location in self._shading_downloads and self._glyph_source(location)[0] == "ram":
@@ -388,11 +401,16 @@ class ProprinterInterpreter(EscpInterpreter):
         if count == 1:
             if printer_id == DRAFT_DOWNLOAD_ID:
                 self._reset_download_area()
+            elif printer_id == NLQ_II_DOWNLOAD_ID:
+                self._nlq_ii_downloads.clear()
             else:
                 logger.debug("ignoring initialisation of download area %d", printer_id)
             return
         start = yield
         remaining = count - 2
+        if printer_id == NLQ_II_DOWNLOAD_ID:
+            yield from self._download_nlq_ii(start, remaining)
+            return
         if printer_id != DRAFT_DOWNLOAD_ID:
             logger.debug("ignoring %d bytes of download font %d", remaining, printer_id)
             for _ in range(remaining):
@@ -408,6 +426,22 @@ class ProprinterInterpreter(EscpInterpreter):
                 logger.debug("ignoring a download character beyond code 255")
                 continue
             self._define_download_character(self._location(code), data[0], data[1], data[2:])
+        for _ in range(leftover):
+            yield
+
+    def _download_nlq_ii(self, start: int, remaining: int) -> ArgumentReader:
+        """NLQ II characters from code *start*: for each, two attribute bytes
+        and 23 columns of a first-pass and a second-pass byte (TR 4-21)."""
+        characters, leftover = divmod(remaining, NLQ_II_DOWNLOAD_CHARACTER_BYTES)
+        for index in range(characters):
+            data = []
+            for _ in range(NLQ_II_DOWNLOAD_CHARACTER_BYTES):
+                data.append((yield))
+            code = start + index
+            if code > 0xFF:
+                logger.debug("ignoring a download character beyond code 255")
+                continue
+            self._nlq_ii_downloads[self._location(code)] = _nlq_ii_glyph(data[0], data[2:])
         for _ in range(leftover):
             yield
 
@@ -460,3 +494,26 @@ def _code(location: int) -> int | None:
     if 0x20 <= location < 0x80:
         return location
     return None
+
+
+def _nlq_ii_glyph(kind_attribute: int, data: list[int]) -> Glyph:
+    """An NLQ II download character on its 24 by 18 grid, rows 1 to 16, or
+    3 to 18 for a descender, each column's first byte giving the first
+    pass's rows and its second the second's, bit 7 the top (TR 4-22).
+    Line drawing carries rows 15 and 16 down to row 24, and shading
+    repeats rows 1 to 8 as rows 17 to 24."""
+    kind = kind_attribute & 0x03
+    top_row = 2 if kind == ORDINARY and kind_attribute & 0x80 else 0
+    dots = {
+        (column, top_row + 2 * bit + pass_)
+        for column in range(len(data) // 2)
+        for pass_ in (0, 1)
+        for bit in range(8)
+        if data[2 * column + pass_] & (0x80 >> bit)
+    }
+    if kind == LINE_DRAWING:
+        bottom = [(column, row) for column, row in dots if row in (14, 15)]
+        dots |= {(column, row + step) for column, row in bottom for step in (2, 4, 6, 8)}
+    elif kind == SHADING_KIND:
+        dots |= {(column, row + 16) for column, row in dots if row < 8}
+    return Glyph(frozenset(dots))
