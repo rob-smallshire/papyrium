@@ -14,9 +14,9 @@ needed to simulate the LC-10 and LC-10 Colour was Rob's decision
 
 ## What the ROM holds
 
-The CPU is a Mitsubishi M50734 (6502 family); its reset vector is 0x8100,
-and the upper 32K of the file is the program at CPU addresses
-0x8000-0xFFFF. The lower 32K is data:
+The upper 32K of the file is the program, at CPU addresses
+0x8000-0xFFFF; the lower 32K is data, at 0x8000-0xFFFF of the CPU's
+separate data space (below). The data:
 
 | At | Holds |
 |---|---|
@@ -65,6 +65,70 @@ are 8 dots, bit 7 the top, a 1 bit a dot; the first pass prints the even
 rows and the second, half a dot lower, the odd rows. Most glyphs are
 shared between the pica and elite tables and between the two Orators;
 elite has narrower forms of the widest characters.
+
+## The CPU and the program
+
+The CPU is a Mitsubishi M50734 (TM 15, 84), a member of the MELPS 740
+family: the 6502's instructions plus the T flag, bit set, clear and test
+(`SEB`, `CLB`, `BBS`, `BBC`), `LDM`, special-page calls and others. It has
+no internal memory, and it is made for printers: Centronics `STBout` and
+`BUSYout`, a stepper motor controller driving the carriage motor (phases
+`Ha`-`Hd`, on P2) and the paper feed motor (`Va`-`Vd`), timers, a UART,
+an A/D converter and clocked serial I/O.
+
+Its pin P05, when selected as `DME` and made an output, strobes a second,
+"data" memory space for operand reads and writes, instruction fetches
+still coming from program memory. The reset code sets the P0 function
+register (`$F5`) to 0x20 and the P0 direction register (`$F7`) to 0x34,
+so DME is on from power-up and every ordinary load reads the data space,
+where the board puts the ROM's lower half at 0x8000-0xFFFF. That is why
+the NLQ index holds addresses from 0x8000 up.
+
+Registers, from MAME's M50734 emulation (`src/devices/cpu/m6502/m50734.cpp`,
+BSD-3-Clause, by AJR, written for the Commodore MPS-1200, which has the
+same CPU); the M50734 data sheet is not available:
+
+| At | Register |
+|---|---|
+| `$DA`-`$DB` | Timer X |
+| `$DC`-`$E1` | Timers and prescalers |
+| `$E2`-`$E3` | Step counter |
+| `$E8` | Serial I/O |
+| `$E9`, `$EA` | A/D control, A/D result |
+| `$EB` | Port P4 (input) |
+| `$EC` | Phase counter |
+| `$ED` | P2/P3 function |
+| `$EE`-`$EF`, `$F0`-`$F1` | Ports P3 and P2 (data, direction) |
+| `$F2` | P1 latch |
+| `$F3`-`$F4` | Port P1 (data, direction) |
+| `$F5` | P0 function |
+| `$F6`-`$F7` | Port P0 (data, direction) |
+| `$F8`-`$F9` | Stepper motor control |
+| `$FA` | Timer S |
+| `$FC` | Timer W |
+| `$FD`-`$FF` | Interrupt control |
+
+The vectors:
+
+| Vector | Interrupt | Handler |
+|---|---|---|
+| `$FFF4` | CNTR | `$F3AA` |
+| `$FFF6` | HE/VE (stepper motor controller) | `$F3C5` |
+| `$FFF8` | Timers | `$F15F` |
+| `$FFFA` | `_INT1` (P00) | `$F3E2` |
+| `$FFFC` | `_INT2` (P01) and `BRK` | `$FF7E` |
+| `$FFFE` | Reset | `$8100` |
+
+`disassemble.sh` disassembles the program with MAME's `unidasm`
+(architecture `m740`), used as a tool only, into
+`docs/local/star-lc10/LC10-NX1P-1.5CL.dis`. Build `unidasm` from a MAME
+checkout with `make EMULATOR=0 TOOLS=1 NOWERROR=1`; the script looks for
+it in `docs/local/m50734/`.
+
+https://www.m50734.org is a community site about the M50734SP on a
+development board. Its summary of register addresses disagrees with
+MAME's and with itself, and most of its pages and downloads were missing
+in October 2026, so MAME is the reference here.
 
 ## Not yet decoded
 
