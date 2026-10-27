@@ -128,5 +128,6 @@ Steps 1 to 4 are done:
 4. `DerivedDotFont`, with the `pass_rows` and `half_width` transforms;
    `lc10-draft` is derived from `lc10-nlq-sanserif`.
 
-The block graphics stay a file: their 12-dot extension is a printing
-pass, which the LC-10's generator will make, not a fixed derivation.
+The block graphics stay a file, `lc10-block-graphics`, with their 12-dot
+extension written out as rows 8-11: the ROM keeps no 8-dot block font
+that another could be derived from, only the table the extractor reads.
