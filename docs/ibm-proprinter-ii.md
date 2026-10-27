@@ -83,15 +83,19 @@ lower, and prints every dot of a horizontal line, which draft would thin.
 The added dots, from the manual's drawings:
 
 - Between two dots in successive rows of the same column, a dot halfway
-  between them, half a row down: a vertical line becomes solid.
-- Between two dots in successive rows of neighbouring columns, a dot
-  halfway between them, half a row down and half a column across: a
-  diagonal fills in.
-- No diagonal dot is added from a dot inside a horizontal line, one with
-  dots either side of it in its row: where a vertical or a diagonal meets
-  a horizontal line, the meeting is treated as a two-dot vertical line
-  (TR 4-5, 4-6). The ends of a horizontal line, and dots standing alone,
-  do make diagonals (the `M` and `K` of TR 4-7).
+  between them, half a row down: a vertical line becomes solid (TR 4-3).
+  Dots with a row between them are not joined.
+- Between two dots in successive rows one or two columns apart, a dot
+  halfway between them, half a row down: a diagonal fills in, whether it
+  moves a column or two to a row (TR 4-4).
+- No diagonal dot is added from a dot inside a line, with dots either
+  side of it in its row or above and below it in its column: a diagonal
+  joins a line only at its end. Where a diagonal meets a horizontal line
+  at its end, the join is a vertical one (the Z of TR 4-6); a diagonal
+  meets the end of a vertical line (the M of TR 4-7), and to meet one
+  part way a design gives a horizontal dot at the meeting, whose end the
+  diagonal joins (the K of TR 4-7). A vertical line still joins a
+  horizontal one it crosses (the T of TR 4-5).
 
 The half rows and half columns fall on a grid of 1/240 inch columns and
 1/144 inch rows, two passes of the nine wires: 24 columns by 18 rows to
