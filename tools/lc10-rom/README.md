@@ -5,7 +5,7 @@ Tools that read the Star LC-10 Colour's firmware ROM, kept uncommitted as
 written up in `docs/star-lc10-firmware.md`.
 
 - `extract.py` decodes the ROM's character tables into the dot font files
-  of `papyrium-font-lc10`.
+  of `papyrium.font.lc10`.
 - `disassemble.sh` disassembles the program with MAME's `unidasm`
   (architecture `m740`), used as a tool only, into
   `docs/local/star-lc10/LC10-NX1P-1.5CL.dis`. Build `unidasm` from a MAME

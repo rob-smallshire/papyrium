@@ -29,11 +29,11 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
-<td width="20%" valign="top"><a href="packages/papyrium-model-brother-m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
-<td width="20%" valign="top"><a href="packages/papyrium-model-epson-fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="20%" valign="top"><a href="packages/papyrium-model-epson-lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="20%" valign="top"><a href="packages/papyrium-model-star-lc10/"><img src="docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
-<td width="20%" valign="top"><a href="packages/papyrium-model-star-lc10/"><img src="docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
+<td width="20%" valign="top"><a href="src/papyrium/model/brother_m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="20%" valign="top"><a href="src/papyrium/model/epson_fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="20%" valign="top"><a href="src/papyrium/model/epson_lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="20%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="20%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
 </tr>
 </table>
 
@@ -46,10 +46,9 @@ uvx papyrium serve
 ```
 
 or install the `papyrium` command for good with `uv tool install papyrium`
-(or `pipx install papyrium`, or `pip install papyrium`). The `papyrium`
-distribution brings the command and every printer model; `papyrium-cli`
-alone brings the command with no printer model, to which you add the
-`papyrium-model-...` packages you want.
+(or `pipx install papyrium`, or `pip install papyrium`). The one
+`papyrium` distribution brings the command and every printer model, font,
+transport and output.
 
 From a checkout:
 
@@ -244,62 +243,62 @@ options asked for, so it can be printed later on a machine that has it.
 ## How it is built
 
 Papyrium is a framework of independent, pluggable axes. Each is an
-entry-point extension point, so a separately distributed `papyrium-*`
-package can add to it:
+entry-point extension point, so a separately distributed package can add
+to it, its modules joining the `papyrium` namespace beside these:
 
-| Axis | Plug-in | Description | Package |
+| Axis | Plug-in | Description | Module |
 |---|---|---|---|
-| Transports deliver bytes | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium-transport-raw-tcp`](packages/papyrium-transport-raw-tcp/) |
-| Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium-language-escp`](packages/papyrium-language-escp/) |
-| Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium-model-brother-m1109`](packages/papyrium-model-brother-m1109/) |
-|  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-fx80`](packages/papyrium-model-epson-fx80/) |
-|  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-lx800`](packages/papyrium-model-epson-lx800/) |
-|  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-star-lc10`](packages/papyrium-model-star-lc10/) |
-|  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium-model-star-lc10`](packages/papyrium-model-star-lc10/) |
-| Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium-font-draft-9`](packages/papyrium-font-draft-9/) |
-|  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-draft` | The Star LC-10's pica draft font, made as the printer makes it | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-draft-elite` | The Star LC-10's elite draft font, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-courier` | The Star LC-10's NLQ Courier in pica, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-courier-elite` | The Star LC-10's NLQ Courier in elite, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-orator` | The Star LC-10's NLQ Orator with lower case in pica, from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-orator-elite` | The Star LC-10's NLQ Orator with lower case in elite, from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-orator-small-capitals` | The Star LC-10's NLQ Orator with small capitals in pica, from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-orator-small-capitals-elite` | The Star LC-10's NLQ Orator with small capitals in elite, from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-sanserif` | The Star LC-10's NLQ Sanserif in pica, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lc10-nlq-sanserif-elite` | The Star LC-10's NLQ Sanserif in elite, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
-|  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium-font-lx800-draft`](packages/papyrium-font-lx800-draft/) |
-|  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium-font-lx800-nlq-roman`](packages/papyrium-font-lx800-nlq-roman/) |
-|  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium-font-m1109-draft`](packages/papyrium-font-m1109-draft/) |
-|  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium-font-m1109-nlq`](packages/papyrium-font-m1109-nlq/) |
-| Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium-output-pdf`](packages/papyrium-output-pdf/) |
-|  | `png` | PNG images, one per page, with each struck dot drawn as a dot | [`papyrium-output-png`](packages/papyrium-output-png/) |
-| Advertisers announce printers | `mdns` | Announces printers with multicast DNS, as Bonjour and Avahi do | [`papyrium-advertiser-mdns`](packages/papyrium-advertiser-mdns/) |
+| Transports deliver bytes | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) |
+| Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](src/papyrium/language/escp/) |
+| Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
+|  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) |
+|  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) |
+|  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
+|  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
+| Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) |
+|  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-draft` | The Star LC-10's pica draft font, made as the printer makes it | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-draft-elite` | The Star LC-10's elite draft font, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-courier` | The Star LC-10's NLQ Courier in pica, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-courier-elite` | The Star LC-10's NLQ Courier in elite, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-orator` | The Star LC-10's NLQ Orator with lower case in pica, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-orator-elite` | The Star LC-10's NLQ Orator with lower case in elite, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-orator-small-capitals` | The Star LC-10's NLQ Orator with small capitals in pica, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-orator-small-capitals-elite` | The Star LC-10's NLQ Orator with small capitals in elite, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-sanserif` | The Star LC-10's NLQ Sanserif in pica, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lc10-nlq-sanserif-elite` | The Star LC-10's NLQ Sanserif in elite, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
+|  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium.font.lx800_draft`](src/papyrium/font/lx800_draft/) |
+|  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium.font.lx800_nlq_roman`](src/papyrium/font/lx800_nlq_roman/) |
+|  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium.font.m1109_draft`](src/papyrium/font/m1109_draft/) |
+|  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium.font.m1109_nlq`](src/papyrium/font/m1109_nlq/) |
+| Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium.output.pdf`](src/papyrium/output/pdf/) |
+|  | `png` | PNG images, one per page, with each struck dot drawn as a dot | [`papyrium.output.png`](src/papyrium/output/png/) |
+| Advertisers announce printers | `mdns` | Announces printers with multicast DNS, as Bonjour and Avahi do | [`papyrium.advertiser.mdns`](src/papyrium/advertiser/mdns/) |
 
-The packages live under `packages/`, in a [uv](https://docs.astral.sh/uv/)
-workspace, and share the `papyrium` namespace:
+The modules live under `src/papyrium/`, an implicit namespace package,
+and their tests under `tests/`, in the same arrangement:
 
-| Package | Contents |
+| Module | Contents |
 |---|---|
-| [`papyrium-exception`](packages/papyrium-exception/) | Categorised exceptions and the CLI error-reporting boundary shared by Papyrium |
-| [`papyrium-extension`](packages/papyrium-extension/) | Entry-point plug-in framework shared by every extensible axis of Papyrium |
-| [`papyrium-core`](packages/papyrium-core/) | Papyrium's extension axes, conformance suites, spooler and job captures |
-| [`papyrium-transport-raw-tcp`](packages/papyrium-transport-raw-tcp/) | Raw TCP (port 9100, JetDirect style) transport for Papyrium |
-| [`papyrium-language-escp`](packages/papyrium-language-escp/) | The Epson ESC/P printer language for Papyrium's 9-pin dot-matrix models |
-| [`papyrium-model-epson-fx80`](packages/papyrium-model-epson-fx80/) | The Epson FX-80 9-pin dot-matrix printer, emulated for Papyrium |
-| [`papyrium-model-brother-m1109`](packages/papyrium-model-brother-m1109/) | The Brother M-1109 9-pin dot-matrix printer, emulated for Papyrium |
-| [`papyrium-model-epson-lx800`](packages/papyrium-model-epson-lx800/) | The Epson LX-800 9-pin dot-matrix printer, emulated for Papyrium |
-| [`papyrium-model-star-lc10`](packages/papyrium-model-star-lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers, emulated for Papyrium |
-| [`papyrium-font-draft-9`](packages/papyrium-font-draft-9/) | draft-9, a 9-pin dot-matrix font in the style of 1980s printers, designed for Papyrium |
-| [`papyrium-font-m1109-draft`](packages/papyrium-font-m1109-draft/) | m1109-draft, the Brother M-1109's draft characters, reconstructed for Papyrium |
-| [`papyrium-font-m1109-nlq`](packages/papyrium-font-m1109-nlq/) | m1109-nlq, the Brother M-1109's near letter quality characters, reconstructed for Papyrium |
-| [`papyrium-font-lx800-draft`](packages/papyrium-font-lx800-draft/) | lx800-draft, the Epson LX-800's draft characters, from its firmware, for Papyrium |
-| [`papyrium-font-lx800-nlq-roman`](packages/papyrium-font-lx800-nlq-roman/) | lx800-nlq-roman, the Epson LX-800's near letter quality Roman characters, from its firmware, for Papyrium |
-| [`papyrium-font-lc10`](packages/papyrium-font-lc10/) | The Star LC-10's draft and near letter quality fonts, draft and NLQ (Courier, Sanserif and Orator), pica and elite, from its firmware, for Papyrium |
-| [`papyrium-output-png`](packages/papyrium-output-png/) | PNG output for Papyrium: one raster image per page, dots drawn as dots |
-| [`papyrium-output-pdf`](packages/papyrium-output-pdf/) | PDF output for Papyrium: one document per job, dots as vector dots |
-| [`papyrium-advertiser-mdns`](packages/papyrium-advertiser-mdns/) | Announces Papyrium printers on the local network with multicast DNS (Bonjour, Avahi) |
-| [`papyrium-cli`](packages/papyrium-cli/) | The papyrium command: run a virtual vintage printer, replay its jobs and inspect them |
+| [`papyrium.exception`](src/papyrium/exception/) | Categorised exceptions and CLI error-reporting boundary for Papyrium |
+| [`papyrium.extension`](src/papyrium/extension/) | Generic entry-point plug-in machinery shared by every Papyrium extension axis |
+| [`papyrium.core`](src/papyrium/core/) | Papyrium's core: the page model, printer models, jobs, spooling and the plug-in axes |
+| [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
+| [`papyrium.language.escp`](src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
+| [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) | The Brother M-1109 9-pin dot-matrix printer |
+| [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
+| [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |
+| [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers |
+| [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) | draft-9: a 9-pin dot-matrix font designed for Papyrium |
+| [`papyrium.font.lc10`](src/papyrium/font/lc10/) | The Star LC-10's draft and near letter quality fonts, from its firmware |
+| [`papyrium.font.lx800_draft`](src/papyrium/font/lx800_draft/) | lx800-draft: the Epson LX-800's draft characters, from its firmware |
+| [`papyrium.font.lx800_nlq_roman`](src/papyrium/font/lx800_nlq_roman/) | lx800-nlq-roman: the Epson LX-800's near letter quality Roman, from its firmware |
+| [`papyrium.font.m1109_draft`](src/papyrium/font/m1109_draft/) | m1109-draft: the Brother M-1109's draft characters, reconstructed for Papyrium |
+| [`papyrium.font.m1109_nlq`](src/papyrium/font/m1109_nlq/) | m1109-nlq: the Brother M-1109's near letter quality characters, reconstructed |
+| [`papyrium.output.pdf`](src/papyrium/output/pdf/) | PDF output: each job as one document, each dot as a vector dot |
+| [`papyrium.output.png`](src/papyrium/output/png/) | PNG output: one greyscale raster image per page |
+| [`papyrium.advertiser.mdns`](src/papyrium/advertiser/mdns/) | Announcing Papyrium printers on the local network with multicast DNS |
+| [`papyrium.cli`](src/papyrium/cli/) | The ``papyrium`` command: run a virtual vintage printer and inspect its jobs |
 
 `docs/specification.md` is the design as handed over from Beebium.
 `docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md` and
@@ -314,8 +313,8 @@ uv run pytest
 uv run pre-commit install
 ```
 
-The golden tests replay the captures in each printer model's
-`tests/golden/` and compare every page with a pinned image. The end-to-end
+The golden tests replay the captures in each printer model's tests'
+`golden/` directory and compare every page with a pinned image. The end-to-end
 tests that drive a real Beebium BBC Micro are in `integration/beebium/`;
 their module docstring gives the command to run them. `oracles/` compares
 Papyrium with independent interpreters run as separate programs:
@@ -323,14 +322,14 @@ Papyrium with independent interpreters run as separate programs:
 
 This README and the printer models' READMEs are generated by
 `scripts/render_readme.py` from the templates in
-`scripts/readme-templates/` and `packages/*/readme/`, running the examples
-in `scripts/readme-examples/` against the workspace's own code. The
+`scripts/readme-templates/` and beside the modules
+(`src/papyrium/**/README.md.j2`), running the examples in
+`scripts/readme-examples/` against Papyrium's own code. The
 pre-commit hook regenerates them, so edit the templates, not the READMEs.
 
 ## Licence
 
-Papyrium is released under the MIT licence; see [`LICENSE`](LICENSE). Each
-package carries its own copy.
+Papyrium is released under the MIT licence; see [`LICENSE`](LICENSE).
 
 Epson, Brother and the other printer and computer names in this project
 are trademarks of their owners, used only to identify the printers that

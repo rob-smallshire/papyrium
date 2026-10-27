@@ -139,7 +139,7 @@ LC-10's italic needs because it slants about the column byte. The
 generator gained `italic_offset`, `nlq_italic_offset` and
 `double_strike_offset`, the interpreter's 1/216 inch feed unit was
 renamed `FEED_STEP`, and a mechanism may keep block graphics in a font
-of their own. `papyrium-model-star-lc10` prints Standard mode with the
+of their own. `papyrium.model.star_lc10` prints Standard mode with the
 LC-10's fonts by pitch, its generator (`LC10CharacterGenerator`) and its
 12-dot block graphics. Still to come: NLQ proportional spacing, the
 Star commands, character sizes, IBM mode, and colour (step 6).

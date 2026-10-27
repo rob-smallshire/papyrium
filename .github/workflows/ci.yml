@@ -34,15 +34,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache-dependency-glob: |
             pyproject.toml
-            packages/*/pyproject.toml
+            uv.lock
 
-      - name: Install dependency environment (no workspace packages)
-        # Every third-party dependency, but not the papyrium-* members
-        # themselves: those are installed from freshly built wheels below,
-        # so the tests run against the distribution artefacts rather than
-        # the source tree. That catches packaging bugs such as missing
-        # package data (fonts) or entry points.
-        run: uv sync --no-install-workspace
+      - name: Install dependency environment (without papyrium itself)
+        # Every third-party dependency, but not papyrium: that is installed
+        # from a freshly built wheel below, so the tests run against the
+        # distribution rather than the source tree. That catches packaging
+        # bugs such as missing package data (fonts) or entry points.
+        run: uv sync --no-install-project
 
       - name: Run namespace-init guard
         shell: bash
@@ -54,17 +53,17 @@ jobs:
       - name: Check formatting
         run: uv run --no-sync ruff format --check
 
-      - name: Build all workspace wheels
-        run: uv build --all-packages
+      - name: Build the wheel
+        run: uv build --wheel
 
-      - name: Install wheels into the test environment
+      - name: Install the wheel into the test environment
         # bash so the glob expands the same on every runner OS.
         shell: bash
         run: uv pip install dist/*.whl
 
-      - name: Check the code comes from the wheels
-        # A papyrium module imported from packages/ would mean the tests
-        # are exercising the source tree, not what users install.
+      - name: Check the code comes from the wheel
+        # A papyrium module imported from src/ would mean the tests are
+        # exercising the source tree, not what users install.
         shell: bash
         run: >-
           uv run --no-sync python -c
@@ -73,14 +72,14 @@ jobs:
           bad = [p for p in paths if 'site-packages' not in p.parts];
           sys.exit(f'imported from the source tree: {bad}' if bad else 0)"
 
-      - name: Run tests against installed wheels
+      - name: Run tests against the installed wheel
         # --no-sync stops uv re-syncing the environment, which would
-        # reinstate editable installs, so pytest imports the wheels' code.
+        # reinstate the editable install, so pytest imports the wheel's code.
         run: uv run --no-sync pytest -v
 
       - name: Check generated READMEs are current
         # A consistency check of the committed READMEs and sample images,
         # not a per-platform test, so it runs on one platform only. It
-        # prints with the installed wheels' papyrium command.
+        # prints with the installed wheel's papyrium command.
         if: runner.os == 'Linux' && matrix.python-version == '3.13'
         run: uv run --no-sync python scripts/render_readme.py --check

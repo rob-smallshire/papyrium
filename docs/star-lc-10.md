@@ -735,7 +735,7 @@ New work:
 2. **Four NLQ typefaces with italics**, Orator's two variants and its
    extra dot of height, on a 1/240 by 1/144 inch two-pass grid. The
    upright characters, draft and NLQ in pica and elite, are extracted
-   from the firmware into `papyrium-font-lc10` (Firmware below); the
+   from the firmware into `papyrium.font.lc10` (Firmware below); the
    slant of the italics is computed by the printer and still to be read
    from the program.
 3. **Character sizes**: `ESC h` double and quadruple size with the

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Render the workspace's READMEs, and the sample pages they show, from templates.
+"""Render Papyrium's READMEs, and the sample pages they show, from templates.
 
 README.md, the landing page on GitHub, is rendered from
 scripts/readme-templates/README.md.j2, and so is README-pypi.md, the long
-description of the bare papyrium distribution, with links made absolute
-for PyPI. A package whose README states facts
-the code also holds, such as a printer model's options and their defaults,
-keeps a template at packages/<package>/readme/README.md.j2, rendered to
-packages/<package>/README.md.
+description of the papyrium distribution, with links made absolute for
+PyPI. A module whose README states facts the code also holds, such as a
+printer model's options and their defaults, keeps a template beside it,
+src/papyrium/<module>/README.md.j2, rendered to README.md there.
 
-Templates see the workspace's packages (from each pyproject.toml), the
-installed plug-ins on each axis, and these functions:
+Templates see Papyrium's modules (each described by the first line of its
+docstring), the installed plug-ins on each axis, and these functions:
 
 - ``transcript(name)`` runs scripts/readme-examples/<name>.py, a recipe
   that prints ``$ command`` transcripts with ``readme_helper.show``, and
@@ -28,7 +27,7 @@ installed plug-ins on each axis, and these functions:
   ``papyrium`` command, crops the first page to *crop* inches, saves it as
   docs/images/<image_name>.png and returns the image's repository path.
 
-Everything is run against the workspace's own code, so a change that
+Everything is run against Papyrium's own code, so a change that
 alters a transcript, an option or a printed page changes the README.
 
 Usage:
@@ -43,12 +42,12 @@ staged.
 from __future__ import annotations
 
 import argparse
+import importlib
 import inspect
 import os
 import subprocess
 import sys
 import tempfile
-import tomllib
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from functools import partial
@@ -64,7 +63,7 @@ REPO_DIRPATH = Path(__file__).resolve().parent.parent
 SCRIPTS_DIRPATH = REPO_DIRPATH / "scripts"
 TEMPLATE_DIRPATH = SCRIPTS_DIRPATH / "readme-templates"
 EXAMPLES_DIRPATH = SCRIPTS_DIRPATH / "readme-examples"
-PACKAGES_DIRPATH = REPO_DIRPATH / "packages"
+SOURCE_DIRPATH = REPO_DIRPATH / "src"
 IMAGES_DIRPATH = REPO_DIRPATH / "docs" / "images"
 
 #: Where the repository's files are seen from PyPI, whose pages cannot
@@ -72,59 +71,53 @@ IMAGES_DIRPATH = REPO_DIRPATH / "docs" / "images"
 REPOSITORY_URL = "https://github.com/rob-smallshire/papyrium/blob/master/"
 RAW_REPOSITORY_URL = "https://raw.githubusercontent.com/rob-smallshire/papyrium/master/"
 
-PACKAGE_README_DIRNAME = "readme"
 README_TEMPLATE_FILENAME = "README.md.j2"
-
-#: The packages in the order the README lists them: foundations first,
-#: then each axis in the order bytes flow through a printer.
-PACKAGE_ORDER = (
-    "papyrium-exception",
-    "papyrium-extension",
-    "papyrium-core",
-    "papyrium-transport-raw-tcp",
-    "papyrium-language-escp",
-    "papyrium-model-epson-fx80",
-    "papyrium-model-brother-m1109",
-    "papyrium-model-epson-lx800",
-    "papyrium-model-star-lc10",
-    "papyrium-font-draft-9",
-    "papyrium-font-m1109-draft",
-    "papyrium-font-m1109-nlq",
-    "papyrium-font-lx800-draft",
-    "papyrium-font-lx800-nlq-roman",
-    "papyrium-font-lc10",
-    "papyrium-output-png",
-    "papyrium-output-pdf",
-    "papyrium-advertiser-mdns",
-    "papyrium-cli",
-)
 
 #: The plug-in axes, in the order bytes flow through a printer.
 AXES = ("transport", "language", "model", "font", "output", "advertiser")
 
+#: The modules the README lists first, the foundations, and last.
+FIRST_MODULES = ("papyrium.exception", "papyrium.extension", "papyrium.core")
+LAST_MODULES = ("papyrium.cli",)
+
 
 @dataclass(frozen=True)
-class PackageMeta:
+class ModuleMeta:
     name: str
     description: str
+
+    @property
+    def dirpath(self) -> str:
+        """The module's directory, relative to the repository."""
+        return "src/" + self.name.replace(".", "/") + "/"
 
 
 @dataclass(frozen=True)
 class Plugin:
     name: str
     description: str
-    package: str
+    module: ModuleMeta
 
 
-def load_packages() -> list[PackageMeta]:
-    """Every packages/papyrium-*/pyproject.toml, in PACKAGE_ORDER, then by name."""
-    found = {}
-    for pyproject_filepath in sorted(PACKAGES_DIRPATH.glob("papyrium-*/pyproject.toml")):
-        with pyproject_filepath.open("rb") as f:
-            project = tomllib.load(f)["project"]
-        found[project["name"]] = PackageMeta(project["name"], project["description"].rstrip("."))
-    ordered = [found.pop(name) for name in PACKAGE_ORDER if name in found]
-    return ordered + [found[name] for name in sorted(found)]
+def _module_meta(name: str) -> ModuleMeta:
+    docstring = importlib.import_module(name).__doc__ or ""
+    return ModuleMeta(name, docstring.strip().splitlines()[0].rstrip(".") if docstring else "")
+
+
+def load_modules() -> list[ModuleMeta]:
+    """Papyrium's modules: the foundations, then each axis's in the order bytes
+    flow through a printer, then the command."""
+    papyrium_dirpath = SOURCE_DIRPATH / "papyrium"
+    names = [
+        "papyrium." + ".".join(init.parent.relative_to(papyrium_dirpath).parts)
+        for init in papyrium_dirpath.glob("**/__init__.py")
+        if len(init.parent.relative_to(papyrium_dirpath).parts) <= 2
+        and "__pycache__" not in init.parts
+    ]
+    # A module directly under an axis, such as papyrium.model.star_lc10.
+    by_axis = {axis: sorted(n for n in names if n.startswith(f"papyrium.{axis}.")) for axis in AXES}
+    ordered = [*FIRST_MODULES, *(n for axis in AXES for n in by_axis[axis]), *LAST_MODULES]
+    return [_module_meta(name) for name in ordered if name in names]
 
 
 def load_plugins() -> dict[str, list[Plugin]]:
@@ -136,7 +129,7 @@ def load_plugins() -> dict[str, list[Plugin]]:
             Plugin(
                 point.name,
                 describe_extension(kind, namespace, point.name, single_line=True).rstrip("."),
-                point.dist.name,
+                _module_meta(point.value.split(":")[0]),
             )
             for point in sorted(entry_points(group=namespace), key=lambda point: point.name)
         ]
@@ -339,7 +332,7 @@ def _render(
     template = _jinja_environment(template_dirpath).get_template(README_TEMPLATE_FILENAME)
     return template.render(
         repo_url=repo_url,
-        packages=load_packages(),
+        modules=load_modules(),
         plugins=load_plugins(),
         transcript=render_transcript,
         options_table=render_options_table,
@@ -363,19 +356,13 @@ def _targets() -> list[RenderTarget]:
             partial(_render, TEMPLATE_DIRPATH, repo_url=_repository_url),
         ),
     ]
-    for template_filepath in sorted(
-        PACKAGES_DIRPATH.glob(f"papyrium-*/{PACKAGE_README_DIRNAME}/{README_TEMPLATE_FILENAME}")
-    ):
-        package_dirpath = template_filepath.parent.parent
-        package = next(p for p in load_packages() if p.name == package_dirpath.name)
+    for template_filepath in sorted(SOURCE_DIRPATH.glob(f"papyrium/**/{README_TEMPLATE_FILENAME}")):
         targets.append(
             RenderTarget(
-                package_dirpath / "README.md",
-                # Package READMEs are also shown on PyPI, which cannot follow
-                # links relative to the repository.
-                partial(
-                    _render, template_filepath.parent, package=package, repo_url=_repository_url
-                ),
+                template_filepath.parent / "README.md",
+                # A module's README lies deep in the tree, so its links are
+                # absolute rather than relative to the repository's root.
+                partial(_render, template_filepath.parent, repo_url=_repository_url),
             )
         )
     return targets

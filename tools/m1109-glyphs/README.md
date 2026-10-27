@@ -1,7 +1,7 @@
 # m1109-glyphs
 
 One-off tools that reconstructed the Brother M-1109's draft characters
-(`packages/papyrium-font-m1109-draft`) from the printed pages of its
+(`papyrium.font.m1109_draft`) from the printed pages of its
 owner's manual. They read the 400 dpi page scans in
 `docs/local/brother-m1109/m1109-user-guide-pages/` and write their working
 files to `docs/local/brother-m1109/glyph-work/`; neither is committed.
@@ -24,7 +24,7 @@ row) whose rendering best matches the scans.
 6. `build_font.py` places each fitted shape in the 9 x 11 matrix and
    writes the font.
 
-The near letter quality characters (`packages/papyrium-font-m1109-nlq`)
+The near letter quality characters (`papyrium.font.m1109_nlq`)
 come from the one NLQ sample, on page 74: `nlq.py` fits each character in
 its own cell on the 18 x 24 NLQ grid, with a cost per dot so the pattern
 stays sparse, and `build_nlq_font.py` aligns the sample lines by their
@@ -34,4 +34,4 @@ Run them with numpy and scipy alongside the workspace, from this
 directory, for example:
 
     uv run --project ../.. --with numpy --with scipy python build_font.py \
-        ../../packages/papyrium-font-m1109-draft/src/papyrium/font/m1109_draft/glyphs.txt
+        ../../src/papyrium/font/m1109_draft/glyphs.txt

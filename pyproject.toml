@@ -1,17 +1,11 @@
-# Papyrium workspace root.
+# Papyrium: one distribution, `papyrium`, holding the papyrium command and
+# everything it prints with: core, languages, printer models, fonts,
+# transports, outputs and advertisers.
 #
-# This pyproject.toml serves two purposes:
-#
-# 1. It declares the uv workspace that stitches the packages/papyrium-*
-#    members into one development environment.
-#
-# 2. It defines the bare `papyrium` distribution on PyPI, which ships no
-#    code of its own: it depends on the papyrium command and every printer
-#    model, and provides the `papyrium` command, so that `pip install
-#    papyrium` or `uvx papyrium` gives a complete virtual printer.
-#
-# All members contribute to a single PEP 420 implicit namespace package
-# (`papyrium`). No member ever ships src/papyrium/__init__.py.
+# The code is a PEP 420 implicit namespace package (`papyrium`), so that a
+# separately distributed extension can add modules beside these, such as
+# papyrium.model.something, and register them on the entry-point axes
+# below. There is never a src/papyrium/__init__.py.
 
 [build-system]
 requires = ["setuptools>=77.0"]
@@ -20,7 +14,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "papyrium"
 version = "0.1.0"
-description = "A virtual vintage printer: the papyrium command with every printer model."
+description = "A virtual vintage printer: the bytes a computer sends its printer, printed as a 1980s dot-matrix printer would print them."
 readme = "README-pypi.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -40,11 +34,13 @@ classifiers = [
     "Topic :: System :: Emulators",
 ]
 dependencies = [
-    "papyrium-cli>=0.1.0",
-    "papyrium-model-epson-fx80>=0.1.0",
-    "papyrium-model-brother-m1109>=0.1.0",
-    "papyrium-model-epson-lx800>=0.1.0",
-    "papyrium-model-star-lc10>=0.1.0",
+    "asyoulikeit>=1.5.1",
+    "click>=8.1.7",
+    "exit-codes>=1.3",
+    "ifaddr>=0.2",
+    "pillow>=10.0",
+    "stevedore>=5.0",
+    "zeroconf>=0.151",
 ]
 
 [project.scripts]
@@ -55,36 +51,54 @@ Homepage = "https://github.com/rob-smallshire/papyrium"
 Repository = "https://github.com/rob-smallshire/papyrium"
 Issues = "https://github.com/rob-smallshire/papyrium/issues"
 
-[tool.setuptools]
-# The bare distribution ships no code, only dependencies and the command.
-packages = []
+[project.entry-points."papyrium.advertiser"]
+mdns = "papyrium.advertiser.mdns:MdnsAdvertiser"
 
-[tool.uv.workspace]
-members = ["packages/papyrium-*"]
+[project.entry-points."papyrium.font"]
+draft-9 = "papyrium.font.draft_9:Draft9Font"
+lc10-block-graphics = "papyrium.font.lc10:LC10BlockGraphicsFont"
+lc10-draft = "papyrium.font.lc10:LC10DraftFont"
+lc10-draft-elite = "papyrium.font.lc10:LC10DraftEliteFont"
+lc10-nlq-courier = "papyrium.font.lc10:LC10NlqCourierFont"
+lc10-nlq-courier-elite = "papyrium.font.lc10:LC10NlqCourierEliteFont"
+lc10-nlq-orator = "papyrium.font.lc10:LC10NlqOratorFont"
+lc10-nlq-orator-elite = "papyrium.font.lc10:LC10NlqOratorEliteFont"
+lc10-nlq-orator-small-capitals = "papyrium.font.lc10:LC10NlqOratorSmallCapitalsFont"
+lc10-nlq-orator-small-capitals-elite = "papyrium.font.lc10:LC10NlqOratorSmallCapitalsEliteFont"
+lc10-nlq-sanserif = "papyrium.font.lc10:LC10NlqSanserifFont"
+lc10-nlq-sanserif-elite = "papyrium.font.lc10:LC10NlqSanserifEliteFont"
+lx800-draft = "papyrium.font.lx800_draft:LX800DraftFont"
+lx800-nlq-roman = "papyrium.font.lx800_nlq_roman:LX800NlqRomanFont"
+m1109-draft = "papyrium.font.m1109_draft:M1109DraftFont"
+m1109-nlq = "papyrium.font.m1109_nlq:M1109NlqFont"
 
-[tool.uv.sources]
-papyrium-output-pdf = { workspace = true }
-papyrium-advertiser-mdns = { workspace = true }
-papyrium-model-epson-fx80 = { workspace = true }
-papyrium-model-brother-m1109 = { workspace = true }
-papyrium-model-epson-lx800 = { workspace = true }
-papyrium-model-star-lc10 = { workspace = true }
-papyrium-language-escp = { workspace = true }
-papyrium-font-draft-9 = { workspace = true }
-papyrium-font-m1109-draft = { workspace = true }
-papyrium-font-m1109-nlq = { workspace = true }
-papyrium-font-lx800-draft = { workspace = true }
-papyrium-font-lx800-nlq-roman = { workspace = true }
-papyrium-font-lc10 = { workspace = true }
-papyrium-output-png = { workspace = true }
-papyrium-cli = { workspace = true }
-papyrium-transport-raw-tcp = { workspace = true }
-papyrium-core = { workspace = true }
-papyrium-exception = { workspace = true }
-papyrium-extension = { workspace = true }
+[project.entry-points."papyrium.language"]
+escp = "papyrium.language.escp:EscpLanguage"
+
+[project.entry-points."papyrium.model"]
+brother-m1109 = "papyrium.model.brother_m1109:BrotherM1109"
+epson-fx80 = "papyrium.model.epson_fx80:EpsonFx80"
+epson-lx800 = "papyrium.model.epson_lx800:EpsonLX800"
+star-lc10 = "papyrium.model.star_lc10:StarLC10"
+star-lc10-colour = "papyrium.model.star_lc10:StarLC10Colour"
+
+[project.entry-points."papyrium.output"]
+pdf = "papyrium.output.pdf:PdfOutput"
+png = "papyrium.output.png:PngOutput"
+
+[project.entry-points."papyrium.transport"]
+raw-tcp = "papyrium.transport.raw_tcp:RawTcpTransport"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["papyrium*"]
+
+[tool.setuptools.package-data]
+# The dot fonts are data beside their modules.
+"papyrium.font" = ["*/*.txt"]
 
 [tool.uv]
-default-groups = ["test", "lint", "readme", "release", "workspace"]
+default-groups = ["test", "lint", "readme", "release"]
 
 # PyPI, not any index in a developer's own uv configuration, so that
 # uv.lock records public URLs that CI and other contributors can fetch.
@@ -94,28 +108,6 @@ url = "https://pypi.org/simple"
 default = true
 
 [dependency-groups]
-# Installs every papyrium-* member editable in development.
-workspace = [
-    "papyrium-core",
-    "papyrium-advertiser-mdns",
-    "papyrium-transport-raw-tcp",
-    "papyrium-cli",
-    "papyrium-output-png",
-    "papyrium-font-draft-9",
-    "papyrium-font-m1109-draft",
-    "papyrium-font-m1109-nlq",
-    "papyrium-font-lx800-draft",
-    "papyrium-font-lx800-nlq-roman",
-    "papyrium-font-lc10",
-    "papyrium-language-escp",
-    "papyrium-model-epson-fx80",
-    "papyrium-model-brother-m1109",
-    "papyrium-model-epson-lx800",
-    "papyrium-model-star-lc10",
-    "papyrium-output-pdf",
-    "papyrium-exception",
-    "papyrium-extension",
-]
 test = [
     "pypdf>=5.0",
     "pytest>=8.3",
@@ -132,162 +124,49 @@ readme = [
     "pre-commit>=4.7.0",
 ]
 
-# Every distribution shares one version, bumped together with
+# One version, bumped with
 #     uv run bump-my-version bump minor   (or major, patch)
 # which commits and tags v<version>; pushing the tag releases to PyPI.
-# A test checks that every installed papyrium distribution agrees.
 [tool.bumpversion]
 current_version = "0.1.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"
 message = "Bump papyrium to {new_version}"
-# The workspace members' versions are recorded in the lock file too.
 pre_commit_hooks = ["uv lock", "git add uv.lock"]
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
-search = 'version = "{current_version}"'
+regex = true
+search = '^version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
-# The family's own dependencies on each other require the version
-# released with them; a package depending on no other has none.
-[[tool.bumpversion.files]]
-glob = "pyproject.toml"
-regex = true
-search = '"(papyrium-[a-z0-9-]+)>={current_version}"'
-replace = '"\1>={new_version}"'
-ignore_missing_version = true
-
-[[tool.bumpversion.files]]
-glob = "packages/papyrium-*/pyproject.toml"
-regex = true
-search = '"(papyrium-[a-z0-9-]+)>={current_version}"'
-replace = '"\1>={new_version}"'
-ignore_missing_version = true
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-advertiser-mdns/src/papyrium/advertiser/mdns/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-cli/src/papyrium/cli/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-core/src/papyrium/core/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-exception/src/papyrium/exception/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-extension/src/papyrium/extension/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-font-draft-9/src/papyrium/font/draft_9/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-font-m1109-draft/src/papyrium/font/m1109_draft/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-font-m1109-nlq/src/papyrium/font/m1109_nlq/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-font-lx800-draft/src/papyrium/font/lx800_draft/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-font-lx800-nlq-roman/src/papyrium/font/lx800_nlq_roman/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-font-lc10/src/papyrium/font/lc10/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-language-escp/src/papyrium/language/escp/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-model-brother-m1109/src/papyrium/model/brother_m1109/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-model-epson-lx800/src/papyrium/model/epson_lx800/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-model-star-lc10/src/papyrium/model/star_lc10/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-model-epson-fx80/src/papyrium/model/epson_fx80/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-output-pdf/src/papyrium/output/pdf/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-output-png/src/papyrium/output/png/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "packages/papyrium-transport-raw-tcp/src/papyrium/transport/raw_tcp/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
 [tool.pytest.ini_options]
-# importlib mode is required for PEP 420 namespace packages; the default
-# prepend mode makes sibling packages in the same namespace collide.
+# importlib mode is required for PEP 420 namespace packages.
 minversion = "8.0"
 addopts = ["--import-mode=importlib"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = [
-    "packages/papyrium-exception/tests",
-    "packages/papyrium-extension/tests",
-    "packages/papyrium-core/tests",
-    "packages/papyrium-transport-raw-tcp/tests",
-    "packages/papyrium-cli/tests",
-    "packages/papyrium-output-png/tests",
-    "packages/papyrium-font-draft-9/tests",
-    "packages/papyrium-font-m1109-draft/tests",
-    "packages/papyrium-font-m1109-nlq/tests",
-    "packages/papyrium-font-lx800-draft/tests",
-    "packages/papyrium-font-lx800-nlq-roman/tests",
-    "packages/papyrium-font-lc10/tests",
-    "packages/papyrium-language-escp/tests",
-    "packages/papyrium-model-epson-fx80/tests",
-    "packages/papyrium-model-brother-m1109/tests",
-    "packages/papyrium-model-epson-lx800/tests",
-    "packages/papyrium-model-star-lc10/tests",
-    "packages/papyrium-output-pdf/tests",
-    "packages/papyrium-advertiser-mdns/tests",
+    "tests/exception",
+    "tests/extension",
+    "tests/core",
+    "tests/transport/raw_tcp",
+    "tests/cli",
+    "tests/output/png",
+    "tests/font/draft_9",
+    "tests/font/m1109_draft",
+    "tests/font/m1109_nlq",
+    "tests/font/lx800_draft",
+    "tests/font/lx800_nlq_roman",
+    "tests/font/lc10",
+    "tests/language/escp",
+    "tests/model/epson_fx80",
+    "tests/model/brother_m1109",
+    "tests/model/epson_lx800",
+    "tests/model/star_lc10",
+    "tests/output/pdf",
+    "tests/advertiser/mdns",
 ]
 
 [tool.ruff]

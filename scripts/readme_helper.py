@@ -1,7 +1,7 @@
 """Helpers for README example recipes in scripts/readme-examples/.
 
 A recipe calls :func:`show` for each command the reader should see. The
-README shows ``$ command`` and its output, run against the workspace's
+README shows ``$ command`` and its output, run against Papyrium's
 own code, so the transcript cannot drift from what the command does.
 """
 

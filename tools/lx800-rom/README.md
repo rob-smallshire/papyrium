@@ -1,7 +1,7 @@
 # lx800-rom
 
-`extract.py` builds the Epson LX-800's fonts, `papyrium-font-lx800-draft`
-and `papyrium-font-lx800-nlq-roman`, from the printer's firmware: the 32K
+`extract.py` builds the Epson LX-800's fonts, `papyrium.font.lx800_draft`
+and `papyrium.font.lx800_nlq_roman`, from the printer's firmware: the 32K
 program ROM at IC3C, the dump MAME lists as `lx800.ic3c` (CRC32 da06c45b,
 SHA-1 9618c940dd10d5b43cd1edd5763b90e6447de667). The ROM is Epson's; it
 is kept uncommitted in `docs/local/epson-lx800/`, and using its characters

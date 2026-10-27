@@ -1,9 +1,7 @@
 #!/bin/sh
-# PEP 420 implicit namespace packages: no package may ship
-# src/papyrium/__init__.py; its code lives in src/papyrium/<axis>/<name>/.
-found=$(ls packages/*/src/papyrium/__init__.py 2>/dev/null)
-if [ -n "$found" ]; then
-    echo "remove, to keep the papyrium namespace implicit:"
-    echo "$found"
+# PEP 420 implicit namespace package: there is no src/papyrium/__init__.py,
+# so that separately distributed extensions can add modules to papyrium.
+if [ -e src/papyrium/__init__.py ]; then
+    echo "remove src/papyrium/__init__.py, to keep the papyrium namespace implicit"
     exit 1
 fi

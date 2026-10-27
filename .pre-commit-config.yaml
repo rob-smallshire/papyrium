@@ -1,4 +1,4 @@
-# Pre-commit hooks for the Papyrium workspace. Install with:
+# Pre-commit hooks for Papyrium. Install with:
 #     uv run pre-commit install
 
 repos:
@@ -17,7 +17,7 @@ repos:
         types: [python]
 
       - id: namespace-init-guard
-        name: No src/papyrium/__init__.py in any package
+        name: No src/papyrium/__init__.py
         entry: scripts/check_no_namespace_init.sh
         language: system
         pass_filenames: false
@@ -32,7 +32,7 @@ repos:
         description: |
           README.md, the printer models' READMEs and docs/images/ are
           generated from the templates in scripts/readme-templates/ and
-          packages/*/readme/, running scripts/readme-examples/ against the
-          workspace's own code. A change that alters them is rewritten here,
-          and pre-commit fails the commit so the result can be checked and
-          staged.
+          beside the modules (src/papyrium/**/README.md.j2), running
+          scripts/readme-examples/ against Papyrium's own code. A change
+          that alters them is rewritten here, and pre-commit fails the
+          commit so the result can be checked and staged.

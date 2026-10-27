@@ -62,9 +62,10 @@ source of truth; clients display what it reports.
 
 Each axis is a plug-in extension point discovered through entry points
 (the `oaknut-extension` pattern from `/Users/rjs/Code/oaknut/packages`),
-so each transport, language, model and output can be an independently
-distributable `papyrium-*` package. Each axis has a conformance suite in
-core that plug-in packages subclass in their own tests.
+so a transport, language, model, font, output or advertiser can come from
+an independently distributed package as well as from Papyrium itself.
+Each axis has a conformance suite in core that plug-ins subclass in
+their tests.
 
 ### Domain rules
 
@@ -87,16 +88,19 @@ core that plug-in packages subclass in their own tests.
 
 ### Layout
 
-A uv workspace of `packages/papyrium-*` members sharing the PEP 420
-`papyrium` namespace (never add `src/papyrium/__init__.py`). The workspace
-root is also the bare `papyrium` distribution, which ships no code: it
-depends on `papyrium-cli` and every printer model and provides the
-`papyrium` command; `papyrium-cli` alone brings no printer model. `README.md`
-lists the packages. Entry-point groups are `papyrium.transport`,
+One distribution, `papyrium`, built from `src/papyrium/`, a PEP 420
+implicit namespace package (never add `src/papyrium/__init__.py`), so a
+separately distributed extension can add modules beside Papyrium's own;
+nothing requires every module to be separately distributable, and closely
+related modules belong together. Modules sit by axis
+(`papyrium.model.star_lc10`, `papyrium.font.lc10`), each with its
+README, and tests mirror them under `tests/` (`tests/model/star_lc10/`).
+`pyproject.toml` declares every entry point. `README.md` lists the
+modules. Entry-point groups are `papyrium.transport`,
 `papyrium.language`, `papyrium.model`, `papyrium.font`,
 `papyrium.output` and `papyrium.advertiser`. Positions on the page are whole units of 1/4320 inch
 (`papyrium.core.page`). Golden captures and images for the FX-80 are in
-`packages/papyrium-model-epson-fx80/tests/golden/`; the multicast DNS
+`tests/model/epson_fx80/golden/`; the multicast DNS
 test is in `integration/mdns/` (`uv run pytest integration/mdns`); Beebium end-to-end
 tests are in `integration/beebium/` and are not part of `uv run pytest`.
 
@@ -114,32 +118,31 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   in `integration/beebium/test_beebium_printing.py` (needs a Beebium build).
   Refresh golden images with `PAPYRIUM_UPDATE_GOLDEN=1 uv run pytest` and
   look at them before committing.
-- **CI** (`.github/workflows/ci.yml`) runs the tests against wheels built
-  from every package, installed over a `uv sync --no-install-workspace`
-  environment and run with `uv run --no-sync` (a plain `uv run` would
+- **CI** (`.github/workflows/ci.yml`) runs the tests against the wheel,
+  installed over a `uv sync --no-install-project` environment and run with `uv run --no-sync` (a plain `uv run` would
   reinstate the editable installs), on Linux, macOS and Windows. A test
   that reads files from the source tree rather than the installed package
   passes locally and fails there.
-- **Releases** (Rob decides when, and the version): every distribution
-  shares one version. `uv run bump-my-version bump minor` (or `major`,
-  `patch`) bumps it everywhere, relocks, commits "Bump papyrium to X" and
+- **Releases** (Rob decides when, and the version):
+  `uv run bump-my-version bump minor` (or `major`, `patch`) bumps the
+  version, relocks, commits "Bump papyrium to X" and
   tags `vX`; pushing the tag runs `.github/workflows/release.yml`, which
-  runs the CI workflow, checks the tag matches the version, builds every
-  distribution and publishes them to PyPI with the `PYPI_TOKEN` secret.
+  runs the CI workflow, checks the tag matches the version, builds the
+  distribution and publishes it to PyPI with the `PYPI_TOKEN` secret.
   Builds are reproducible (`SOURCE_DATE_EPOCH` from the tagged commit)
   and files already on PyPI are left out, so a release that stopped part
   way, as when PyPI limits new projects, is resumed with
   `gh workflow run release.yml -f tag=vX`.
 - **Every printer model has a demonstration page**, `demo()`: a job we
-  write ourselves (in its package's `demo.py`, with
+  write ourselves (in its module's `demo.py`, with
   `papyrium.language.escp.writing` for ESC/P) that shows the printer at
   its best. The conformance suite checks it prints without warnings, each
   model pins it as golden pages, its README and the root README's
   gallery show it, and `papyrium demo MODEL` prints it.
 - **Generated READMEs.** `README.md`, the printer models' READMEs and
   `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
-  templates (`scripts/readme-templates/`, `packages/*/readme/`), running
-  `scripts/readme-examples/` against the workspace. Edit the templates,
+  templates (`scripts/readme-templates/`, and `README.md.j2` beside a
+  module), running `scripts/readme-examples/` against Papyrium. Edit the templates,
   never the READMEs; the pre-commit hook (`uv run pre-commit install`)
   regenerates them and fails the commit until they are staged.
 - **asyncio** for everything that waits: transports, the spooler and its
@@ -147,9 +150,9 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   loop. Languages, models and outputs are synchronous, deterministic
   functions of the captured bytes, run off the event loop by the server,
   so replay is identical whatever delivered the bytes.
-- Packages follow the oaknut family (`/Users/rjs/Code/oaknut/packages`):
-  `papyrium-exception` (error hierarchy, exit codes, `handled_errors`),
-  `papyrium-extension` (entry-point axes), a conformance suite per axis.
+- Modules follow the oaknut family (`/Users/rjs/Code/oaknut/packages`):
+  `papyrium.exception` (error hierarchy, exit codes, `handled_errors`),
+  `papyrium.extension` (entry-point axes), a conformance suite per axis.
 - **CLI** with Click, following `oaknut-econet-host` and `oaknut-disc`: a
   root group whose commands run inside `handled_errors` with `--debug`,
   `use_plain_help`, and asyoulikeit `@report_output` on every command
@@ -203,7 +206,7 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   is Rob's decision, case by case (yes for the LX-800's, which gives
   `lx800-draft` and `lx800-nlq-roman` through `tools/lx800-rom/`, and for
   the LC-10 Colour's, for everything needed to simulate the LC-10 and
-  LC-10 Colour, which gives `papyrium-font-lc10` through
+  LC-10 Colour, which gives `papyrium.font.lc10` through
   `tools/lc10-rom/`); without it, a reconstruction never
   comes from reading a ROM, and no ROM image is ever committed.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask

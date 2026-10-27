@@ -3,11 +3,10 @@ name: Release
 # Triggered by a version tag (v0.1.0, ...), which
 #     uv run bump-my-version bump minor   (or major, patch)
 # creates. Runs the whole CI workflow on the tagged source first; only if it
-# passes are the distributions built and published to PyPI.
+# passes is the distribution built and published to PyPI.
 #
-# A release that stopped part way, for example when PyPI limits how many new
-# projects may be created in a period, is resumed by running this workflow
-# by hand for the same tag:
+# A release that stopped part way is resumed by running this workflow by
+# hand for the same tag:
 #     gh workflow run release.yml -f tag=v0.1.0
 # Files already on PyPI are left out, so each run publishes what is missing.
 
@@ -63,18 +62,16 @@ jobs:
             exit 1
           fi
 
-      - name: Build every distribution
-        # --all-packages covers every workspace member and the root papyrium
-        # distribution; the list of packages lives only in the workspace.
+      - name: Build the distribution
         # Timestamps come from the tagged commit, so the same tag always
         # builds the same files.
         shell: bash
         run: |
           export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
-          uv build --all-packages --out-dir dist/
+          uv build --out-dir dist/
           ls -la dist/
 
-      - name: Check the distributions' metadata renders on PyPI
+      - name: Check the distribution's metadata renders on PyPI
         run: uvx twine check --strict dist/*
 
       # The release tooling comes from the workflow's own commit, which for

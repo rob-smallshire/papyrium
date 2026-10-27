@@ -22,7 +22,7 @@ ROM_FILEPATH = REPO_DIRPATH / "docs" / "local" / "star-lc10" / "LC10-NX1P-1.5CL.
 #: The LC-10 Colour's firmware, version 1.5 (CRC32 d0a807ec).
 ROM_SHA1 = "d2fc05e55ee2b112d6ea3517cc9e554d996c8156"
 
-FONT_DIRPATH = REPO_DIRPATH / "packages/papyrium-font-lc10/src/papyrium/font/lc10"
+FONT_DIRPATH = REPO_DIRPATH / "src/papyrium/font/lc10"
 
 SLASHED_ZERO = "0̸"
 #: The character at each of the 211 locations every table holds: the

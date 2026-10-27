@@ -1,4 +1,4 @@
-"""The printer models and fonts installed with the workspace."""
+"""The printer models and fonts installed with Papyrium."""
 
 from readme_helper import show
 
