@@ -659,7 +659,9 @@ the same (C 14-17, C 53-54, C 97-104). Differences:
   made; printing one primary over the other on the same dots is the
   only way four bands can give them, and an independent review of the
   NX-1000 Rainbow describes green as yellow then cyan over the same line
-  (Other sources).
+  (Other sources). The firmware confirms it: each mixed colour prints
+  the same dots from both its bands, lightest band first
+  (`docs/star-lc10-firmware.md`, Colour).
 - **How the bands are changed** (TM 26, 33-34, 49, 77): the colour
   carriage carries a colour ribbon holder that a lift cam, lift lever
   and ribbon change levers raise or lower, so a different horizontal
@@ -672,7 +674,10 @@ the same (C 14-17, C 53-54, C 97-104). Differences:
   parts) so the cartridge is square to the head; when it is wrong, the
   self test shows the neighbouring band, for example yellow where red
   was wanted (TM 34). That is a fault mode, not behaviour to emulate,
-  but it suggests yellow lies next to red (magenta) on the ribbon.
+  but it suggests yellow lies next to red (magenta) on the ribbon. The
+  firmware settles it: the carriage makes one short stroke at the left
+  end for each band, and the ribbon only advances, in the cycle black,
+  yellow, magenta, cyan.
 - **Memory**: 32 KB of RAM instead of 8 KB on the Ver. 1 board (TM 15,
   84), for an 8K input buffer.
 - **Embedded commands** (C 34-36, C 59-70, C 88): a capital letter in

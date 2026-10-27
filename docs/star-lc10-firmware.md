@@ -231,10 +231,51 @@ in pica (23 + 1). In proportional spacing the left and right spaces are
 dropped and the gap is 4 columns: the advance is the glyph's width plus
 4/240 inch.
 
+## Colour
+
+**Colours are ribbon bands.** `ESC r n` (`$9828`) keeps a four-bit code
+in bits 0-3 of `$A1`, one bit for each band of the ribbon, from the table
+at `$9865`:
+
+| n | Colour | Code | Bands |
+|---|---|---|---|
+| 0 | Black | 1 | black |
+| 1 | Red | 4 | magenta |
+| 2 | Blue | 8 | cyan |
+| 3 | Violet | 4 + 8 | magenta and cyan |
+| 4 | Yellow | 2 | yellow |
+| 5 | Orange | 2 + 4 | yellow and magenta |
+| 6 | Green | 2 + 8 | yellow and cyan |
+
+Each character in the line buffer keeps its code, and the line keeps a
+summary of the colours it uses in `$A0` (from the table at `$86A6`): bit
+0 yellow, 1 green, 2 orange, 3 cyan, 4 magenta, 5 violet, 6 black, and
+bit 7 whenever a mixed colour is present.
+
+**One pass per band.** A line is printed once for each band its colours
+use (`$CF28`): `$CFBD` black, `$CFCF` yellow, `$CFE1` magenta, `$CFF3`
+cyan. A pass prints every character whose code includes its band
+(`$D04A`), so a mixed colour prints the same dots twice, once from each
+band. Every pass of the line's mode (both NLQ passes, the block graphics'
+extension and so on) is made in each band.
+
+**Order of the passes.** The ribbon can only be advanced, one band at a
+time, in the cycle black, yellow, magenta, cyan, black (below), so
+without mixed colours the bands are printed in that cycle starting from
+the band the ribbon is on (`$9E`). With a mixed colour (`$A0` bit 7) the
+order is lightest first: black only if the ribbon is already on it, then
+yellow, magenta and cyan, then black. Green is thus yellow then cyan,
+violet magenta then cyan, orange yellow then magenta, as the 1989
+review of the NX-1000 Rainbow describes.
+
+**Changing band** (`$EEBB`). When the band wanted (`$9F`: 0x01 black,
+0x04 yellow, 0x10 magenta, 0x40 cyan) is not the one in place (`$9E`),
+the carriage runs to the left end and makes a short stroke there (`$EFBC`,
+46 steps out and back) for each band it must advance, `$9E` rotating two
+bits each time. This is the lift cam and ribbon change levers of the
+technical manual, worked by the carriage at the home position.
+
 ## Not yet decoded
 
 - The sequencer's branches for double height and quadruple size
   (`$CB19`-`$CCEE`), and the three shade records 0x32-0x34.
-- Colour: the order of the ribbon bands and the passes for the mixed
-  colours (`ESC r` is at `$9828`; it keeps the colour in bits 0-3 of
-  `$A1`).
