@@ -24,7 +24,8 @@ SCRIPT_ROW_PITCH = inches(1) // 144
 #: The baseline row of the character matrix, about which italics lean.
 BASELINE_ROW = 6
 
-#: Columns of an NLQ character: 1/240 inch apart across the pica cell.
+#: Columns of an NLQ character on the FX-80's descendants: 1/240 inch apart
+#: across the pica cell.
 NLQ_COLUMNS = 24
 
 #: Width of a proportional space, in proportional columns.
@@ -62,11 +63,15 @@ class CharacterGenerator:
     the same row is not printed, since the head cannot fire a pin so soon:
     the ROM stores characters with such dots, and the printer prints them
     once. *nlq_emphasized*: near letter quality prints emphasized, rather
-    than masking it.
+    than masking it. *nlq_pass_offset*: how far below the first NLQ pass
+    the second prints. *nlq_columns*: the columns of an NLQ font's pica
+    cell.
     """
 
     prints_adjacent_dots_once: bool = False
     nlq_emphasized: bool = False
+    nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
+    nlq_columns: int = NLQ_COLUMNS
 
     def proportional_cell(self, glyph: Glyph) -> tuple[int, int]:
         """The columns a character takes in proportional spacing, and how
@@ -108,13 +113,14 @@ class CharacterGenerator:
     def nlq_dots(
         self, glyph: Glyph, width: int, style: CharacterStyle, pin_pitch: int
     ) -> list[Dot]:
-        """The dots of an NLQ character *width* wide: two passes 1/216 inch apart,
-        on 24 columns to the cell."""
-        step = width // NLQ_COLUMNS
+        """The dots of an NLQ character *width* wide: the pins of the first
+        pass on even rows, of the second, *nlq_pass_offset* lower, on odd
+        rows, on *nlq_columns* columns to the cell."""
+        step = width // self.nlq_columns
         result = []
         for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
             dx = column * step
-            dy = (row // 2) * pin_pitch + (row % 2) * DOUBLE_STRIKE_OFFSET
+            dy = (row // 2) * pin_pitch + (row % 2) * self.nlq_pass_offset
             passes = [(dx, dy)]
             if style.double_width:
                 # Enlarged characters strike every dot twice, side by side.

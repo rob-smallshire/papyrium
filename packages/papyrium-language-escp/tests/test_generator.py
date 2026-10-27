@@ -56,3 +56,10 @@ def test_a_proportional_cell_is_the_extent_with_a_column_either_side():
 
 def test_a_blank_proportional_cell_is_ten_columns():
     assert GENERATOR.proportional_cell(Glyph(frozenset())) == (10, 0)
+
+
+def test_a_printer_may_space_its_nlq_passes_and_columns_otherwise():
+    generator = CharacterGenerator(nlq_pass_offset=inches(1) // 144, nlq_columns=12)
+    glyph = Glyph(frozenset({(1, 1)}))
+    dots = generator.nlq_dots(glyph, inches(1) // 10, CharacterStyle(step=0), PIN)
+    assert dots == [(inches(1) // 120, inches(1) // 144)]
