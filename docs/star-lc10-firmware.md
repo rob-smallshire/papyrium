@@ -243,6 +243,17 @@ in pica (23 + 1). In proportional spacing the left and right spaces are
 dropped and the gap is 4 columns: the advance is the glyph's width plus
 4/240 inch.
 
+## Download characters
+
+`ESC %` takes one argument (`$AC19`) and `ESC &` (`$A8FD`) defines draft
+characters, or NLQ ones when NLQ is selected (`$A980`); both are ignored
+while switch 2-1 keeps the RAM as a buffer. Defining one kind erases the
+other, the RAM holding one or the other. A range given high to low is
+swapped, and codes 0-31 and 128-159 have their data read but are not
+defined. In proportional spacing a draft download character prints its
+columns from the attribute's first to its last, plus one unless the
+last is 11, and the two-column gap (`$E560`).
+
 ## Underline and overline
 
 The column builder (`$F818`-`$F853`) adds the lines after a lowered

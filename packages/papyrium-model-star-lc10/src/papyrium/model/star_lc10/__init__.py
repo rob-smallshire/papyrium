@@ -48,7 +48,8 @@ class StarLC10(PrinterModel):
     auto-carriage-return (yes, switch 1-2: a line feed also returns the
     head to the left margin), graphics-table (no, switch 1-7 off: codes
     128-254 from IBM character set #2 rather than italics),
-    auto-line-feed (no, switch 1-8 off),
+    auto-line-feed (no, switch 1-8 off), download-characters (no, switch
+    2-1 off: the RAM holds download characters rather than a 4K buffer),
     character-set (usa, switches 2-2 to 2-4, or any of the thirteen ESC R
     sets), paper-width in inches (9.5 for fanfold, 8.5 for a sheet),
     top-offset in inches (19/36), stationery (fanfold, or sheet and the
@@ -65,6 +66,7 @@ class StarLC10(PrinterModel):
         graphics_table: bool = False,
         auto_line_feed: bool = False,
         auto_carriage_return: bool = True,
+        download_characters: bool = False,
         character_set: str = "usa",
         paper_width: str | None = None,
         top_offset: str = "19/36",
@@ -102,6 +104,9 @@ class StarLC10(PrinterModel):
             master_select_italic_underline=True,
             skip_moves_to_column=True,
             proportional_elite=True,
+            user_defined_characters=download_characters,
+            user_set_arguments=1,
+            user_characters_by_quality=True,
             proportional_emphasized=False,
             commands=_COMMANDS,
         )

@@ -107,3 +107,10 @@ def test_spain_prints_an_acute_accent_at_96():
     interpreter = StarLC10(name="star-lc10", character_set="spain").create_interpreter()
     (page,) = interpreter.feed(b"`\r\n\x0c") + interpreter.finish()
     assert [mark.character for mark in page.text] == ["´"]
+
+
+def test_switch_2_1_lets_the_ram_hold_download_characters():
+    assert not _mechanism().user_defined_characters
+    mechanism = _mechanism(download_characters=True)
+    assert mechanism.user_defined_characters
+    assert mechanism.user_set_arguments == 1 and mechanism.user_characters_by_quality

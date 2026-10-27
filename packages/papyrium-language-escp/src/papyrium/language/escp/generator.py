@@ -72,6 +72,12 @@ class CharacterGenerator:
     double_strike_offset: int = DOUBLE_STRIKE_OFFSET
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
 
+    def user_proportional_cell(self, first: int, last: int) -> tuple[int, int]:
+        """The columns a download character takes in proportional spacing,
+        from its attribute's *first* and *last* columns, and how many its
+        glyph moves right: those columns exactly."""
+        return last - first + 1, -first
+
     def cell_columns(self, pitch: int) -> int:
         """The dot columns of a draft character's cell at fixed *pitch*, the
         cell's width: twelve, whatever the pitch."""

@@ -131,6 +131,12 @@ class EscpMechanism:
     proportional_elite: bool = False
     #: Proportional characters always print emphasized.
     proportional_emphasized: bool = True
+    #: ESC % takes this many arguments: the FX-80's two, the LC-10's one.
+    user_set_arguments: int = 2
+    #: ESC & defines NLQ characters when NLQ is selected, each kind erasing
+    #: the other, takes its range either way round, and reads but does not
+    #: define codes 0-31 and 128-159, as on the Star LC-10.
+    user_characters_by_quality: bool = False
     #: ESC f 0 n moves to column n from the left margin rather than
     #: printing n spaces.
     skip_moves_to_column: bool = False

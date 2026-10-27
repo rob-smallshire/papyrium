@@ -68,3 +68,11 @@ def test_double_strike_repeats_each_dot_half_a_dot_lower():
 
 def test_a_proportional_nlq_character_is_its_span_flush_left_and_four_columns():
     assert GENERATOR.nlq_proportional_cell(Glyph(frozenset({(3, 0)}), span=(2, 20))) == (23, -2)
+
+
+def test_a_proportional_download_character_runs_from_first_to_last_and_two_columns():
+    assert GENERATOR.user_proportional_cell(2, 7) == (8, -2)
+
+
+def test_a_download_character_ending_in_column_11_takes_no_extra_column():
+    assert GENERATOR.user_proportional_cell(2, 11) == (11, -2)

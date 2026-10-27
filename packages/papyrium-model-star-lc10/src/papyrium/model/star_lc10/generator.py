@@ -60,6 +60,13 @@ class LC10CharacterGenerator(CharacterGenerator):
         first, last = glyph.extent
         return last - first + 1 + _PROPORTIONAL_GAP, -first
 
+    def user_proportional_cell(self, first: int, last: int) -> tuple[int, int]:
+        """A proportional download character is its columns from first to
+        last, the last taken as the cell's end when it is column 11, and two
+        blank columns."""
+        columns = last - first + (0 if last == 11 else 1)
+        return columns + _PROPORTIONAL_GAP, -first
+
     def nlq_proportional_cell(self, glyph: Glyph) -> tuple[int, int] | None:
         """A proportional NLQ character is its span, printed flush left
         without its left and right space, and four blank columns."""

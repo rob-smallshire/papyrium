@@ -96,6 +96,8 @@ class _UserCharacter:
     glyph: Glyph
     first_column: int
     last_column: int
+    #: Defined for near letter quality, in its two-pass grid.
+    nlq: bool = False
 
 
 #: Where a character's dots come from: the ROM, the user RAM, or nowhere.
@@ -319,6 +321,10 @@ class EscpInterpreter(Interpreter):
     def _character(self, byte: int) -> None:
         location = self._location(byte)
         italic = self._is_italic(location)
+        source = self._glyph_source(location)
+        if source[0] == "ram" and self._ram[location].nlq:
+            self._nlq_character(location, self._ram[location].glyph, italic)
+            return
         if self._height_scale > 1:
             enlarged = self._enlarged_glyph(location)
             if enlarged is not None:
@@ -522,8 +528,9 @@ class EscpInterpreter(Interpreter):
             if glyph_source[0] == "ram":
                 # The attribute byte gives the columns to print.
                 user_character = self._ram[location]
-                columns = user_character.last_column - user_character.first_column + 1
-                offset = -user_character.first_column
+                columns, offset = self._generator.user_proportional_cell(
+                    user_character.first_column, user_character.last_column
+                )
             else:
                 columns, offset = self._generator.proportional_cell(glyph)
             step = PROPORTIONAL_STEP * double
@@ -918,7 +925,8 @@ class EscpInterpreter(Interpreter):
 
     def _esc_select_user_set(self) -> ArgumentReader:
         n = yield
-        yield  # The FX-80 takes a second argument, always 0.
+        for _ in range(self._mechanism.user_set_arguments - 1):
+            yield  # The FX-80 takes a second argument, always 0.
         if self._mechanism.user_defined_characters:
             self._user_set_selected = bool(n & 1)
         else:
@@ -928,25 +936,74 @@ class EscpInterpreter(Interpreter):
         yield  # Always 0.
         first = yield
         last = yield
+        if self._mechanism.user_characters_by_quality:
+            yield from self._define_by_quality(min(first, last), max(first, last))
+            return
         for location in range(first, last + 1):
             attribute = yield
             columns = []
-            fired = 0
             for _ in range(11):
-                # The head never fires a pin in two adjacent columns.
-                pattern = (yield) & ~fired
-                fired = pattern
-                columns.append(pattern)
-            top_row = 0 if attribute & 0x80 else 1
-            dots = frozenset(
-                (column, top_row + bit)
-                for column, pattern in enumerate(columns)
-                for bit in range(8)
-                if pattern & (0x80 >> bit)
-            )
-            self._ram[location] = _UserCharacter(
-                Glyph(dots), first_column=(attribute >> 4) & 0x07, last_column=attribute & 0x0F
-            )
+                columns.append((yield))
+            self._ram[location] = self._draft_user_character(attribute, columns)
+
+    def _define_by_quality(self, first: int, last: int) -> ArgumentReader:
+        """Define draft characters, or NLQ ones with NLQ selected, as the
+        Star LC-10 does: defining one kind erases the other, and codes 0-31
+        and 128-159 are read but not defined."""
+        nlq = self._nlq
+        if any(character.nlq != nlq for character in self._ram.values()):
+            self._ram.clear()
+        for location in range(first, last + 1):
+            attribute = yield
+            columns = 46 if nlq else 11
+            data = []
+            for _ in range(columns):
+                data.append((yield))
+            if location & 0x7F < 0x20:
+                continue
+            if nlq:
+                self._ram[location] = self._nlq_user_character(attribute, data)
+            else:
+                self._ram[location] = self._draft_user_character(attribute, data)
+
+    @staticmethod
+    def _draft_user_character(attribute: int, columns: list[int]) -> _UserCharacter:
+        fired = 0
+        patterns = []
+        for column in columns:
+            # The head never fires a pin in two adjacent columns.
+            pattern = column & ~fired
+            fired = pattern
+            patterns.append(pattern)
+        top_row = 0 if attribute & 0x80 else 1
+        dots = frozenset(
+            (column, top_row + bit)
+            for column, pattern in enumerate(patterns)
+            for bit in range(8)
+            if pattern & (0x80 >> bit)
+        )
+        return _UserCharacter(
+            Glyph(dots), first_column=(attribute >> 4) & 0x07, last_column=attribute & 0x0F
+        )
+
+    @staticmethod
+    def _nlq_user_character(attribute: int, data: list[int]) -> _UserCharacter:
+        """An NLQ character: 23 columns of the first pass, then 23 of the
+        second, half a dot lower; the attribute's left and right space give
+        its span."""
+        lowered = not attribute & 0x80
+        top_row = 0 if attribute & 0x80 else 2
+        dots = frozenset(
+            (column, top_row + 2 * pin + pass_)
+            for pass_ in (0, 1)
+            for column, byte in enumerate(data[23 * pass_ : 23 * (pass_ + 1)])
+            for pin in range(8)
+            if byte & (0x80 >> pin)
+        )
+        left, right = (attribute >> 4) & 0x07, attribute & 0x0F
+        span = (left, max(left, 22 - right))
+        glyph = Glyph(dots, span=span, lowered=lowered)
+        return _UserCharacter(glyph, first_column=left, last_column=span[1], nlq=True)
 
     def _esc_copy_rom(self) -> ArgumentReader:
         for _ in range(3):

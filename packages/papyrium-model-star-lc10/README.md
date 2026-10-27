@@ -33,6 +33,7 @@ the printer's DIP switches and paper:
 | `auto-carriage-return` | `yes` | A line feed also returns the head to the left margin (switch 1-2) |
 | `graphics-table` | `no` | Codes 128-254 from IBM character set #2 rather than italics (switch 1-7 off) |
 | `auto-line-feed` | `no` | Each carriage return also feeds a line (switch 1-8 off) |
+| `download-characters` | `no` | The RAM holds download characters rather than a 4K input buffer (switch 2-1 off) |
 | `character-set` | `usa` | Power-on international set: any of the thirteen `ESC R` sets, by name or number (switches 2-2 to 2-4 give 0-7) |
 | `paper-width` | `9.5`, or `8.5` for `sheet` | Paper width in inches, tear-off strips included; the line is centred on it |
 | `top-offset` | `19/36` | Inches from the perforation to the top of the first line |
@@ -49,7 +50,10 @@ Character sizes print as the LC-10 prints them, always in near letter
 quality: double and quadruple size and their halves (`ESC h`), double
 height on the base line (`ESC w`), and `ESC [ @`.
 
-Not modelled yet: IBM mode (switch 1-6), download characters as the LC-10 defines them, and the LC-10 Colour.
+Download characters are defined as the LC-10 defines them, in draft or,
+with NLQ selected, in NLQ's two-pass grid (`ESC &`, `ESC %`, `ESC :`).
+
+Not modelled yet: IBM mode (switch 1-6) and the LC-10 Colour.
 
 ## Licence
 
