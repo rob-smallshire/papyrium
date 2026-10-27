@@ -177,6 +177,95 @@ Characters 0-32 are 12 dots with no offset, `!` 5 dots from column 4,
 II, from the resident characters; 4 to 7 the same from the download
 areas.
 
+## Command details (G 4-4 to 4-35)
+
+The guide describes the original Proprinter's commands; the Proprinter
+II has them all.
+
+- **BS** moves back one character width at the current spacing; at the
+  first column it is ignored. **CAN** clears the line not yet printed,
+  leaving the print position where it is (G 4-4).
+- **CR** prints and returns to the left; it also feeds a line with switch
+  3 on or after `ESC 5 1`. With character set 1, code 141 is CR without
+  bit 7 being a character code (G 4-5).
+- **DC2** cancels condensed and 12 cpi, not double width. **DC3** is
+  ignored. **DC4** ends SO's double width, returning to the previous
+  spacing (G 4-6).
+- **FF** feeds to the next top of form and returns the carriage. **HT**
+  goes to the next tab stop, and is ignored if it is past the right
+  margin; power-on tabs are every eight columns from column 9 (G 4-6).
+- **SI** is condensed, 17.1 cpi, until DC2. **SO** doubles the width until
+  CR, CAN, LF, FF, VT, `ESC W` or DC4 (G 4-7).
+- **VT** feeds to the next vertical tab stop, returning the carriage with
+  switch 6 on; with no stops set, or the next beyond the form (less any
+  perforation skip), it is a line feed (G 4-8).
+- **`ESC A` n** keeps n/72 inch, 1 to 85, for `ESC 2` to bring into force;
+  line feeds before `ESC 2` keep the old spacing. With n = 0 the previous
+  `ESC A` value stays, or 1/6 inch if there was none (G 4-9). **`ESC 2`**
+  brings the kept spacing into force, 1/6 inch if `ESC A` was never sent
+  (G 4-25).
+- **`ESC B`** sets up to 64 vertical stops in lines, line 1 being the top
+  of form; it replaces the previous stops, and `ESC B 0` or `ESC R`
+  clears them (G 4-10).
+- **`ESC C` n** sets the form length in lines (at most 255) from the
+  current spacing, kept as a distance, and makes the current line the top
+  of form; **`ESC C 0` n** sets it in inches, n = 0 being ignored. Both
+  cancel the perforation skip (G 4-11, 4-12).
+- **`ESC D`** sets up to 28 horizontal stops, ascending, ended by 0;
+  `ESC D 0` clears them and `ESC R` restores the power-on stops (G 4-12).
+- **`ESC E`** strikes each character twice, the smallest possible distance
+  apart, at half speed. **`ESC G`** (double strike) prints in NLQ
+  (G 4-13).
+- **`ESC I` n**, on the original Proprinter: 0 draft, 2 NLQ, 4 draft from
+  the download font, 6 NLQ from it (G 4-14); the Proprinter II adds 1, 3,
+  5 and 7 (TR 3-4).
+- **`ESC J` n** feeds n/216 inch once, 1 to 255; it returns the carriage
+  with switch 6 on and ignores the perforation skip (G 4-15).
+- **`ESC K`, `L`, `Y`, `Z`**: bit-image graphics at 60, 120 (half speed),
+  120 (no dot in the column after a printed one) and 240 dots an inch
+  (half speed, no adjacent dots), on the top eight wires, bit 7 the top;
+  bytes beyond the 8-inch line are dropped (G 4-16 to 4-24).
+- **`ESC N` n** skips n lines (1 to 255) at the end of each form, kept as
+  a distance; a new form length cancels it. **`ESC O`** cancels it
+  (G 4-19).
+- **`ESC Q 3`** deselects the printer until DC1 or a reset. **`ESC R`**
+  restores the power-on horizontal tabs and clears the vertical ones
+  (G 4-20).
+- **`ESC S` n** is superscript (0) or subscript (1); **`ESC T`** ends it
+  (G 4-21). **`ESC W` n** doubles the width on (1) or off (0), and ends
+  SO's (G 4-22).
+- **`ESC _` n** and **`ESC -` n** overscore and underscore what follows,
+  spaces included but not a tab's gap (G 4-28, 4-29). **`ESC :`** is 12
+  cpi until DC2 (G 4-29).
+- **`ESC 6`** and **`ESC 7`** choose character set 2 and 1, overriding
+  switch 5 (G 4-27, 4-28).
+- **`ESC \` n1 n2** prints the next n1 + 256 n2 bytes as characters from
+  the All Characters Chart, with no control codes acting, an unassigned
+  code printing a space; **`ESC ^`** prints one such character (G 4-33,
+  4-34).
+- **`ESC =`** on the original Proprinter downloads up to 94 characters,
+  codes 33 to 126, with one attribute byte (0 ascending, 1 descending)
+  where the Proprinter II takes two (G 4-30, 4-31; TR 4-13). Reset does
+  not clear the download font or its selection (G 4-32).
+
+Mixing print modes (G 4-35): condensed with emphasized prints
+emphasized, condensed with 12 cpi prints 12 cpi, condensed with NLQ
+prints condensed, NLQ with emphasized prints emphasized, and 10 cpi and
+12 cpi, or superscript and subscript, take whichever came last. Block
+graphics (176-223 and 244) are never underscored or overscored.
+
+## Character sets (G 4-36 to 4-38)
+
+- **Character set 1**: codes 0-31 are controls or print nothing; 32-126
+  ASCII; 128-159 are the controls with bit 7 set (BEL at 135, ESC at
+  155), the rest printing nothing; 160-254 the IBM PC characters of
+  code page 437; 255 a space.
+- **Character set 2**: as set 1, but 3, 4, 5 and 6 print the card suits
+  and 21 the section sign, and 128-159 are the IBM PC characters (Ç, ü,
+  é, ...).
+- **All Characters Chart**, for `ESC \` and `ESC ^`: every code, the low
+  ones as the IBM PC's symbols.
+
 ## Download characters (TR 4-9 to 4-21)
 
 - At power on the Proprinter II copies its resident draft characters to
@@ -203,8 +292,6 @@ areas.
 
 ## Open questions
 
-- The guide's command descriptions (G section 4), for the details the
-  technical reference's summary leaves out, are still to be read.
 - Which characters to print with: no Proprinter II ROM is to hand, and
   the guide's printed samples (G 1-6, 1-7) cover only some 35 characters,
   too few and too blurred for a dot-accurate font. Papyrium uses the Star
