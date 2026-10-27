@@ -137,6 +137,8 @@ class EscpMechanism:
     #: the other, takes its range either way round, and reads but does not
     #: define codes 0-31 and 128-159, as on the Star LC-10.
     user_characters_by_quality: bool = False
+    #: A colour ribbon is fitted, so ESC r prints in colour.
+    colour_ribbon: bool = False
     #: ESC f 0 n moves to column n from the left margin rather than
     #: printing n spaces.
     skip_moves_to_column: bool = False

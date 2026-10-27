@@ -30,7 +30,7 @@ from dataclasses import dataclass, field, replace
 
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
-from papyrium.core.page import Page, TextMark, inches
+from papyrium.core.page import Ink, InkDots, Page, TextMark, inches
 from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
 from papyrium.language.escp.generator import SCRIPT_ROW_PITCH, CharacterStyle
 from papyrium.language.escp.mechanism import EscpMechanism
@@ -87,6 +87,8 @@ class _Entry:
     x_before: int
     dots: list[tuple[int, int]] = field(default_factory=list)
     text: list[TextMark] = field(default_factory=list)
+    #: The ribbon bands the dots are struck through: None is black.
+    inks: tuple[Ink | None, ...] = (None,)
 
 
 @dataclass(frozen=True)
@@ -123,7 +125,8 @@ class EscpInterpreter(Interpreter):
         self._generator = mechanism.generator
         self._completed: list[Page] = []
         self._page_number = 0
-        self._paper_dots: list[tuple[int, int]] = []
+        # The dots struck on the paper, by ink: None is black.
+        self._paper_dots: dict[Ink | None, list[tuple[int, int]]] = {}
         self._paper_text: list[TextMark] = []
         self._sheet_top = 0
         self._macro = b""
@@ -165,7 +168,9 @@ class EscpInterpreter(Interpreter):
 
     def finish(self) -> list[Page]:
         self._print_line()
-        while self._paper_dots or any(not mark.character.isspace() for mark in self._paper_text):
+        while any(self._paper_dots.values()) or any(
+            not mark.character.isspace() for mark in self._paper_text
+        ):
             self._eject_page()
         return self._take_completed()
 
@@ -191,6 +196,7 @@ class EscpInterpreter(Interpreter):
         self._underline = False
         self._overline = False
         self._extra_space = 0
+        self._inks: tuple[Ink | None, ...] = (None,)
         self._slashed_zero = mechanism.slashed_zero
         # Character size: height and width scales, the half printed, whether
         # the base line stays put, and the scale of line feeds.
@@ -343,7 +349,7 @@ class EscpInterpreter(Interpreter):
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
         entry.dots.extend(self._line_dots(width))
-        self._line.append(entry)
+        self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
             self._print_line()
@@ -379,7 +385,7 @@ class EscpInterpreter(Interpreter):
         entry = _Entry(self._x, [(self._x + dx, self._y + dy - raise_by) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
         entry.dots.extend(self._line_dots(width))
-        self._line.append(entry)
+        self._add_to_line(entry)
         self._x += width + self._extra_space
         self._line_feed_scale = max(self._line_feed_scale, self._spacing_scale)
         if self._immediate:
@@ -405,7 +411,7 @@ class EscpInterpreter(Interpreter):
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
         entry.dots.extend(self._line_dots(width))
-        self._line.append(entry)
+        self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
             self._print_line()
@@ -621,7 +627,7 @@ class EscpInterpreter(Interpreter):
             for pin in range(pins):
                 if pattern & (1 << (pins - 1 - pin)):
                     entry.dots.append((x, self._y + pin * pin_pitch))
-        self._line.append(entry)
+        self._add_to_line(entry)
         self._print_line()
         self._x = min(self._x + len(columns) * step, self._right_limit(text=False))
 
@@ -636,9 +642,15 @@ class EscpInterpreter(Interpreter):
 
     # -- Paper motion -----------------------------------------------------
 
+    def _add_to_line(self, entry: _Entry) -> None:
+        """Buffer *entry*, struck through the ribbon bands of the colour now chosen."""
+        entry.inks = self._inks
+        self._line.append(entry)
+
     def _print_line(self) -> None:
         for entry in self._line:
-            self._paper_dots.extend(entry.dots)
+            for ink in entry.inks:
+                self._paper_dots.setdefault(ink, []).extend(entry.dots)
             self._paper_text.extend(entry.text)
         self._line.clear()
 
@@ -784,8 +796,18 @@ class EscpInterpreter(Interpreter):
     def _eject_page(self) -> None:
         mechanism = self._mechanism
         top, bottom = self._sheet_top, self._sheet_top + mechanism.sheet_length
-        on_page = [(x, y) for x, y in self._paper_dots if y < bottom]
-        self._paper_dots = [(x, y) for x, y in self._paper_dots if y >= bottom]
+        on_page: dict[Ink | None, list[tuple[int, int]]] = {}
+        for ink, dots in self._paper_dots.items():
+            on_page[ink] = [(x, y) for x, y in dots if y < bottom]
+            self._paper_dots[ink] = [(x, y) for x, y in dots if y >= bottom]
+
+        def placed(dots: list[tuple[int, int]]) -> tuple[tuple[int, int], ...]:
+            return tuple(
+                (left + x, y - top)
+                for x, y in dots
+                if 0 <= left + x < mechanism.paper_width and y >= top
+            )
+
         text_on_page = [mark for mark in self._paper_text if top <= mark.y < bottom]
         self._paper_text = [mark for mark in self._paper_text if mark.y >= bottom]
         self._page_number += 1
@@ -797,10 +819,11 @@ class EscpInterpreter(Interpreter):
                 height=mechanism.sheet_length,
                 dot_diameter=mechanism.dot_diameter,
                 stationery=mechanism.stationery,
-                dots=tuple(
-                    (left + x, y - top)
-                    for x, y in on_page
-                    if 0 <= left + x < mechanism.paper_width and y >= top
+                dots=placed(on_page.get(None, [])),
+                ink_dots=tuple(
+                    InkDots(ink, placed(dots))
+                    for ink, dots in on_page.items()
+                    if ink is not None and placed(dots)
                 ),
                 text=tuple(
                     TextMark(left + mark.x, mark.y - top, mark.width, mark.height, mark.character)
@@ -896,6 +919,7 @@ class EscpInterpreter(Interpreter):
             "\x0c": self._esc_top_of_page,
             "+": self._esc_macro,
             "_": self._esc_overline,
+            "r": self._esc_colour,
             "c": self._esc_top_margin,
             "h": self._esc_size,
             "w": self._esc_double_height,
@@ -1324,6 +1348,28 @@ class EscpInterpreter(Interpreter):
             self._top_margin = (n - 1) * self._line_spacing
         else:
             logger.debug("ignoring a top margin at line 0")
+
+    #: ESC r n: the ribbon bands of each colour, lightest first.
+    _COLOURS: dict[int, tuple[Ink | None, ...]] = {
+        0: (None,),
+        1: (Ink.MAGENTA,),
+        2: (Ink.CYAN,),
+        3: (Ink.MAGENTA, Ink.CYAN),
+        4: (Ink.YELLOW,),
+        5: (Ink.YELLOW, Ink.MAGENTA),
+        6: (Ink.YELLOW, Ink.CYAN),
+    }
+
+    def _esc_colour(self) -> ArgumentReader:
+        """Print in colour n, 0-6, as a code or a digit, with a colour ribbon."""
+        n = yield
+        n = n - ord("0") if ord("0") <= n <= ord("6") else n
+        if not self._mechanism.colour_ribbon:
+            logger.debug("ignoring ESC r: no colour ribbon")
+        elif n in self._COLOURS:
+            self._inks = self._COLOURS[n]
+        else:
+            logger.debug("ignoring colour %d", n)
 
     def _esc_overline(self) -> ArgumentReader:
         """Overline along the top pin, on (1) or off (0)."""
