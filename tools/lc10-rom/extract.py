@@ -6,7 +6,7 @@ docs/local/star-lc10/LC10-NX1P-1.5CL.bin, checks it is the dump this tool
 was written for, and writes the dot font files of papyrium-font-lc10.
 
 The ROM is Star's and is never committed; using it was Rob's decision
-(see README.md).
+(see docs/star-lc10-firmware.md).
 
 Usage: extract.py [ROM_FILEPATH]
 """

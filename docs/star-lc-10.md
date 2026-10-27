@@ -757,7 +757,7 @@ An LC-10 Colour's EPROM, firmware version 1.5, was read from a friend's
 printer in October 2026 and is kept uncommitted as
 `docs/local/star-lc10/LC10-NX1P-1.5CL.bin`. Rob decided it may be used
 for everything needed to simulate the LC-10 and LC-10 Colour.
-`tools/lc10-rom/README.md` describes its tables. What it settles:
+`docs/star-lc10-firmware.md` describes it in full. What it settles:
 
 - **Characters**: draft and the four NLQ typefaces, in pica and elite,
   for 211 locations: the slashed zero, the additional set (1-31), ASCII,
