@@ -764,7 +764,16 @@ for everything needed to simulate the LC-10 and LC-10 Colour.
   the IBM PC's 0x7F-0xAF and 0xE0-0xFF, and ø, ¤ and ß. The IBM block
   and box drawing characters are a separate 11-column table.
 - **No italic characters** are stored: the printer slants the upright
-  ones, in draft and NLQ.
+  ones as it builds their columns, the top of a draft character three
+  columns (3/120 inch) right of its foot and an NLQ character's top
+  seven columns (7/240 inch). The overhang overlaps the next character;
+  the advance is unchanged.
+- **NLQ rows are 1/144 inch apart.** The paper motor half-steps at 1/432
+  inch and feeds 3 steps between NLQ passes, so the user manual's half
+  dot is exact and the TM's 1/216 inch is only the finest commanded
+  feed. This settles the question raised under Mechanism.
+- **NLQ proportional spacing** is the glyph's width plus 4/240 inch,
+  without the left and right spaces of the fixed-pitch cell.
 - **NLQ cells**: left space, glyph and right space make 23 columns at
   1/240 inch in pica and 19 in elite, matching the matrices on page 54.
   Elite has narrower forms of the widest characters (M, W, ...), not

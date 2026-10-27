@@ -130,14 +130,70 @@ development board. Its summary of register addresses disagrees with
 MAME's and with itself, and most of its pages and downloads were missing
 in October 2026, so MAME is the reference here.
 
+## What the program settles
+
+Addresses are CPU addresses in the program; RAM names are zero-page
+locations.
+
+**Escape commands** are looked up in tables of three-byte entries, the
+command byte and the handler's address, ending with 0xFF: Standard mode
+at `$B1F4`, IBM mode at `$B2F9`. `ESC 4` and `ESC 5` set and clear bit 1
+of `$42` (unless the panel's style lock, bit 1 of `$39`, is on); `ESC p`
+is bit 5, `ESC _` bit 7. `$5C` bit 2 is NLQ (`ESC x 1` also sets bit 4 and
+clears emphasized, bit 7), bit 1 double-strike. `$41` is the pitch: bit 0
+pica, bit 1 elite, bit 2 condensed. `ESC k n` puts n in bits 4-5 of
+`$A1`. Each character in the line buffer carries its attributes, ORed
+with `$42` into `$30` when the line is printed.
+
+**NLQ typefaces.** The index table for each typeface is found through a
+table at `$E810`: pica `$8000` (Courier, `ESC k 0`), `$89E4` (Sanserif,
+1), `$834C` (Orator with small capitals, 2), `$8698` (Orator with lower
+case, 3); elite, at `$E818`, `$8D30`, `$9714`, `$907C`, `$93C8`. The
+second pass's columns are the first pass's address plus `$2C23`
+(`$E705`).
+
+**Italics** are slanted as the character's columns are built
+(`$FD03`): each column's dots are moved right by an amount that grows
+up the column, into a buffer wider than the character.
+
+- Draft: the two lowest dots of the byte (bits 1-0) stay, bits 3-2 move
+  one column right, bits 5-4 two, bits 7-6 (the top pins) three.
+- NLQ: each bit moves one column (1/240 inch) right for each pin above
+  the lowest, bit 0 not at all and bit 7 seven columns, for each pass
+  alike, so a second-pass row moves as far as the first-pass row above
+  it.
+
+The slant is counted within the column byte, so a descender character
+(pins 2-9) slants about its own lowest pin. The advance does not change:
+after the columns are sent, the output backs up over the overhang
+(`$F6BC`), so it overlaps the next character.
+
+**NLQ passes and paper movement.** The paper motor is half-stepped,
+each step 1/432 inch: `ESC 0`, `ESC 1` and `ESC 2` set 54, 42 and 72
+steps, and `ESC 3 n` sets 2n. An NLQ line is printed (`$CA94`) as the
+first pass, a feed of 3 steps (1/144 inch, `$CEA9`), and the second
+pass. A line with descenders then feeds 21 steps and 3 more to print the
+ninth pin's two rows with a higher pin, so they fall at 48 and 51
+steps: every NLQ row is 1/144 inch below the last, as the user manual
+says. The technical manual's 1/216 inch is only the finest feed a
+command can ask for.
+
+**NLQ spacing** (`$F971`, `$FBFF`). A character's columns are its left
+space as blanks, its glyph, then its right space and a further gap as
+blanks. In fixed pitch the gap is one column, so the cell is 24 columns
+in pica (23 + 1). In proportional spacing the left and right spaces are
+dropped and the gap is 4 columns: the advance is the glyph's width plus
+4/240 inch.
+
 ## Not yet decoded
 
-These are in the program and need reading it:
-
-- how italics are slanted, in draft and NLQ;
-- NLQ proportional spacing (the index gives no proportional widths);
-- the block graphics' 12-dot cell;
-- the paper movement between NLQ passes (half a dot, 1/144 inch, by the
-  user manual; the technical manual gives a 1/216 inch minimum feed);
-- colour: the order of the ribbon bands and the passes for the mixed
-  colours.
+- Which characters draft prints in pica, condensed and proportional
+  spacing. The character setup (`$E5A9`) takes the 10-byte draft table
+  only for elite at fixed pitch, and sends the other pitches to the NLQ
+  index (Sanserif's table, at half its width). The column builders that
+  follow have not been traced, so how those columns are made is not
+  known yet.
+- The block graphics' 12-dot cell.
+- Colour: the order of the ribbon bands and the passes for the mixed
+  colours (`ESC r` is at `$9828`; it keeps the colour in bits 0-3 of
+  `$A1`).
