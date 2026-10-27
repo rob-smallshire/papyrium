@@ -249,6 +249,15 @@ superscript and subscript. The line sequencer has a branch for each
 `$CC7A`, its upper and lower halves to `$CC54` and `$CC46`, double's
 upper and lower halves to `$CB4E` and `$CB19`.
 
+Papyrium follows this: double size turns each 1/144 inch NLQ row into
+a 1/72 inch pin row, two passes 8 pins apart covering the character,
+and repeats each 1/240 inch column's dots two columns on to fill the
+widened gap (`$FC7D`). Quadruple size is taken to do the same twice
+over, two pins a row and three columns a column; that is inferred, not
+traced. A line holding enlarged characters feeds as far as the largest
+asks, even after normal size returns, as the sequencer's deferred feed
+does.
+
 Superscript and subscript appear to be made by keeping every other row
 of the character's columns, the pass choosing which (`$E2F8`); this is
 not yet confirmed.

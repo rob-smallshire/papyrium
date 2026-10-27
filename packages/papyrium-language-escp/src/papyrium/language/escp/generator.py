@@ -102,6 +102,26 @@ class CharacterGenerator:
         columns *step* apart: not at all, NLQ printing upright."""
         return 0
 
+    def enlarged_dots(
+        self, glyph: Glyph, step: int, width_scale: int, height_scale: int, pin_pitch: int
+    ) -> list[Dot]:
+        """The dots of an enlarged NLQ character, its columns *step* apart.
+
+        Each of the glyph's rows, half a pin apart, becomes *height_scale* / 2
+        rows of pins, and each column *width_scale* columns, its dots
+        repeated every other column across them to fill the gap, as the Star
+        LC-10 doubles them.
+        """
+        result = []
+        pins = max(1, height_scale // 2)
+        repeats = range(0, width_scale + 1, 2) if width_scale > 1 else (0,)
+        for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
+            for pin in range(pins):
+                dy = (row * pins + pin) * pin_pitch
+                for repeat in repeats:
+                    result.append(((column * width_scale + repeat) * step, dy))
+        return result
+
     def draft_dots(self, glyph: Glyph, style: CharacterStyle, pin_pitch: int) -> list[Dot]:
         """The dots of a draft character, relative to the head."""
         if self.prints_adjacent_dots_once:

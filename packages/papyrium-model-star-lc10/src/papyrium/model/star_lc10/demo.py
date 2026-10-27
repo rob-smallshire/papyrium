@@ -36,6 +36,7 @@ def demo() -> bytes:
             _typeface(2, "Orator, small capitals"),
             _typeface(3, "Orator, lower case"),
             ESC + b"k\x00",
+            line(ESC + b"h\x01", "Double size", ESC + b"h\x00", "  hangs from the cap line"),
             line(
                 ESC + b"p\x01",
                 "Proportional spacing: each letter as wide as it needs, a slim i, a broad W.",

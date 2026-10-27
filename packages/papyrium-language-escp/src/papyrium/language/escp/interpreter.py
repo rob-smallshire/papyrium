@@ -189,6 +189,15 @@ class EscpInterpreter(Interpreter):
         self._underline = False
         self._extra_space = 0
         self._slashed_zero = mechanism.slashed_zero
+        # Character size: height and width scales, the half printed, whether
+        # the base line stays put, and the scale of line feeds.
+        self._height_scale = 1
+        self._width_scale = 1
+        self._half: str | None = None
+        self._base_line_kept = False
+        self._spacing_scale = 1
+        # The most a character on the current line scales its line feed.
+        self._line_feed_scale = 1
         self._script: str | None = None
         self._msb: int | None = None
         self._character_set = mechanism.character_set
@@ -308,6 +317,11 @@ class EscpInterpreter(Interpreter):
     def _character(self, byte: int) -> None:
         location = self._location(byte)
         italic = self._is_italic(location)
+        if self._height_scale > 1:
+            enlarged = self._enlarged_glyph(location)
+            if enlarged is not None:
+                self._enlarged_character(location, enlarged)
+                return
         nlq_glyph = self._nlq_glyph(location)
         if nlq_glyph is not None:
             self._nlq_character(location, nlq_glyph, italic)
@@ -324,6 +338,44 @@ class EscpInterpreter(Interpreter):
             entry.dots.extend(self._underline_dots(width))
         self._line.append(entry)
         self._x += width + self._extra_space
+        if self._immediate:
+            self._print_line()
+
+    def _enlarged_glyph(self, location: int) -> Glyph | None:
+        """The NLQ glyph an enlarged character prints, in draft or NLQ."""
+        font = self._nlq_font()
+        if font is None or self._glyph_source(location)[0] != "rom":
+            return None
+        character = self._rom_character(location)
+        if character == "0" and self._slashed_zero:
+            character = SLASHED_ZERO
+        return font.glyph(character)
+
+    def _enlarged_character(self, location: int, glyph: Glyph) -> None:
+        cell = self._column_width()
+        width_scale = self._width_scale * (2 if self._is_double_width() else 1)
+        width = cell * width_scale
+        if self._x + width > self._right_limit(text=True):
+            self._wrap()
+        pin_pitch = self._mechanism.pin_pitch
+        step = cell // self._nlq_font().columns
+        dots = self._generator.enlarged_dots(
+            glyph, step, width_scale, self._height_scale, pin_pitch
+        )
+        # A half is eight pins for each doubling of the height.
+        half = 8 * (self._height_scale // 2) * pin_pitch
+        if self._half == "upper":
+            dots = [(dx, dy) for dx, dy in dots if dy < half]
+        elif self._half == "lower":
+            dots = [(dx, dy - half) for dx, dy in dots if dy >= half]
+        raise_by = half if self._base_line_kept else 0
+        entry = _Entry(self._x, [(self._x + dx, self._y + dy - raise_by) for dx, dy in dots])
+        entry.text.append(self._text_mark(location, width))
+        if self._underline:
+            entry.dots.extend(self._underline_dots(width))
+        self._line.append(entry)
+        self._x += width + self._extra_space
+        self._line_feed_scale = max(self._line_feed_scale, self._spacing_scale)
         if self._immediate:
             self._print_line()
 
@@ -659,7 +711,9 @@ class EscpInterpreter(Interpreter):
 
     def _advance_line(self) -> None:
         self._one_line_double_width = False
-        self._advance(self._line_spacing)
+        scale = max(self._spacing_scale, self._line_feed_scale)
+        self._line_feed_scale = 1
+        self._advance(self._line_spacing * scale)
         if self._skip_perforation:
             form_bottom = self._form_top + self._form_length
             if form_bottom - self._skip_perforation <= self._y < form_bottom:
@@ -819,6 +873,9 @@ class EscpInterpreter(Interpreter):
             "\n": self._esc_reverse_line_feed,
             "\x0c": self._esc_top_of_page,
             "+": self._esc_macro,
+            "h": self._esc_size,
+            "w": self._esc_double_height,
+            "[": self._esc_bracket,
         }
         if self._mechanism.nlq:
             table["x"] = self._esc_nlq
@@ -1211,6 +1268,56 @@ class EscpInterpreter(Interpreter):
                 macro.append(byte)
             byte = yield
         self._macro = bytes(macro)
+
+    #: ESC h n: height and width scale, half, and line feed scale.
+    _SIZES = {
+        0: (1, 1, None, 1),
+        1: (2, 2, None, 2),
+        2: (4, 4, None, 4),
+        3: (2, 2, "lower", 1),
+        4: (2, 2, "upper", 1),
+        5: (4, 4, "lower", 2),
+        6: (4, 4, "upper", 2),
+    }
+
+    def _esc_size(self) -> ArgumentReader:
+        """Double or quadruple size, or one half of it, hanging from the cap line."""
+        n = yield
+        size = self._SIZES.get(n)
+        if size is None:
+            logger.debug("ignoring character size %d", n)
+            return
+        self._print_line()
+        self._height_scale, self._width_scale, self._half, self._spacing_scale = size
+        self._base_line_kept = False
+        self._script = None
+
+    def _esc_double_height(self) -> ArgumentReader:
+        """Double height on the base line, line spacing unchanged."""
+        on = self._flag((yield))
+        self._print_line()
+        self._height_scale, self._width_scale, self._half = (2 if on else 1), 1, None
+        self._base_line_kept = on
+        self._spacing_scale = 1
+
+    def _esc_bracket(self) -> ArgumentReader:
+        """ESC [ @ 4 0 0 0 n m: height and line spacing by n, width by m."""
+        if (yield) != ord("@"):
+            logger.debug("ignoring an ESC [ command other than ESC [ @")
+            return
+        for _ in range(4):
+            yield
+        n = yield
+        m = yield
+        self._print_line()
+        height, spacing = n & 0x0F, n >> 4
+        if height in (1, 2):
+            self._height_scale, self._width_scale, self._half = height, 1, None
+            self._base_line_kept = height == 2
+        if spacing in (1, 2):
+            self._spacing_scale = spacing
+        if m in (1, 2):
+            self._double_width = m == 2
 
     def _esc_typeface(self) -> ArgumentReader:
         """Choose the NLQ typeface; in draft it is kept for the next ESC x 1."""
