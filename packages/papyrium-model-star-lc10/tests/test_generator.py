@@ -64,3 +64,7 @@ def test_double_strike_repeats_each_dot_half_a_dot_lower():
     glyph = Glyph(frozenset({(0, 0)}))
     dots = GENERATOR.draft_dots(glyph, CharacterStyle(step=DRAFT_STEP, double_strike=True), PIN)
     assert dots == [(0, 0), (0, inches(1) // 144)]
+
+
+def test_a_proportional_nlq_character_is_its_span_flush_left_and_four_columns():
+    assert GENERATOR.nlq_proportional_cell(Glyph(frozenset({(3, 0)}), span=(2, 20))) == (23, -2)

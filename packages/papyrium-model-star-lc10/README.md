@@ -12,9 +12,9 @@ forms them as its firmware does: draft, with pica made from the Sanserif
 typeface at half width and elite from the ROM's draft table; and four
 near letter quality typefaces, Courier, Sanserif, and Orator with small
 capitals or with lower case, each in pica and elite, printed in two
-passes half a dot apart. Italic slants every character, draft and NLQ,
-as the firmware does, each column's dots moving further right the
-higher they are. The IBM block graphics are twelve dots high, as the
+passes half a dot apart, at fixed pitch or proportionally spaced. Italic
+slants every character, draft and NLQ, as the firmware does, each
+column's dots moving further right the higher they are. The IBM block graphics are twelve dots high, as the
 printer prints them, so that boxes join at 1/6 inch line spacing.
 
 ## Demonstration page
@@ -40,7 +40,7 @@ the printer's DIP switches and paper:
 | `elite-font` | `lc10-draft-elite` | The elite draft characters: an installed font's name, or the path of a dot font file |
 
 Not modelled yet: IBM mode (switch 1-6), the Star commands beyond the
-LX-800's, proportional spacing in NLQ, character sizes (`ESC h`,
+LX-800's, proportional spacing in elite, character sizes (`ESC h`,
 `ESC w`), auto carriage return (switch
 1-2), download characters as the LC-10 defines them, and the LC-10
 Colour.

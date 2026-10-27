@@ -252,3 +252,17 @@ def test_the_draft_fonts_glyph_comes_before_the_block_graphics_font():
     font = MemoryDotFont(name="with-line", text=text)
     data = ESC + b"t\x01\xc4"
     assert dots(data, font=font, block_graphics_font=_block_font()) == [(LEFT, 0)]
+
+
+class _ProportionalNlq(CharacterGenerator):
+    def nlq_proportional_cell(self, glyph):
+        return 5, -glyph.extent[0]
+
+
+def test_nlq_is_fixed_pitch_unless_the_generator_spaces_it_proportionally():
+    options = {"nlq": True, "nlq_fonts": (_nlq_font(3),)}
+    data = ESC + b"x\x01" + ESC + b"p\x01AA"
+    assert [x for x, _ in dots(data, **options)][::2] == [LEFT + 54, LEFT + 432 + 54]
+    proportional = dots(data, generator=_ProportionalNlq(), **options)
+    # A's dots begin at column 3; flush left, in a cell of five 1/240 inch columns.
+    assert [x for x, _ in proportional][::2] == [LEFT, LEFT + 5 * 18]

@@ -317,10 +317,15 @@ class EscpInterpreter(Interpreter):
         return location < IBM_LOCATION and (self._italic or (from_rom and bool(location & ITALIC)))
 
     def _nlq_character(self, location: int, glyph: Glyph, italic: bool) -> None:
-        width = self._column_width() * (2 if self._is_double_width() else 1)
+        cell = self._column_width() * (2 if self._is_double_width() else 1)
+        width, offset = cell, 0
+        proportional = self._generator.nlq_proportional_cell(glyph)
+        if self._is_proportional() and proportional is not None:
+            columns, offset = proportional
+            width = columns * (cell // self._nlq_font().columns)
         if self._x + width > self._right_limit(text=True):
             self._wrap()
-        dots = self._nlq_dots(glyph, width, italic)
+        dots = self._nlq_dots(glyph, cell, italic, offset)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
         if self._underline:
@@ -419,9 +424,12 @@ class EscpInterpreter(Interpreter):
             logger.warning("no font for NLQ typeface %d; printing the first", self._typeface)
         return fonts[0]
 
-    def _nlq_dots(self, glyph: Glyph, width: int, italic: bool) -> list[tuple[int, int]]:
+    def _nlq_dots(
+        self, glyph: Glyph, width: int, italic: bool, offset: int
+    ) -> list[tuple[int, int]]:
         style = CharacterStyle(
             step=0,
+            offset=offset,
             italic=italic,
             emphasized=self._emphasized,
             double_width=self._is_double_width(),

@@ -21,8 +21,10 @@ _CELL_COLUMNS = {
     inches(1) // 20: 12,
 }
 
-#: Blank columns after a proportional draft character.
+#: Blank columns after a proportional draft character, and after a
+#: proportional NLQ one.
 _PROPORTIONAL_GAP = 2
+_NLQ_PROPORTIONAL_GAP = 4
 
 
 @dataclass(frozen=True)
@@ -57,3 +59,11 @@ class LC10CharacterGenerator(CharacterGenerator):
             return super().proportional_cell(glyph)
         first, last = glyph.extent
         return last - first + 1 + _PROPORTIONAL_GAP, -first
+
+    def nlq_proportional_cell(self, glyph: Glyph) -> tuple[int, int] | None:
+        """A proportional NLQ character is its span, printed flush left
+        without its left and right space, and four blank columns."""
+        if glyph.extent is None:
+            return None
+        first, last = glyph.extent
+        return last - first + 1 + _NLQ_PROPORTIONAL_GAP, -first

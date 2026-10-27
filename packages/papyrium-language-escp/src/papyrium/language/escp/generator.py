@@ -91,6 +91,12 @@ class CharacterGenerator:
         *step* apart: half a column for each row above the baseline, row 6."""
         return (BASELINE_ROW - row) * step // 2
 
+    def nlq_proportional_cell(self, glyph: Glyph) -> tuple[int, int] | None:
+        """The columns an NLQ character takes in proportional spacing, and
+        how many its glyph moves right; None where NLQ keeps to its fixed
+        cell, as here."""
+        return None
+
     def nlq_italic_offset(self, glyph: Glyph, row: int, step: int) -> int:
         """How far right italic moves an NLQ *glyph*'s dots in *row*, its
         columns *step* apart: not at all, NLQ printing upright."""
@@ -133,7 +139,7 @@ class CharacterGenerator:
         step = width // columns
         result = []
         for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
-            dx = column * step
+            dx = (column + style.offset) * step
             if style.italic:
                 dx += self.nlq_italic_offset(glyph, row, step)
             dy = (row // 2) * pin_pitch + (row % 2) * self.nlq_pass_offset
