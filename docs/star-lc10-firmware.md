@@ -243,6 +243,29 @@ in pica (23 + 1). In proportional spacing the left and right spaces are
 dropped and the gap is 4 columns: the advance is the glyph's width plus
 4/240 inch.
 
+## IBM mode
+
+Control codes are dispatched through tables of their own, like the
+escapes: Standard mode's at `$B175`, IBM mode's at `$B1A6`, which point
+ESC at the IBM escape table (`$B2F9`) and differ for SI (`$94A4`, always
+17 to the inch), DC2 (`$9472`, also back to pica) and DC3 (ignored). FS
+reads one more byte: in Standard mode its table (`$B3F7`) is empty, so
+FS and that byte are ignored; in IBM mode its table (`$B40E`) gives
+`FS 4`, `FS 5`, `FS :`, `FS =`, `FS Q`, `FS R` and `FS \`, each the
+handler of Standard mode's escape of that letter. These are Star's: IBM
+mode reassigns those escapes to the Proprinter's meanings and moves
+Standard mode's behind FS. The IBM escape table lacks `ESC SP` and
+ignores `ESC t`; its `ESC 2`, `4`, `5`, `:`, `=`, `I`, `M`, `P`, `Q`, `R`,
+`\` and `^` are the Proprinter's. Its handlers for `ESC E`, `F`, `S`,
+`T` and `x` differ from Standard mode's in ways not yet traced.
+
+`ESC =` (`$AA06`, the Proprinter's download form) is ignored with NLQ
+selected or the RAM serving as a buffer; it takes its count, subtracts
+two, and defines one character for each 13 bytes left, from the code
+that follows. `ESC I` (`$9513`) takes 0-7 or the digits: 0 draft and 1
+draft elite from the ROM, 2 Sanserif and 3 or 7 Courier in NLQ, 4 and 5
+draft and draft elite from the download set, 6 NLQ from it.
+
 ## Download characters
 
 `ESC %` takes one argument (`$AC19`) and `ESC &` (`$A8FD`) defines draft
