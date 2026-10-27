@@ -25,3 +25,19 @@ def test_colour_demo_prints_the_golden_pages():
     interpreter = model.create_interpreter()
     pages = interpreter.feed(model.demo()) + interpreter.finish()
     check_golden_pages(pages, GOLDEN_DIRPATH, "colour-demo")
+
+
+def test_ibm_mode_demo_prints_the_golden_pages():
+    model = StarLC10(name="star-lc10", ibm_mode=True)
+    interpreter = model.create_interpreter()
+    pages = interpreter.feed(model.demo()) + interpreter.finish()
+    check_golden_pages(pages, GOLDEN_DIRPATH, "ibm-demo")
+
+
+def test_colour_ibm_mode_demo_prints_the_golden_pages():
+    from papyrium.model.star_lc10 import StarLC10Colour
+
+    model = StarLC10Colour(name="star-lc10-colour", ibm_mode=True)
+    interpreter = model.create_interpreter()
+    pages = interpreter.feed(model.demo()) + interpreter.finish()
+    check_golden_pages(pages, GOLDEN_DIRPATH, "colour-ibm-demo")

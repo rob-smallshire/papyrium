@@ -142,7 +142,7 @@ class StarLC10(PrinterModel):
         return ("proprinter", "escp") if self._ibm_mode else ("escp", "proprinter")
 
     def demo(self) -> bytes:
-        return demo.demo()
+        return demo.ibm_demo() if self._ibm_mode else demo.demo()
 
     def create_interpreter(self) -> Interpreter:
         return LC10Interpreter(self._mechanism, ibm_mode=self._ibm_mode)
@@ -163,4 +163,4 @@ class StarLC10Colour(StarLC10):
     _MODEL_NAME = "LC-10 Colour"
 
     def demo(self) -> bytes:
-        return demo.colour_demo()
+        return demo.ibm_demo(colour=True) if self._ibm_mode else demo.colour_demo()

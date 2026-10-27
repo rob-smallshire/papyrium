@@ -25,6 +25,10 @@ printer prints them, so that boxes join at 1/6 inch line spacing.
 Print it yourself, as PNG and PDF, with `papyrium demo star-lc10`; `-M`
 options set the printer up, such as `-M stationery=green-bar`.
 
+In IBM mode, `papyrium demo star-lc10 -M ibm-mode=yes`:
+
+<img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-star-lc10-ibm.png" alt="The star-lc10 demonstration page in IBM mode" width="100%">
+
 ## The LC-10 Colour
 
 `star-lc10-colour` is the LC-10 Colour: the LC-10 with a ribbon of four
@@ -37,6 +41,10 @@ the type style (`((F))`), size (`((S))`), colour (`((C))`), bold
 feeder's. Its options are the LC-10's.
 
 <img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-star-lc10-colour.png" alt="The star-lc10-colour demonstration page" width="100%">
+
+And in IBM mode:
+
+<img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-star-lc10-colour-ibm.png" alt="The star-lc10-colour demonstration page in IBM mode" width="100%">
 
 ## Options
 

@@ -116,3 +116,76 @@ def colour_demo() -> bytes:
             FF,
         ]
     )  # fmt: skip
+
+
+IBM_LETTER = (
+    "With switch 1-6 off the LC-10 is an IBM Proprinter II: IBM's character "
+    "sets and commands, printed in the LC-10's own typefaces. Software can "
+    "change mode too, with ESC 0x01 and ESC 0x02."
+)
+
+FS = b"\x1c"
+SO = b"\x0e"
+SAMPLE = "The quick brown fox jumps over the lazy dog"
+
+
+def _print_mode(n: int, name: str) -> bytes:
+    """A sample in ESC I's print mode *n*, then draft at pica again."""
+    return line(ESC + b"I" + bytes([n]), f"{name:<14}", SAMPLE, ESC + b"I\x00" + DC2)
+
+
+def ibm_demo(*, colour: bool = False) -> bytes:
+    """IBM mode's demonstration page; with *colour*, the LC-10 Colour's."""
+
+    def ink(n: int) -> bytes:
+        return ESC + b"r" + bytes([n]) if colour else b""
+
+    title = "Star LC-10 Colour in IBM mode" if colour else "Star LC-10 in IBM mode"
+    return b"".join(
+        [
+            line(ESC + b"W\x01", ink(2), title, ink(0), ESC + b"W\x00"),
+            line(),
+            ESC + b"I\x02",
+            *(line(text) for text in textwrap.wrap(IBM_LETTER, 72)),
+            ESC + b"I\x00",
+            heading("Print modes, chosen by ESC I"),
+            _print_mode(0, "Draft"),
+            _print_mode(1, "Draft elite"),
+            _print_mode(3, "Courier"),
+            _print_mode(2, "Sanserif"),
+            heading("The Proprinter's commands"),
+            line(
+                FS + b"4", "Italic, by FS 4", FS + b"5", "  ",
+                ESC + b"E", "Emphasized", ESC + b"F", "  ",
+                ink(1), SO, "Double width",
+            ),
+            ink(0),
+            line(
+                ESC + b":", "Elite, by ESC :  ", DC2,
+                SI, "Condensed by SI, always 17 to the inch", DC2,
+            ),
+            line(ESC + b"P\x01", "Proportional, by ESC P 1: a slim i, a broad W.", ESC + b"P\x00"),
+            heading("Character set #2 and the All Characters Chart"),
+            line(
+                "Set #2 prints 128-159 and the card suits:  ",
+                b"\x80\x81\x82\x83\x84\x85\x87\x8e\x8f\x90  ",
+                ink(1), b"\x03\x04", ink(0), b"\x05\x06\x15",
+            ),
+            line(
+                "ESC \\ prints any code, controls too:  ",
+                ESC + b"\\\x10\x00" + bytes(range(1, 17)),
+            ),
+            heading("Block graphics, joining at 1/6 inch"),
+            line(b"\xc9" + b"\xcd" * 20 + b"\xcb" + b"\xcd" * 10 + b"\xbb"),
+            line(
+                b"\xba", " Line drawing       ", b"\xba ",
+                ink(4), b"\xb0\xb1\xb2\xdb\xdb\xb2\xb1\xb0", ink(0), b" \xba",
+            ),
+            line(b"\xc8" + b"\xcd" * 20 + b"\xca" + b"\xcd" * 10 + b"\xbc"),
+            heading("Back to Standard mode, by ESC 0x01"),
+            ESC + b"\x01",
+            line(ESC + b"4", "Where ESC 4 is italic once more", ESC + b"5", ", and ESC x 1 is ",
+                 ESC + b"x\x01", "near letter quality", ESC + b"x\x00", "."),
+            FF,
+        ]
+    )  # fmt: skip
