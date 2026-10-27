@@ -145,3 +145,19 @@ def test_esc_6_and_7_choose_the_ibm_set_only_while_the_ibm_table_is_in_use():
 def test_ibm_set_2_prints_the_card_suits_and_section_sign():
     assert _standard_text(b"\x03\x04\x05\x06\x15", graphics_table=True) == "♥♦♣♠§"
     assert _standard_text(b"\x03A") == "A"
+
+
+def _dots(data, **options):
+    interpreter = StarLC10(name="star-lc10", **options).create_interpreter()
+    return [sorted(p.dots) for p in interpreter.feed(data + b"\r\n\x0c") + interpreter.finish()]
+
+
+@pytest.mark.parametrize("ibm_mode", [False, True])
+@pytest.mark.parametrize("code", [b"\xb3", b"\xdb", b"\xf4"])
+def test_block_graphics_are_never_underlined_or_overlined(ibm_mode, code):
+    # The column builder skips the lines for characters marked as block
+    # graphics ($F81B), in either mode.
+    table = b"" if ibm_mode else b"\x1bt\x01"
+    lined = b"\x1b-\x01\x1b_\x01"
+    assert _dots(table + lined + code, ibm_mode=ibm_mode) == _dots(table + code, ibm_mode=ibm_mode)
+    assert _dots(table + lined + b"A", ibm_mode=ibm_mode) != _dots(table + b"A", ibm_mode=ibm_mode)

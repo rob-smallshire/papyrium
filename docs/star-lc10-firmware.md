@@ -427,7 +427,12 @@ The column builder (`$F818`-`$F853`) adds the lines after a lowered
 character's byte has been shifted down a pin. Overline sets the byte's
 top bit, so it is always pin 1, and in NLQ prints in the first pass
 only. Underline fires the ninth pin, and in NLQ prints in the second
-pass only, half a dot lower than draft's.
+pass only, half a dot lower than draft's. Neither is added to a
+character whose attributes mark it as block graphics (`$F81B`, bit 4 of
+`$30`), which the input code sets for the IBM table's 0xB0-0xDF and the
+integral halves 0xF4 and 0xF5 (`$84BD`), in either mode: the manual (62)
+says block graphics are not underlined, and the firmware leaves them
+without overline too.
 
 ## Character sizes
 

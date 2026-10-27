@@ -159,6 +159,7 @@ $9472  code  ibm_dc2                   DC2 in IBM mode: pica, from elite or cond
 
 # -- Characters ------------------------------------------------------------
 
+$F818  code  add_lines                 Add underline and overline to a column, unless the character is block graphics ($30 bit 4)
 $C9A7  code  print_line                The line sequencer: print a line by its mode
 $CA37  code  print_draft_line          Plain draft, one pass
 $CA94  code  print_two_pass_line       Double-strike, superscript and subscript: two passes 1/144 inch apart

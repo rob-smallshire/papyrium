@@ -28,6 +28,7 @@ import logging
 from collections.abc import Callable
 
 from papyrium.core.dotfont import DotFont, Glyph
+from papyrium.language.escp.charsets import IBM_LOCATION
 from papyrium.language.escp.interpreter import (
     DC2,
     DEL,
@@ -50,6 +51,11 @@ STANDARD_COMMANDS = frozenset(
 
 #: The ESC/P commands whose Standard mode handlers serve IBM mode too.
 _COMMANDS_OF_BOTH_MODES = "\n\x0c\x0e$%&*-/89?BDGHWabcefhjklprw~"
+
+#: The codes of the IBM table marked as block graphics ($84BD), which are
+#: never underlined or overlined ($F81B): line drawing and shading, and the
+#: integral halves.
+_BLOCK_GRAPHICS = frozenset(range(0xB0, 0xE0)) | {0xF4, 0xF5}
 
 #: The ESC k typefaces ESC I chooses: Courier and Sanserif.
 _COURIER, _SANSERIF = 0, 1
@@ -166,9 +172,9 @@ class LC10Interpreter(ProprinterInterpreter):
         return EscpInterpreter._location(self, byte)
 
     def _is_lined(self, location: int) -> bool:
-        if self._ibm:
-            return super()._is_lined(location)
-        return EscpInterpreter._is_lined(self, location)
+        """Underline and overline pass over all but the block graphics, in
+        either mode."""
+        return location - IBM_LOCATION + 0x80 not in _BLOCK_GRAPHICS
 
     def _control(self, code: int) -> ArgumentReader:
         if not self._ibm:
