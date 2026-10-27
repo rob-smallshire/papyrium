@@ -32,11 +32,7 @@ from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
 from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
-from papyrium.language.escp.generator import (
-    SCRIPT_ROW_PITCH,
-    CharacterStyle,
-    printable_once,
-)
+from papyrium.language.escp.generator import SCRIPT_ROW_PITCH, CharacterStyle
 from papyrium.language.escp.mechanism import EscpMechanism
 
 logger = logging.getLogger(__name__)
@@ -413,7 +409,7 @@ class EscpInterpreter(Interpreter):
     def _nlq_dots(self, glyph: Glyph, width: int) -> list[tuple[int, int]]:
         style = CharacterStyle(
             step=0,
-            emphasized=self._emphasized and self._mechanism.nlq_emphasized,
+            emphasized=self._emphasized,
             double_width=self._is_double_width(),
         )
         return self._generator.nlq_dots(glyph, width, style, self._mechanism.pin_pitch)
@@ -462,8 +458,6 @@ class EscpInterpreter(Interpreter):
         dots = self._glyph_cache.get(key)
         if dots is None:
             glyph = self._glyph(location)
-            if self._mechanism.prints_adjacent_dots_once:
-                glyph = printable_once(glyph)
             dots = tuple(self._generator.draft_dots(glyph, style, self._mechanism.pin_pitch))
             if glyph_source[0] != "ram":
                 self._glyph_cache[key] = dots

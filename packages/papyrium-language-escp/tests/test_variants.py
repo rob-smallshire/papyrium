@@ -10,6 +10,7 @@ from papyrium.language.escp.charsets import (
     M1109_CHARACTER_SETS,
     character_for,
 )
+from papyrium.language.escp.generator import CharacterGenerator
 
 M1109_CONTROLS = frozenset({8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 27})
 
@@ -184,5 +185,6 @@ def _bar_font():
 def test_dots_in_successive_columns_can_print_once():
     font = _bar_font()
     assert [x for x, _ in dots(b"A", font=font)] == [LEFT + 36 * c for c in range(5)]
-    printed = dots(b"A", font=font, prints_adjacent_dots_once=True)
+    generator = CharacterGenerator(prints_adjacent_dots_once=True)
+    printed = dots(b"A", font=font, generator=generator)
     assert [x for x, _ in printed] == [LEFT, LEFT + 72, LEFT + 144]

@@ -2,6 +2,8 @@
 
 from helpers import ESC, LEFT, LINE, dots, run
 
+from papyrium.language.escp.generator import CharacterGenerator
+
 
 def _xs(data, **options):
     return sorted({x for x, _ in dots(data, **options)})
@@ -37,7 +39,8 @@ def test_nlq_can_keep_emphasized():
     options = {"nlq": True, "nlq_fonts": (_nlq_font(),)}
     data = ESC + b"x\x01" + ESC + b"EA"
     assert len(dots(data, **options)) == 2
-    assert dots(data, nlq_emphasized=True, **options) == [
+    generator = CharacterGenerator(nlq_emphasized=True)
+    assert dots(data, generator=generator, **options) == [
         (LEFT, 0),
         (LEFT + 18, 0),
         (LEFT + 18, 20),

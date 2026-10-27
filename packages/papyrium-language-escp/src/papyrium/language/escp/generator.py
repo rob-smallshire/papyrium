@@ -53,10 +53,22 @@ class CharacterStyle:
 
 @dataclass(frozen=True)
 class CharacterGenerator:
-    """The Epson FX-80's character generator, the default for ESC/P printers."""
+    """The Epson FX-80's character generator, the default for ESC/P printers.
+
+    *prints_adjacent_dots_once*: a dot in the column after a printed one in
+    the same row is not printed, since the head cannot fire a pin so soon:
+    the ROM stores characters with such dots, and the printer prints them
+    once. *nlq_emphasized*: near letter quality prints emphasized, rather
+    than masking it.
+    """
+
+    prints_adjacent_dots_once: bool = False
+    nlq_emphasized: bool = False
 
     def draft_dots(self, glyph: Glyph, style: CharacterStyle, pin_pitch: int) -> list[Dot]:
         """The dots of a draft character, relative to the head."""
+        if self.prints_adjacent_dots_once:
+            glyph = printable_once(glyph)
         return list(self._draft_dots(glyph, style, pin_pitch))
 
     def _draft_dots(self, glyph: Glyph, style: CharacterStyle, pin_pitch: int) -> Iterable[Dot]:
@@ -95,7 +107,7 @@ class CharacterGenerator:
             if style.double_width:
                 # Enlarged characters strike every dot twice, side by side.
                 passes.append((dx + step // 2, dy))
-            if style.emphasized:
+            if style.emphasized and self.nlq_emphasized:
                 passes.extend([(x + step, y) for x, y in passes])
             result.extend(passes)
         return result

@@ -5,6 +5,7 @@ from __future__ import annotations
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 from papyrium.language.escp.charsets import LX800_CHARACTER_SETS
+from papyrium.language.escp.generator import CharacterGenerator
 from papyrium.language.escp.mechanism import FX_COMMANDS
 from papyrium.model.epson_lx800 import demo
 
@@ -90,11 +91,10 @@ class EpsonLX800(PrinterModel):
             nlq=True,
             # The LX-800 underlines with the ninth pin, in the same pass.
             underline_row=8,
-            prints_adjacent_dots_once=True,
             master_select_italic_underline=True,
             carriage_return_ends_one_line_enlarged=True,
             margins_clear_tabs=True,
-            nlq_emphasized=True,
+            generator=CharacterGenerator(prints_adjacent_dots_once=True, nlq_emphasized=True),
             justify_nlq_only=True,
             commands=frozenset(_COMMANDS),
         )

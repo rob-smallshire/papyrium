@@ -62,11 +62,11 @@ def test_differs_from_the_fx80():
     assert mechanism.nlq and mechanism.condensed_elite
     assert mechanism.default_vertical_tabs is False
     assert mechanism.underline_row == 8
-    assert mechanism.prints_adjacent_dots_once
+    assert mechanism.generator.prints_adjacent_dots_once
     assert mechanism.master_select_italic_underline
     assert mechanism.carriage_return_ends_one_line_enlarged
     assert mechanism.margins_clear_tabs
-    assert mechanism.nlq_emphasized
+    assert mechanism.generator.nlq_emphasized
     assert mechanism.justify_nlq_only
     assert set("xkatef\x19") <= mechanism.commands
     assert not set("Iijp=>#") & mechanism.commands
