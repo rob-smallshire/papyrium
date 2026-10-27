@@ -7,6 +7,7 @@ from papyrium.core.dotfont import DataDotFont
 __version__ = "0.1.0"
 
 __all__ = [
+    "LC10DraftEliteFont",
     "LC10DraftFont",
     "LC10NlqCourierEliteFont",
     "LC10NlqCourierFont",
@@ -20,17 +21,30 @@ __all__ = [
 
 
 class LC10DraftFont(DataDotFont):
-    """The Star LC-10's draft font, extracted from its firmware ROM.
+    """The Star LC-10's pica draft font, made from its firmware ROM.
 
-    9 rows by 11 columns 1/120 inch apart, the last two left for spacing;
-    a character with a descender sits a pin lower, on the ninth pin.
-    Successive columns may both hold a dot, as in the ROM. Covers ASCII,
-    the national characters, the slashed zero, the IBM PC's low symbols
-    and the upper half of its character set less the block and box
-    drawing characters and the integral halves.
+    The printer makes pica draft from Sanserif's second NLQ pass at half
+    width, ORing pairs of columns less any dot in the column before. 9 rows
+    by 11 columns 1/120 inch apart, in a 12-column cell; a character with
+    a descender sits a pin lower, on the ninth pin. Covers ASCII, the
+    national characters, the slashed zero, the IBM PC's low symbols and the
+    upper half of its character set less the block and box drawing
+    characters and the integral halves.
     """
 
     font_filename = "draft.txt"
+
+
+class LC10DraftEliteFont(DataDotFont):
+    """The Star LC-10's elite draft font, extracted from its firmware ROM.
+
+    The ROM's own draft table, used for elite at fixed pitch: 9 rows by 11
+    columns 1/120 inch apart, in a 10-column cell. Successive columns may
+    both hold a dot, as in the ROM. Covers the same characters as pica
+    draft.
+    """
+
+    font_filename = "draft-elite.txt"
 
 
 class _LC10NlqFont(DataDotFont):

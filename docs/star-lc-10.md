@@ -762,7 +762,9 @@ for everything needed to simulate the LC-10 and LC-10 Colour.
 - **Characters**: draft and the four NLQ typefaces, in pica and elite,
   for 211 locations: the slashed zero, the additional set (1-31), ASCII,
   the IBM PC's 0x7F-0xAF and 0xE0-0xFF, and ø, ¤ and ß. The IBM block
-  and box drawing characters are a separate 11-column table.
+  and box drawing characters are a separate 11-column table. The ROM's
+  draft table is elite draft; pica, condensed and proportional draft are
+  made from Sanserif's second NLQ pass at half width.
 - **No italic characters** are stored: the printer slants the upright
   ones as it builds their columns, the top of a draft character three
   columns (3/120 inch) right of its foot and an NLQ character's top

@@ -5,6 +5,7 @@ import pytest
 from papyrium.core.conformance import DotFontConformance
 from papyrium.extension import create_extension, namespace_for
 from papyrium.font.lc10 import (
+    LC10DraftEliteFont,
     LC10DraftFont,
     LC10NlqCourierEliteFont,
     LC10NlqCourierFont,
@@ -44,6 +45,13 @@ class TestLC10DraftConformance(DotFontConformance):
         return LC10DraftFont(name="lc10-draft")
 
 
+class TestLC10DraftEliteConformance(DotFontConformance):
+    allows_adjacent_dots = True
+
+    def make_font(self):
+        return LC10DraftEliteFont(name="lc10-draft-elite")
+
+
 class TestLC10NlqCourierConformance(DotFontConformance):
     def make_font(self):
         return LC10NlqCourierFont(name="lc10-nlq-courier")
@@ -54,14 +62,31 @@ class TestLC10NlqSanserifEliteConformance(DotFontConformance):
         return LC10NlqSanserifEliteFont(name="lc10-nlq-sanserif-elite")
 
 
-@pytest.mark.parametrize("name", ["lc10-draft", *NLQ_FONTS])
+@pytest.mark.parametrize("name", ["lc10-draft", "lc10-draft-elite", *NLQ_FONTS])
 def test_is_registered_on_the_font_axis(name):
     assert create_extension("font", namespace_for("font"), name).name == name
 
 
-def test_draft_is_nine_pins_on_the_pica_grid():
-    font = LC10DraftFont(name="lc10-draft")
+@pytest.mark.parametrize("cls", [LC10DraftFont, LC10DraftEliteFont])
+def test_draft_is_nine_pins_on_the_120_dpi_grid(cls):
+    font = cls(name="draft")
     assert (font.rows, font.columns) == (9, 11)
+
+
+def test_pica_draft_is_sanserifs_second_pass_at_half_width():
+    # Each draft column is two of Sanserif's second-pass columns ORed,
+    # less any dot the previous column printed.
+    draft = LC10DraftFont(name="draft")
+    sanserif = LC10NlqSanserifFont(name="sanserif")
+    for character in "AHgx":
+        second_pass = {(c, r) for c, r in sanserif.glyph(character).dots if r % 2}
+        halved = {(c // 2, (r - 1) // 2) for c, r in second_pass}
+        assert draft.glyph(character).dots <= halved, character
+
+
+def test_pica_draft_never_fires_a_pin_twice_running():
+    font = LC10DraftFont(name="draft")
+    assert not any(font.glyph(c).has_adjacent_dots for c in font.characters())
 
 
 @pytest.mark.parametrize("cls", PICA_FONTS.values())
@@ -76,19 +101,20 @@ def test_elite_nlq_is_eighteen_rows_by_twenty_columns(cls):
     assert (font.rows, font.columns) == (18, 20)
 
 
-@pytest.mark.parametrize("cls", [LC10DraftFont, *NLQ_FONTS.values()])
+@pytest.mark.parametrize("cls", [LC10DraftFont, LC10DraftEliteFont, *NLQ_FONTS.values()])
 def test_covers_the_national_and_ibm_characters(cls):
     missing = set(NATIONAL + IBM + SYMBOLS) - cls(name="font").characters()
     assert not missing, sorted(missing)
 
 
-@pytest.mark.parametrize("cls", [LC10DraftFont, *NLQ_FONTS.values()])
+@pytest.mark.parametrize("cls", [LC10DraftFont, LC10DraftEliteFont, *NLQ_FONTS.values()])
 def test_has_the_slashed_zero(cls):
     assert cls(name="font").glyph("0̸").dots
 
 
-def test_draft_descenders_sit_a_pin_lower():
-    font = LC10DraftFont(name="lc10-draft")
+@pytest.mark.parametrize("cls", [LC10DraftFont, LC10DraftEliteFont])
+def test_draft_descenders_sit_a_pin_lower(cls):
+    font = cls(name="draft")
     assert max(row for _, row in font.glyph("g").dots) == 8
     assert min(row for _, row in font.glyph("H").dots) == 0
     assert max(row for _, row in font.glyph("H").dots) < 8

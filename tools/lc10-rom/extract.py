@@ -42,7 +42,7 @@ LOCATIONS = (
 #: Location 0xC8, the IBM PC's degree sign, repeats 0xC4's.
 DUPLICATE_LOCATIONS = {0xC8: 0xC4}
 
-# Draft: a header byte then 9 columns of 8 dots, bit 7 the top and a 1
+# Elite draft: a header byte then 9 columns of 8 dots, bit 7 the top and a 1
 # bit a dot. Header bit 7 set puts the character on the upper eight pins,
 # clear on the lower eight; bits 4-6 and 0-3 are the first and last columns
 # that proportional spacing allows for.
@@ -88,6 +88,29 @@ def draft_glyph(rom: bytes, location: int) -> set[tuple[int, int]]:
         for row in range(8)
         if byte & (0x80 >> row)
     }
+
+
+def pica_draft_glyph(rom: bytes, location: int) -> set[tuple[int, int]]:
+    """The dots (column, row) of the pica draft character at *location*.
+
+    Pica draft is made from Sanserif's second NLQ pass at half width: each
+    column ORs two of its columns, less any dot in the column before, and
+    the left space is halved too.
+    """
+    at = (NLQ_TABLES["sanserif"] * NLQ_TABLE_ENTRIES + location) * NLQ_ENTRY
+    header, width = rom[at], rom[at + 1]
+    start = int.from_bytes(rom[at + 2 : at + 4], "big") - NLQ_ADDRESS_BASE + NLQ_SECOND_PASS
+    lower = 0 if header & 0x80 else 1
+    left = ((header >> 4) & 0x07) // 2
+    dots, previous = set(), 0
+    for column in range(width // 2):
+        byte = rom[start + 2 * column] | rom[start + 2 * column + 1]
+        byte &= ~previous
+        previous = byte
+        for row in range(8):
+            if byte & (0x80 >> row):
+                dots.add((left + column, row + lower))
+    return dots
 
 
 def nlq_glyph(rom: bytes, table: int, location: int) -> set[tuple[int, int]]:
@@ -144,12 +167,23 @@ def main(rom_filepath: Path) -> None:
     rom = read_rom(rom_filepath)
     assert len(LOCATIONS) == NLQ_TABLE_ENTRIES
 
-    check_duplicates("draft", lambda location: draft_glyph(rom, location))
+    check_duplicates("draft", lambda location: pica_draft_glyph(rom, location))
     (FONT_DIRPATH / "draft.txt").write_text(
         font_text(
-            ["lc10-draft: the Star LC-10's draft characters.", *PROVENANCE,
-             "Columns are 1/120 inch apart; the last two are spacing. A character",
-             "with a descender sits a pin lower."],
+            ["lc10-draft: the Star LC-10's pica draft characters.", *PROVENANCE,
+             "The printer makes them from Sanserif's second NLQ pass at half",
+             "width. Columns are 1/120 inch apart; the cell is 12 columns, the last",
+             "always blank. A character with a descender sits a pin lower."],
+            DRAFT_ROWS, DRAFT_COLUMNS, glyphs(lambda location: pica_draft_glyph(rom, location)),
+        ),
+        encoding="ascii",
+    )  # fmt: skip
+    check_duplicates("draft-elite", lambda location: draft_glyph(rom, location))
+    (FONT_DIRPATH / "draft-elite.txt").write_text(
+        font_text(
+            ["lc10-draft-elite: the Star LC-10's elite draft characters.", *PROVENANCE,
+             "Columns are 1/120 inch apart; the cell is 10 columns, the last always",
+             "blank. A character with a descender sits a pin lower."],
             DRAFT_ROWS, DRAFT_COLUMNS, glyphs(lambda location: draft_glyph(rom, location)),
         ),
         encoding="ascii",
@@ -176,7 +210,7 @@ def main(rom_filepath: Path) -> None:
                 ),
                 encoding="ascii",
             )  # fmt: skip
-    print(f"draft and {2 * len(NLQ_TABLES)} NLQ fonts of {len(LOCATIONS) - 1} characters written")
+    print(f"2 draft and {2 * len(NLQ_TABLES)} NLQ fonts of {len(LOCATIONS) - 1} characters written")
 
 
 if __name__ == "__main__":

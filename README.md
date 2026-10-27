@@ -101,7 +101,9 @@ $ papyrium list-fonts
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ draft-9                              │ An original 9-pin draft font in the   │
 │                                      │ style of 1980s dot-matrix printers.   │
-│ lc10-draft                           │ The Star LC-10's draft font,          │
+│ lc10-draft                           │ The Star LC-10's pica draft font,     │
+│                                      │ made from its firmware ROM.           │
+│ lc10-draft-elite                     │ The Star LC-10's elite draft font,    │
 │                                      │ extracted from its firmware ROM.      │
 │ lc10-nlq-courier                     │ The Star LC-10's NLQ Courier in pica, │
 │                                      │ extracted from its firmware ROM.      │
@@ -245,7 +247,8 @@ package can add to it:
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-fx80`](packages/papyrium-model-epson-fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-lx800`](packages/papyrium-model-epson-lx800/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium-font-draft-9`](packages/papyrium-font-draft-9/) |
-|  | `lc10-draft` | The Star LC-10's draft font, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
+|  | `lc10-draft` | The Star LC-10's pica draft font, made from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
+|  | `lc10-draft-elite` | The Star LC-10's elite draft font, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
 |  | `lc10-nlq-courier` | The Star LC-10's NLQ Courier in pica, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
 |  | `lc10-nlq-courier-elite` | The Star LC-10's NLQ Courier in elite, extracted from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
 |  | `lc10-nlq-orator` | The Star LC-10's NLQ Orator with lower case in pica, from its firmware ROM | [`papyrium-font-lc10`](packages/papyrium-font-lc10/) |
@@ -280,7 +283,7 @@ workspace, and share the `papyrium` namespace:
 | [`papyrium-font-m1109-nlq`](packages/papyrium-font-m1109-nlq/) | m1109-nlq, the Brother M-1109's near letter quality characters, reconstructed for Papyrium |
 | [`papyrium-font-lx800-draft`](packages/papyrium-font-lx800-draft/) | lx800-draft, the Epson LX-800's draft characters, from its firmware, for Papyrium |
 | [`papyrium-font-lx800-nlq-roman`](packages/papyrium-font-lx800-nlq-roman/) | lx800-nlq-roman, the Epson LX-800's near letter quality Roman characters, from its firmware, for Papyrium |
-| [`papyrium-font-lc10`](packages/papyrium-font-lc10/) | The Star LC-10's draft and near letter quality fonts (Courier, Sanserif and Orator, pica and elite), from its firmware, for Papyrium |
+| [`papyrium-font-lc10`](packages/papyrium-font-lc10/) | The Star LC-10's draft and near letter quality fonts, draft and NLQ (Courier, Sanserif and Orator), pica and elite, from its firmware, for Papyrium |
 | [`papyrium-output-png`](packages/papyrium-output-png/) | PNG output for Papyrium: one raster image per page, dots drawn as dots |
 | [`papyrium-output-pdf`](packages/papyrium-output-pdf/) | PDF output for Papyrium: one document per job, dots as vector dots |
 | [`papyrium-advertiser-mdns`](packages/papyrium-advertiser-mdns/) | Announces Papyrium printers on the local network with multicast DNS (Bonjour, Avahi) |

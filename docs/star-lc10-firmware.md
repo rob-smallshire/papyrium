@@ -184,6 +184,25 @@ steps: every NLQ row is 1/144 inch below the last, as the user manual
 says. The technical manual's 1/216 inch is only the finest feed a
 command can ask for.
 
+**Which characters each pitch prints.** The character setup (`$E5A9`)
+and the column builders (`$FB88`) choose by pitch:
+
+| Pitch | Draft | NLQ |
+|---|---|---|
+| Pica | Sanserif's second pass at half width: 12 columns at 1/120 inch | The typeface's pica table: 24 columns at 1/240 inch |
+| Elite | The draft table: 9 + 1 columns at 1/120 inch | The typeface's elite table: 19 + 1 columns at 1/240 inch |
+| Condensed pica | Sanserif's second pass at half width: 14 columns at 1/240 inch | Each pass at half width: 14 columns at 1/240 inch |
+| Condensed elite | As condensed pica: 12 columns at 1/240 inch | As condensed pica: 12 columns at 1/240 inch |
+| Proportional | Sanserif's second pass at half width, its width + 2 columns at 1/120 inch | The pica table, its width + 4 columns at 1/240 inch |
+
+"At half width" (`$FBBB`) ORs each pair of columns into one and removes
+any dot the column before printed, so no pin fires in successive
+columns; the left and right spaces are halved too. Every Sanserif entry
+has an even width, an even left space and an odd right space, so the
+halved pica cell is always exactly 12 columns: the Sanserif table is laid
+out for this. The draft table, which `ESC :` also copies into RAM for
+download characters, serves only elite at fixed pitch.
+
 **NLQ spacing** (`$F971`, `$FBFF`). A character's columns are its left
 space as blanks, its glyph, then its right space and a further gap as
 blanks. In fixed pitch the gap is one column, so the cell is 24 columns
@@ -193,12 +212,6 @@ dropped and the gap is 4 columns: the advance is the glyph's width plus
 
 ## Not yet decoded
 
-- Which characters draft prints in pica, condensed and proportional
-  spacing. The character setup (`$E5A9`) takes the 10-byte draft table
-  only for elite at fixed pitch, and sends the other pitches to the NLQ
-  index (Sanserif's table, at half its width). The column builders that
-  follow have not been traced, so how those columns are made is not
-  known yet.
 - The block graphics' 12-dot cell.
 - Colour: the order of the ribbon bands and the passes for the mixed
   colours (`ESC r` is at `$9828`; it keeps the colour in bits 0-3 of
