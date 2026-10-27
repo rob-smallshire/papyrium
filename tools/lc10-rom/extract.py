@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract the Star LC-10's draft and NLQ fonts from its firmware ROM.
+"""Extract the Star LC-10's draft, NLQ and block graphics fonts from its firmware ROM.
 
 Reads the 64K program ROM (IC4, a 27512) from
 docs/local/star-lc10/LC10-NX1P-1.5CL.bin, checks it is the dump this tool
@@ -112,29 +112,6 @@ def block_glyph(rom: bytes, index: int) -> set[tuple[int, int]]:
     return dots
 
 
-def pica_draft_glyph(rom: bytes, location: int) -> set[tuple[int, int]]:
-    """The dots (column, row) of the pica draft character at *location*.
-
-    Pica draft is made from Sanserif's second NLQ pass at half width: each
-    column ORs two of its columns, less any dot in the column before, and
-    the left space is halved too.
-    """
-    at = (NLQ_TABLES["sanserif"] * NLQ_TABLE_ENTRIES + location) * NLQ_ENTRY
-    header, width = rom[at], rom[at + 1]
-    start = int.from_bytes(rom[at + 2 : at + 4], "big") - NLQ_ADDRESS_BASE + NLQ_SECOND_PASS
-    lower = 0 if header & 0x80 else 1
-    left = ((header >> 4) & 0x07) // 2
-    dots, previous = set(), 0
-    for column in range(width // 2):
-        byte = rom[start + 2 * column] | rom[start + 2 * column + 1]
-        byte &= ~previous
-        previous = byte
-        for row in range(8):
-            if byte & (0x80 >> row):
-                dots.add((left + column, row + lower))
-    return dots
-
-
 def nlq_glyph(rom: bytes, table: int, location: int) -> set[tuple[int, int]]:
     """The dots (column, row) of an NLQ character, placed in its cell."""
     at = (table * NLQ_TABLE_ENTRIES + location) * NLQ_ENTRY
@@ -189,17 +166,6 @@ def main(rom_filepath: Path) -> None:
     rom = read_rom(rom_filepath)
     assert len(LOCATIONS) == NLQ_TABLE_ENTRIES
 
-    check_duplicates("draft", lambda location: pica_draft_glyph(rom, location))
-    (FONT_DIRPATH / "draft.txt").write_text(
-        font_text(
-            ["lc10-draft: the Star LC-10's pica draft characters.", *PROVENANCE,
-             "The printer makes them from Sanserif's second NLQ pass at half",
-             "width. Columns are 1/120 inch apart; the cell is 12 columns, the last",
-             "always blank. A character with a descender sits a pin lower."],
-            DRAFT_ROWS, DRAFT_COLUMNS, glyphs(lambda location: pica_draft_glyph(rom, location)),
-        ),
-        encoding="ascii",
-    )  # fmt: skip
     check_duplicates("draft-elite", lambda location: draft_glyph(rom, location))
     (FONT_DIRPATH / "draft-elite.txt").write_text(
         font_text(
@@ -244,7 +210,7 @@ def main(rom_filepath: Path) -> None:
                 ),
                 encoding="ascii",
             )  # fmt: skip
-    fonts = 2 * len(NLQ_TABLES) + 3
+    fonts = 2 * len(NLQ_TABLES) + 2
     print(f"{fonts} fonts written, the text fonts of {len(LOCATIONS) - 1} characters")
 
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from papyrium.core.dotfont import DataDotFont
+from papyrium.core.dotfont import DataDotFont, DerivedDotFont, Glyph, half_width, pass_rows
 
 __version__ = "0.1.0"
 
@@ -21,19 +21,25 @@ __all__ = [
 ]
 
 
-class LC10DraftFont(DataDotFont):
-    """The Star LC-10's pica draft font, made from its firmware ROM.
+class LC10DraftFont(DerivedDotFont):
+    """The Star LC-10's pica draft font, made as the printer makes it.
 
     The printer makes pica draft from Sanserif's second NLQ pass at half
-    width, ORing pairs of columns less any dot in the column before. 9 rows
-    by 11 columns 1/120 inch apart, in a 12-column cell; a character with
-    a descender sits a pin lower, on the ninth pin. Covers ASCII, the
-    national characters, the slashed zero, the IBM PC's low symbols and the
-    upper half of its character set less the block and box drawing
-    characters and the integral halves.
+    width, ORing pairs of columns less any dot in the column before, so
+    this font is derived from lc10-nlq-sanserif, or from another Sanserif
+    given in its place. 9 rows by 12 columns 1/120 inch apart, the last
+    always blank; a character with a descender sits a pin lower, on the
+    ninth pin. Covers ASCII, the national characters, the slashed zero,
+    the IBM PC's low symbols and the upper half of its character set less
+    the block and box drawing characters and the integral halves.
     """
 
-    font_filename = "draft.txt"
+    rows = 9
+    columns = 12
+    source_name = "lc10-nlq-sanserif"
+
+    def derive(self, glyph: Glyph) -> Glyph:
+        return half_width(pass_rows(glyph, 1))
 
 
 class LC10DraftEliteFont(DataDotFont):

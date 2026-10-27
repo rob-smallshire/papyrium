@@ -68,10 +68,26 @@ def test_is_registered_on_the_font_axis(name):
     assert create_extension("font", namespace_for("font"), name).name == name
 
 
-@pytest.mark.parametrize("cls", [LC10DraftFont, LC10DraftEliteFont])
-def test_draft_is_nine_pins_on_the_120_dpi_grid(cls):
-    font = cls(name="draft")
+def test_pica_draft_is_nine_pins_by_a_pica_cell():
+    font = LC10DraftFont(name="draft")
+    assert (font.rows, font.columns) == (9, 12)
+
+
+def test_elite_draft_is_nine_pins_by_the_roms_eleven_columns():
+    font = LC10DraftEliteFont(name="draft")
     assert (font.rows, font.columns) == (9, 11)
+
+
+def test_pica_draft_follows_the_sanserif_it_is_made_from():
+    from papyrium.core.testing import MemoryDotFont
+
+    rows = ["." * 24 for _ in range(18)]
+    rows[1] = "#" + rows[1][1:]
+    sanserif = MemoryDotFont(
+        name="s", text="rows 18\ncolumns 24\nU+0041\n" + "\n".join(rows) + "\n"
+    )
+    draft = LC10DraftFont(name="draft", source=sanserif)
+    assert draft.glyph("A").dots == frozenset({(0, 0)})
 
 
 def test_pica_draft_is_sanserifs_second_pass_at_half_width():

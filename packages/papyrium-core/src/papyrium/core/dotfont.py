@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from papyrium.exception import DataError
-from papyrium.extension import Extension
+from papyrium.extension import Extension, create_extension, namespace_for
 
 _CODE_POINTS_PATTERN = re.compile(r"^U\+[0-9A-Fa-f]{4,6}(?:\s+U\+[0-9A-Fa-f]{4,6})*\b")
 _SPAN_PATTERN = re.compile(r"\s+span\b(?:\s+(\d+)\s+(\d+)\b)?")
@@ -238,3 +238,66 @@ class DataDotFont(_ParsedDotFont):
         package = type(self).__module__
         text = importlib.resources.files(package).joinpath(self.font_filename).read_text("ascii")
         self._data = parse_dot_font(text)
+
+
+class DerivedDotFont(DotFont):
+    """A font made from another by a transform, as a printer makes one
+    typeface from another: the Star LC-10's pica draft is its Sanserif NLQ
+    font's second pass at half width.
+
+    Subclasses set :attr:`rows` and :attr:`columns`, :attr:`source_name`,
+    the font the derivation is made from, and :meth:`derive`. A source font
+    may be given instead, so that replacing it replaces the derived font
+    too, as on the printer.
+    """
+
+    #: The name of the font the derivation is made from, on the font axis.
+    source_name: str = ""
+
+    def __init__(self, name: str, *, source: DotFont | None = None, **kwargs) -> None:
+        super().__init__(name=name, **kwargs)
+        if source is None:
+            source = create_extension("font", namespace_for("font"), self.source_name)
+        self._source = source
+        self._glyphs: dict[str, Glyph | None] = {}
+
+    @property
+    def source(self) -> DotFont:
+        """The font the derivation is made from."""
+        return self._source
+
+    @abstractmethod
+    def derive(self, glyph: Glyph) -> Glyph:
+        """The derived font's glyph for the source font's *glyph*."""
+
+    def glyph(self, character: str) -> Glyph | None:
+        if character not in self._glyphs:
+            source = self._source.glyph(character)
+            self._glyphs[character] = None if source is None else self.derive(source)
+        return self._glyphs[character]
+
+    def characters(self) -> frozenset[str]:
+        return self._source.characters()
+
+
+def pass_rows(glyph: Glyph, pass_: int) -> Glyph:
+    """One pass of a two-pass glyph as a glyph of its own: rows *pass_*,
+    *pass_* + 2, ... of *glyph* become rows 0, 1, ..."""
+    dots = frozenset((column, row // 2) for column, row in glyph.dots if row % 2 == pass_)
+    return Glyph(dots)
+
+
+def half_width(glyph: Glyph) -> Glyph:
+    """*glyph* at half width: each pair of columns ORed into one, less any
+    dot the column before printed, so that no pin fires in two successive
+    columns."""
+    halved: dict[int, set[int]] = {}
+    for column, row in glyph.dots:
+        halved.setdefault(column // 2, set()).add(row)
+    dots = set()
+    previous: set[int] = set()
+    for column in range(max(halved, default=-1) + 1):
+        rows = halved.get(column, set()) - previous
+        dots.update((column, row) for row in rows)
+        previous = rows
+    return Glyph(frozenset(dots))

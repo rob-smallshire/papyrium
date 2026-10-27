@@ -2,7 +2,7 @@
 
 import pytest
 
-from papyrium.core.dotfont import Glyph, parse_dot_font
+from papyrium.core.dotfont import DerivedDotFont, Glyph, half_width, parse_dot_font, pass_rows
 from papyrium.exception import DataError
 
 POUND_SIGN = chr(0x00A3)
@@ -90,3 +90,40 @@ def test_a_font_file_on_disk_is_a_dot_font(tmp_path):
     assert (font.rows, font.columns) == (3, 5)
     assert font.characters() == frozenset({"A", POUND_SIGN})
     assert font.glyph("A") == parse_dot_font(_FONT_TEXT).glyphs["A"]
+
+
+def test_pass_rows_keeps_one_passes_rows_as_pin_rows():
+    glyph = Glyph(frozenset({(0, 0), (1, 1), (2, 3), (3, 4)}))
+    assert pass_rows(glyph, 0) == Glyph(frozenset({(0, 0), (3, 2)}))
+    assert pass_rows(glyph, 1) == Glyph(frozenset({(1, 0), (2, 1)}))
+
+
+def test_half_width_ors_pairs_of_columns():
+    glyph = Glyph(frozenset({(0, 0), (1, 1), (4, 2), (5, 2)}))
+    assert half_width(glyph) == Glyph(frozenset({(0, 0), (0, 1), (2, 2)}))
+
+
+def test_half_width_drops_a_dot_the_previous_column_printed():
+    glyph = Glyph(frozenset({(0, 0), (3, 0), (5, 0), (6, 1)}))
+    # Column 1 would repeat column 0's dot; column 2 follows a blank column.
+    assert half_width(glyph) == Glyph(frozenset({(0, 0), (2, 0), (3, 1)}))
+
+
+class _Doubled(DerivedDotFont):
+    rows, columns = 3, 10
+
+    def derive(self, glyph):
+        return Glyph(frozenset((2 * c, r) for c, r in glyph.dots))
+
+
+def _source_font():
+    from papyrium.core.testing import MemoryDotFont
+
+    return MemoryDotFont(name="source", text=_FONT_TEXT)
+
+
+def test_a_derived_font_makes_each_glyph_from_its_sources():
+    font = _Doubled(name="doubled", source=_source_font())
+    assert font.characters() == frozenset({"A", POUND_SIGN})
+    assert font.glyph("A").dots == frozenset({(4, 0), (2, 1), (6, 1), (0, 2), (8, 2)})
+    assert font.glyph("Z") is None
