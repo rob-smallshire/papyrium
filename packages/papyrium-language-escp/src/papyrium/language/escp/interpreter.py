@@ -38,7 +38,7 @@ from papyrium.language.escp.mechanism import EscpMechanism
 logger = logging.getLogger(__name__)
 
 NUL, BEL, BS, HT, LF, VT, FF, CR, SO, SI = 0, 7, 8, 9, 10, 11, 12, 13, 14, 15
-DC1, DC2, DC3, DC4, CAN, ESC, DEL = 17, 18, 19, 20, 24, 27, 127
+DC1, DC2, DC3, DC4, CAN, ESC, RS, DEL = 17, 18, 19, 20, 24, 27, 30, 127
 
 #: Codes below 32 that stay controls even when ESC I makes the others printable.
 
@@ -124,6 +124,9 @@ class EscpInterpreter(Interpreter):
         self._paper_dots: list[tuple[int, int]] = []
         self._paper_text: list[TextMark] = []
         self._sheet_top = 0
+        self._macro = b""
+        self._macro_pending = False
+        self._macro_running = False
         self._missing_characters: set[str] = set()
         self._missing_typefaces: set[int] = set()
         self._glyph_cache: dict[tuple, tuple[tuple[int, int], ...]] = {}
@@ -143,7 +146,20 @@ class EscpInterpreter(Interpreter):
             elif self._msb == 1:
                 byte |= 0x80
             send(byte)
+            self._run_macro()
         return self._take_completed()
+
+    def _run_macro(self) -> None:
+        """Interpret the macro ESC + 1 asked for, as if it had been received."""
+        if not self._macro_pending:
+            return
+        self._macro_pending = False
+        self._macro_running = True
+        try:
+            for byte in self._macro:
+                self._machine.send(byte)
+        finally:
+            self._macro_running = False
 
     def finish(self) -> list[Page]:
         self._print_line()
@@ -171,6 +187,8 @@ class EscpInterpreter(Interpreter):
         self._one_line_double_width = False
         self._italic = False
         self._underline = False
+        self._extra_space = 0
+        self._slashed_zero = mechanism.slashed_zero
         self._script: str | None = None
         self._msb: int | None = None
         self._character_set = mechanism.character_set
@@ -305,7 +323,7 @@ class EscpInterpreter(Interpreter):
         if self._underline:
             entry.dots.extend(self._underline_dots(width))
         self._line.append(entry)
-        self._x += width
+        self._x += width + self._extra_space
         if self._immediate:
             self._print_line()
 
@@ -331,7 +349,7 @@ class EscpInterpreter(Interpreter):
         if self._underline:
             entry.dots.extend(self._underline_dots(width))
         self._line.append(entry)
-        self._x += width
+        self._x += width + self._extra_space
         if self._immediate:
             self._print_line()
 
@@ -368,7 +386,7 @@ class EscpInterpreter(Interpreter):
         if source == _BLANK:
             return Glyph(frozenset())
         character = self._rom_character(location)
-        if character == "0" and self._mechanism.slashed_zero:
+        if character == "0" and self._slashed_zero:
             glyph = self._draft_font().glyph(SLASHED_ZERO)
             if glyph is not None:
                 return glyph
@@ -393,7 +411,7 @@ class EscpInterpreter(Interpreter):
         if self._glyph_source(location)[0] != "rom":
             return None
         character = self._rom_character(location)
-        if character == "0" and self._mechanism.slashed_zero:
+        if character == "0" and self._slashed_zero:
             character = SLASHED_ZERO
         return font.glyph(character)
 
@@ -474,7 +492,7 @@ class EscpInterpreter(Interpreter):
             double_strike=self._is_double_strike(),
             double_width=self._is_double_width(),
         )
-        key = (glyph_source, self._draft_font(), style)
+        key = (glyph_source, self._draft_font(), self._slashed_zero, style)
         dots = self._glyph_cache.get(key)
         if dots is None:
             glyph = self._glyph(location)
@@ -793,6 +811,14 @@ class EscpInterpreter(Interpreter):
             "a": self._esc_justify,
             "t": self._esc_character_table,
             "f": self._esc_skip,
+            "$": self._esc_absolute_position,
+            "\\": self._esc_relative_position,
+            "X": self._esc_margins,
+            " ": self._esc_extra_space,
+            "~": self._esc_slashed_zero,
+            "\n": self._esc_reverse_line_feed,
+            "\x0c": self._esc_top_of_page,
+            "+": self._esc_macro,
         }
         if self._mechanism.nlq:
             table["x"] = self._esc_nlq
@@ -1108,6 +1134,79 @@ class EscpInterpreter(Interpreter):
             self._print_line()
             for _ in range(s):
                 self._advance_line()
+
+    def _move_to(self, x: int) -> None:
+        """Move the head to *x*, if it lies between the margins."""
+        self._print_line()
+        if self._left_margin <= x <= self._right_limit(text=True):
+            self._x = x
+        else:
+            logger.debug("ignoring a move outside the margins")
+
+    def _esc_absolute_position(self) -> ArgumentReader:
+        """Move to (n1 + 256 n2)/60 inch from the left margin."""
+        low = yield
+        high = yield
+        self._move_to(self._left_margin + (low + 256 * high) * (inches(1) // 60))
+
+    def _esc_relative_position(self) -> ArgumentReader:
+        """Move right n1 + 256 n2 1/120 inch, or left when n2 is 64 or more."""
+        low = yield
+        high = yield
+        if high < 64:
+            distance = low + 256 * high
+        else:
+            distance = -(low + 256 * (high - 64))
+        self._move_to(self._x + distance * PROPORTIONAL_STEP)
+
+    def _esc_margins(self) -> ArgumentReader:
+        """The left and right margins together, in columns of the pitch."""
+        left_column = yield
+        right_column = yield
+        self._cancel()
+        width = self._column_width()
+        left, right = left_column * width, right_column * width
+        full_width = self._mechanism.columns * PICA_WIDTH
+        if left + self._narrowest_line() <= right <= full_width:
+            self._left_margin, self._right_margin = left, right
+            self._tabs = self._margin_tabs()
+        else:
+            logger.debug("ignoring margins %d and %d", left_column, right_column)
+
+    def _esc_extra_space(self) -> ArgumentReader:
+        """Leave n/240 inch after each character."""
+        self._extra_space = ((yield) & 0x7F) * (inches(1) // 240)
+
+    def _esc_slashed_zero(self) -> ArgumentReader:
+        self._slashed_zero = self._flag((yield))
+
+    def _esc_reverse_line_feed(self) -> None:
+        """Feed back a line, but never past the top of the sheet in the printer."""
+        self._print_line()
+        self._y = max(self._sheet_top, self._y - self._line_spacing)
+        while self._y < self._form_top:
+            self._form_top -= self._form_length
+
+    def _esc_top_of_page(self) -> None:
+        """Feed back to the top of the current page."""
+        self._print_line()
+        self._y = max(self._sheet_top, self._form_top)
+
+    def _esc_macro(self) -> ArgumentReader:
+        """Run the macro (1), or define it: up to 16 bytes before RS."""
+        first = yield
+        if first == 1:
+            # A macro that runs itself would run for ever; the printer's would.
+            if not self._macro_running:
+                self._macro_pending = True
+            return
+        macro = bytearray()
+        byte = first
+        while byte != RS:
+            if len(macro) < 16:
+                macro.append(byte)
+            byte = yield
+        self._macro = bytes(macro)
 
     def _esc_typeface(self) -> ArgumentReader:
         """Choose the NLQ typeface; in draft it is kept for the next ESC x 1."""

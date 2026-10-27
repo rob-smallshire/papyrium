@@ -39,9 +39,15 @@ the printer's DIP switches and paper:
 | `font` | `lc10-draft` | The pica draft characters: an installed font's name, or the path of a dot font file |
 | `elite-font` | `lc10-draft-elite` | The elite draft characters: an installed font's name, or the path of a dot font file |
 
-Not modelled yet: IBM mode (switch 1-6), the Star commands beyond the
-LX-800's, proportional spacing in elite, character sizes (`ESC h`,
-`ESC w`), auto carriage return (switch
+Star's additions to ESC/P are obeyed: absolute and relative positioning
+(`ESC $`, `ESC \`), both margins at once (`ESC X`), extra space between
+characters (`ESC SP`), the slashed zero (`ESC ~`), reverse line feed and
+top of page (`ESC LF`, `ESC FF`) and the macro (`ESC +`).
+
+Not modelled yet: IBM mode (switch 1-6), overline (`ESC _`), the top
+margin (`ESC c`), `ESC f` and `ESC e` as the LC-10 has them,
+proportional spacing in elite, character sizes (`ESC h`, `ESC w`,
+`ESC [ @`), LF without a carriage return (switch
 1-2), download characters as the LC-10 defines them, and the LC-10
 Colour.
 
