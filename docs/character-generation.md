@@ -160,4 +160,8 @@ the paper so that overprinted inks mix; `ESC r` and the embedded
 commands (`embedded_commands`) choose colours on a mechanism with a
 `colour_ribbon`; and `star-lc10-colour` is the LC-10 Colour.
 
-IBM mode remains.
+IBM mode remains. Per the emulation rule it comes after the printer it
+emulates: the IBM Proprinter's language, `papyrium.language.proprinter`,
+shares the ESC/P interpreter's machinery and makes NLQ from the draft
+characters as the Proprinter does (`nlq_from_draft`), a mode-dependent
+transform, since it applies to download characters too.

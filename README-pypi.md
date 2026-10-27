@@ -250,6 +250,7 @@ to it, its modules joining the `papyrium` namespace beside these:
 |---|---|---|---|
 | Transports deliver bytes | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/raw_tcp/) |
 | Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) |
+|  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) |
 | Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.brother_m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) |
@@ -285,6 +286,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.core`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/core/) | Papyrium's core: the page model, printer models, jobs, spooling and the plug-in axes |
 | [`papyrium.transport.raw_tcp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
+| [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) | The IBM Proprinter's printer language, for its 9-wire printers |
 | [`papyrium.model.brother_m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/) | The Brother M-1109 9-pin dot-matrix printer |
 | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
 | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |

@@ -74,6 +74,7 @@ m1109-nlq = "papyrium.font.m1109:M1109NlqFont"
 
 [project.entry-points."papyrium.language"]
 escp = "papyrium.language.escp:EscpLanguage"
+proprinter = "papyrium.language.proprinter:ProprinterLanguage"
 
 [project.entry-points."papyrium.model"]
 brother-m1109 = "papyrium.model.brother_m1109:BrotherM1109"
@@ -159,6 +160,7 @@ testpaths = [
     "tests/font/lx800",
     "tests/font/lc10",
     "tests/language/escp",
+    "tests/language/proprinter",
     "tests/model/epson_fx80",
     "tests/model/brother_m1109",
     "tests/model/epson_lx800",

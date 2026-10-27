@@ -140,11 +140,8 @@ class EscpMechanism:
     #: The letters of the embedded commands, ((X))n sent as text, the
     #: printer obeys, as the Star LC-10 and LC-10 Colour have them.
     embedded_commands: frozenset[str] = frozenset()
-    #: IBM mode: the IBM Proprinter II's character sets and commands, as the
-    #: Star LC-10 has them in place of Standard mode.
-    ibm_mode: bool = False
-    #: FS begins a command: in IBM mode one of its own, in Standard mode one
-    #: that is ignored with the byte after it.
+    #: FS begins a command: ignored with the byte after it in ESC/P, as in
+    #: the Star LC-10's Standard mode; Star's own in its IBM mode.
     fs_prefix: bool = False
     #: ESC 6 and ESC 7 choose IBM character set #2 or #1 for the IBM table,
     #: rather than whether codes 128-159 print.

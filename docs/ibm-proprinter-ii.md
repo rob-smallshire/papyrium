@@ -290,6 +290,23 @@ graphics (176-223 and 244) are never underscored or overscored.
 - The draft download area can hold a Fastfont instead; the NLQ II area
   needs the 8K buffer (TR 4-9, 4-19).
 
+## Where Papyrium decides
+
+The manuals leave some combinations open; the `proprinter` language
+(`papyrium.language.proprinter`) settles them so:
+
+- Double strike (`ESC G`) prints NLQ with the draft face chosen; where
+  condensed or a script masks NLQ, it prints draft struck twice.
+- Condensed (unless 12 cpi masks it) and super- and subscript mask NLQ and
+  NLQ II; emphasized masks NLQ only, since NLQ II has an emphasized form
+  (TR 4-8).
+- Fastfont masks condensed, as 12 cpi does, and ignores `ESC G`.
+- `ESC X` counts its columns as the Star LC-10's manual shows for its IBM
+  mode: `ESC X 12 92` leaves twelve elite columns, an inch, to the left.
+- NLQ II download characters are skipped, their bytes counted; the
+  Figure A-1 widths are not yet used, proportional characters taking
+  their width from their dots; double height prints at single height.
+
 ## Open questions
 
 - Which characters to print with: no Proprinter II ROM is to hand, and

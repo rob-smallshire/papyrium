@@ -31,12 +31,7 @@ from dataclasses import dataclass, field, replace
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Ink, InkDots, Page, TextMark, inches
-from papyrium.language.escp.charsets import (
-    ADDITIONAL_LOCATION,
-    IBM_LOCATION,
-    character_at,
-    rom_location,
-)
+from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
 from papyrium.language.escp.generator import SCRIPT_ROW_PITCH, CharacterStyle
 from papyrium.language.escp.mechanism import EscpMechanism
 
@@ -44,11 +39,6 @@ logger = logging.getLogger(__name__)
 
 NUL, BEL, BS, HT, LF, VT, FF, CR, SO, SI = 0, 7, 8, 9, 10, 11, 12, 13, 14, 15
 DC1, DC2, DC3, DC4, CAN, ESC, FS, RS, DEL = 17, 18, 19, 20, 24, 27, 28, 30, 127
-
-#: The low codes IBM mode prints as the card suits and the section sign.
-IBM_PRINTED_LOW_CODES = frozenset({3, 4, 5, 6, 21})
-
-#: Codes below 32 that stay controls even when ESC I makes the others printable.
 
 #: Character widths, in units, for each pitch.
 PICA_WIDTH = inches(1) // 10
@@ -100,8 +90,8 @@ class _Entry:
 
 
 @dataclass(frozen=True)
-class _UserCharacter:
-    """A character defined with ESC &: its dots and its proportional columns."""
+class UserCharacter:
+    """A download character: its dots and its proportional columns."""
 
     glyph: Glyph
     first_column: int
@@ -207,7 +197,6 @@ class EscpInterpreter(Interpreter):
         self._extra_space = 0
         self._auto_line_feed = mechanism.auto_line_feed
         self._ibm_set = mechanism.ibm_set
-        self._stored_line_spacing: int | None = None
         self._inks: tuple[Ink | None, ...] = (None,)
         self._slashed_zero = mechanism.slashed_zero
         # Character size: height and width scales, the half printed, whether
@@ -249,7 +238,7 @@ class EscpInterpreter(Interpreter):
         self._top_margin = 0
         self._graphics_modes = {"K": 0, "L": 1, "Y": 2, "Z": 3}
         # The user RAM: 256 locations, empty until defined or copied from the ROM.
-        self._ram: dict[int, _UserCharacter] = {}
+        self._ram: dict[int, UserCharacter] = {}
         self._ram_holds_rom = False
         self._user_set_selected = False
         self._x = self._left_margin
@@ -338,10 +327,6 @@ class EscpInterpreter(Interpreter):
     def _is_printable(self, byte: int) -> bool:
         """Whether *byte* prints a character; the high codes mirror the controls."""
         code = byte & 0x7F
-        if self._mechanism.ibm_mode:
-            if byte & 0x80:
-                return self._ibm_set == 2 or byte >= 0xA0
-            return (code >= 0x20 and code != DEL) or code in IBM_PRINTED_LOW_CODES
         if code >= 0x20 and code != DEL:
             if byte & 0x80 and self._graphics_table and self._mechanism.ibm_character_sets:
                 return self._ibm_set == 2 or byte >= 0xA0
@@ -351,27 +336,18 @@ class EscpInterpreter(Interpreter):
         return code != DEL and self._low_codes_printable and code not in self._mechanism.controls
 
     def _control(self, code: int) -> ArgumentReader:
-        ibm = self._mechanism.ibm_mode
         if code == ESC:
             command = yield
             yield from self._escape(command & 0x7F)
         elif code == FS and self._mechanism.fs_prefix:
             command = yield
-            handler = self._fs_commands.get(chr(command & 0x7F)) if ibm else None
+            handler = self._fs_commands.get(chr(command & 0x7F))
             if handler is None:
                 logger.debug("ignoring FS %r", chr(command & 0x7F))
             else:
                 result = handler()
                 if result is not None:
                     yield from result
-        elif code == SI and ibm:
-            # IBM mode's condensed is always 17 characters to the inch.
-            self._print_line()
-            self._condensed, self._elite = True, False
-        elif code == DC2 and ibm:
-            self._condensed, self._elite = False, False
-        elif code == DC3 and ibm:
-            pass
         elif code == CR:
             self._carriage_return()
         elif code == LF:
@@ -420,10 +396,8 @@ class EscpInterpreter(Interpreter):
     def _location(self, byte: int) -> int:
         """The character location *byte* prints: the national sets redirect some codes."""
         code = byte & 0x7F
-        if byte & 0x80 and (self._graphics_table or self._mechanism.ibm_mode):
+        if byte & 0x80 and self._graphics_table:
             return IBM_LOCATION + code
-        if self._mechanism.ibm_mode and byte < 0x20:
-            return ADDITIONAL_LOCATION + byte
         if code >= 0x20:
             code = rom_location(code, self._character_set, self._mechanism.national_differences)
         return code | (byte & 0x80)
@@ -435,7 +409,7 @@ class EscpInterpreter(Interpreter):
         italic = self._is_italic(location)
         source = self._glyph_source(location)
         if source[0] == "ram" and self._ram[location].nlq:
-            self._nlq_character(location, self._ram[location].glyph, italic)
+            self._nlq_character(location, self._ram[location].glyph, italic, self._nlq_columns())
             return
         if self._height_scale > 1:
             enlarged = self._enlarged_glyph(location)
@@ -444,7 +418,7 @@ class EscpInterpreter(Interpreter):
                 return
         nlq_glyph = self._nlq_glyph(location)
         if nlq_glyph is not None:
-            self._nlq_character(location, nlq_glyph, italic)
+            self._nlq_character(location, nlq_glyph, italic, self._nlq_columns())
             return
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
@@ -454,7 +428,7 @@ class EscpInterpreter(Interpreter):
         dots = self._character_dots(location, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(width))
+        entry.dots.extend(self._line_dots(location, width))
         self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -490,7 +464,7 @@ class EscpInterpreter(Interpreter):
         raise_by = half if self._base_line_kept else 0
         entry = _Entry(self._x, [(self._x + dx, self._y + dy - raise_by) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(width))
+        entry.dots.extend(self._line_dots(location, width))
         self._add_to_line(entry)
         self._x += width + self._extra_space
         self._line_feed_scale = max(self._line_feed_scale, self._spacing_scale)
@@ -504,19 +478,24 @@ class EscpInterpreter(Interpreter):
         # The IBM PC table's characters are never italic.
         return location < IBM_LOCATION and (self._italic or (from_rom and bool(location & ITALIC)))
 
-    def _nlq_character(self, location: int, glyph: Glyph, italic: bool) -> None:
+    def _nlq_columns(self) -> int:
+        """The dot columns across an NLQ character's cell: its font's."""
+        return self._nlq_font().columns
+
+    def _nlq_character(self, location: int, glyph: Glyph, italic: bool, columns: int) -> None:
+        """Print an NLQ *glyph*, its *columns* spanning the cell."""
         cell = self._column_width() * (2 if self._is_double_width() else 1)
         width, offset = cell, 0
         proportional = self._generator.nlq_proportional_cell(glyph)
         if self._is_proportional() and proportional is not None:
-            columns, offset = proportional
-            width = columns * (cell // self._nlq_font().columns)
+            proportional_columns, offset = proportional
+            width = proportional_columns * (cell // columns)
         if self._x + width > self._right_limit(text=True):
             self._wrap()
-        dots = self._nlq_dots(glyph, cell, italic, offset)
+        dots = self._nlq_dots(glyph, cell, italic, offset, columns)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(width))
+        entry.dots.extend(self._line_dots(location, width))
         self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -614,7 +593,7 @@ class EscpInterpreter(Interpreter):
         return fonts[0]
 
     def _nlq_dots(
-        self, glyph: Glyph, width: int, italic: bool, offset: int
+        self, glyph: Glyph, width: int, italic: bool, offset: int, columns: int
     ) -> list[tuple[int, int]]:
         style = CharacterStyle(
             step=0,
@@ -623,7 +602,6 @@ class EscpInterpreter(Interpreter):
             emphasized=self._emphasized,
             double_width=self._is_double_width(),
         )
-        columns = self._nlq_font().columns
         return self._generator.nlq_dots(glyph, columns, width, style, self._mechanism.pin_pitch)
 
     def _report_missing(self, character: str, instead: str) -> None:
@@ -649,7 +627,11 @@ class EscpInterpreter(Interpreter):
             return columns * step, step, offset, glyph_source
         pitch = self._column_width()
         width = pitch * double
-        return width, width // self._generator.cell_columns(pitch), 0, glyph_source
+        return width, width // self._cell_columns(pitch), 0, glyph_source
+
+    def _cell_columns(self, pitch: int) -> int:
+        """The dot columns across a draft character's cell at fixed *pitch*."""
+        return self._generator.cell_columns(pitch)
 
     def _character_dots(
         self, location: int, glyph_source: tuple, step: int, offset: int, italic: bool
@@ -698,14 +680,21 @@ class EscpInterpreter(Interpreter):
     def _is_double_width(self) -> bool:
         return self._double_width or self._one_line_double_width
 
-    def _line_dots(self, width: int) -> list[tuple[int, int]]:
-        """The underline and overline across a character *width* wide."""
-        dots = []
+    def _line_dots(self, location: int, width: int) -> list[tuple[int, int]]:
+        """The underline and overline across the character at *location*,
+        *width* wide."""
+        dots: list[tuple[int, int]] = []
+        if not self._is_lined(location):
+            return dots
         if self._overline:
             dots.extend((self._x + x, self._y) for x in range(0, width, PROPORTIONAL_STEP))
         if self._underline:
             dots.extend(self._underline_dots(width))
         return dots
+
+    def _is_lined(self, location: int) -> bool:
+        """Whether underline and overline mark the character at *location*."""
+        return True
 
     def _underline_dots(self, width: int) -> list[tuple[int, int]]:
         y = self._y + self._mechanism.underline_row * self._mechanism.pin_pitch
@@ -1037,95 +1026,11 @@ class EscpInterpreter(Interpreter):
         if self._mechanism.ibm_character_sets:
             table["6"] = setter("_ibm_set", 2)
             table["7"] = setter("_ibm_set", 1)
-        if self._mechanism.ibm_mode:
-            for letter in (" ", "t", "I", "="):
-                table.pop(letter, None)
-            table.update(
-                {
-                    "2": self._esc_stored_line_spacing,
-                    "3": self._esc_line_spacing_216_ibm,
-                    "4": self._set_top_of_form,
-                    "5": self._esc_auto_line_feed,
-                    ":": setter("_elite", True),
-                    "A": self._esc_store_line_spacing,
-                    "M": self._esc_elite_ibm,
-                    "P": self._esc_proportional,
-                    "Q": self._esc_off_line,
-                    "R": self._esc_reset_tabs,
-                    "\\": self._esc_print_codes,
-                    "^": self._esc_print_code,
-                }
-            )
         return table
 
     def _fs_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
-        """IBM mode's commands after FS: Standard mode's after ESC."""
-        return {
-            "4": self._esc_italic,
-            "5": lambda: setattr(self, "_italic", False),
-            ":": self._esc_copy_rom,
-            "=": lambda: setattr(self, "_msb", 0),
-            "Q": self._esc_right_margin,
-            "R": self._esc_character_set,
-            "\\": self._esc_relative_position,
-        }
-
-    # -- IBM mode's own escape commands -----------------------------------
-
-    def _esc_store_line_spacing(self) -> ArgumentReader:
-        """Keep n/72 inch for ESC 2 to bring into force; 0 is ignored."""
-        n = yield
-        if 0 < n <= 85:
-            self._stored_line_spacing = n * self._mechanism.pin_pitch
-        else:
-            logger.debug("ignoring line spacing of %d/72 inch", n)
-
-    def _esc_stored_line_spacing(self) -> None:
-        """The spacing ESC A kept, or 1/6 inch if none."""
-        self._line_spacing = self._stored_line_spacing or inches(1) // 6
-
-    def _esc_line_spacing_216_ibm(self) -> ArgumentReader:
-        n = yield
-        if n:
-            self._line_spacing = n * FEED_STEP
-        else:
-            logger.debug("ignoring zero line spacing")
-
-    def _esc_auto_line_feed(self) -> ArgumentReader:
-        """Carriage return also feeds a line (1) or not (0)."""
-        self._auto_line_feed = self._flag((yield))
-
-    def _esc_elite_ibm(self) -> None:
-        self._elite, self._condensed = True, False
-
-    def _esc_off_line(self) -> ArgumentReader:
-        """ESC Q 3: off line until DC1."""
-        if (yield) == 3:
-            self._print_line()
-            self._selected = False
-
-    def _esc_reset_tabs(self) -> None:
-        """Horizontal tabs every eight columns again, and no vertical tabs."""
-        self._tabs = self._default_tabs()
-        self._vertical_tab_channels[self._vertical_tab_channel] = []
-        self._vertical_tabs = self._vertical_tab_channels[self._vertical_tab_channel]
-
-    def _esc_print_codes(self) -> ArgumentReader:
-        """Print the next n1 + 256 n2 bytes as characters, controls included."""
-        low = yield
-        high = yield
-        for _ in range(low + 256 * high):
-            yield from self._print_any_code()
-
-    def _esc_print_code(self) -> ArgumentReader:
-        yield from self._print_any_code()
-
-    def _print_any_code(self) -> ArgumentReader:
-        byte = yield
-        if byte < 0x20:
-            self._print_location(ADDITIONAL_LOCATION + byte)
-        else:
-            self._print_location(self._location(byte))
+        """The commands after FS: none, FS and the byte after it being ignored."""
+        return {}
 
     @staticmethod
     def _flag(value: int) -> bool:
@@ -1188,7 +1093,7 @@ class EscpInterpreter(Interpreter):
                 self._ram[location] = self._draft_user_character(attribute, data)
 
     @staticmethod
-    def _draft_user_character(attribute: int, columns: list[int]) -> _UserCharacter:
+    def _draft_user_character(attribute: int, columns: list[int]) -> UserCharacter:
         fired = 0
         patterns = []
         for column in columns:
@@ -1203,12 +1108,12 @@ class EscpInterpreter(Interpreter):
             for bit in range(8)
             if pattern & (0x80 >> bit)
         )
-        return _UserCharacter(
+        return UserCharacter(
             Glyph(dots), first_column=(attribute >> 4) & 0x07, last_column=attribute & 0x0F
         )
 
     @staticmethod
-    def _nlq_user_character(attribute: int, data: list[int]) -> _UserCharacter:
+    def _nlq_user_character(attribute: int, data: list[int]) -> UserCharacter:
         """An NLQ character: 23 columns of the first pass, then 23 of the
         second, half a dot lower; the attribute's left and right space give
         its span."""
@@ -1224,7 +1129,7 @@ class EscpInterpreter(Interpreter):
         left, right = (attribute >> 4) & 0x07, attribute & 0x0F
         span = (left, max(left, 22 - right))
         glyph = Glyph(dots, span=span, lowered=lowered)
-        return _UserCharacter(glyph, first_column=left, last_column=span[1], nlq=True)
+        return UserCharacter(glyph, first_column=left, last_column=span[1], nlq=True)
 
     def _esc_copy_rom(self) -> ArgumentReader:
         for _ in range(3):
