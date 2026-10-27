@@ -89,6 +89,11 @@ class CharacterGenerator:
         *step* apart: half a column for each row above the baseline, row 6."""
         return (BASELINE_ROW - row) * step // 2
 
+    def nlq_italic_offset(self, glyph: Glyph, row: int, step: int) -> int:
+        """How far right italic moves an NLQ *glyph*'s dots in *row*, its
+        columns *step* apart: not at all, NLQ printing upright."""
+        return 0
+
     def draft_dots(self, glyph: Glyph, style: CharacterStyle, pin_pitch: int) -> list[Dot]:
         """The dots of a draft character, relative to the head."""
         if self.prints_adjacent_dots_once:
@@ -122,12 +127,13 @@ class CharacterGenerator:
     ) -> list[Dot]:
         """The dots of an NLQ character from a font of *columns* columns,
         which span its cell, *width* wide: the pins of the first pass on
-        even rows, of the second, *nlq_pass_offset* lower, on odd rows.
-        NLQ prints upright, italic or not."""
+        even rows, of the second, *nlq_pass_offset* lower, on odd rows."""
         step = width // columns
         result = []
         for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
             dx = column * step
+            if style.italic:
+                dx += self.nlq_italic_offset(glyph, row, step)
             dy = (row // 2) * pin_pitch + (row % 2) * self.nlq_pass_offset
             passes = [(dx, dy)]
             if style.double_width:
