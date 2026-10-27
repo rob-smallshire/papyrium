@@ -27,6 +27,9 @@ BASELINE_ROW = 6
 #: Columns of an NLQ character: 1/240 inch apart across the pica cell.
 NLQ_COLUMNS = 24
 
+#: Width of a proportional space, in proportional columns.
+PROPORTIONAL_SPACE_COLUMNS = 10
+
 #: The second pass of double-strike printing is this far below the first.
 DOUBLE_STRIKE_OFFSET = inches(1) // 216
 
@@ -64,6 +67,15 @@ class CharacterGenerator:
 
     prints_adjacent_dots_once: bool = False
     nlq_emphasized: bool = False
+
+    def proportional_cell(self, glyph: Glyph) -> tuple[int, int]:
+        """The columns a character takes in proportional spacing, and how
+        many columns its glyph moves right: its extent with a column of
+        space either side, or a fixed width for a blank glyph."""
+        if glyph.extent is None:
+            return PROPORTIONAL_SPACE_COLUMNS, 0
+        first, last = glyph.extent
+        return last - first + 3, 1 - first
 
     def draft_dots(self, glyph: Glyph, style: CharacterStyle, pin_pitch: int) -> list[Dot]:
         """The dots of a draft character, relative to the head."""

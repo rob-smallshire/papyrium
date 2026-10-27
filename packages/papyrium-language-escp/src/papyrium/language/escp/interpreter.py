@@ -53,9 +53,6 @@ CELL_COLUMNS = 12
 #: Column step for proportional characters: 1/120 inch.
 PROPORTIONAL_STEP = inches(1) // 120
 
-#: Width of a proportional space, in proportional columns.
-PROPORTIONAL_SPACE_COLUMNS = 10
-
 #: The second pass of double-strike printing is this far below the first: 1/216 inch.
 DOUBLE_STRIKE_OFFSET = inches(1) // 216
 
@@ -430,12 +427,8 @@ class EscpInterpreter(Interpreter):
                 user_character = self._ram[location]
                 columns = user_character.last_column - user_character.first_column + 1
                 offset = -user_character.first_column
-            elif glyph.extent is None:
-                columns, offset = PROPORTIONAL_SPACE_COLUMNS, 0
             else:
-                first, last = glyph.extent
-                columns = last - first + 3
-                offset = 1 - first
+                columns, offset = self._generator.proportional_cell(glyph)
             step = PROPORTIONAL_STEP * double
             return columns * step, step, offset, glyph_source
         width = self._column_width() * double

@@ -47,3 +47,12 @@ def test_nlq_passes_fall_on_alternate_rows_1_216_inch_apart():
 def test_printable_once_drops_a_dot_that_follows_a_printed_one():
     glyph = Glyph(frozenset({(0, 0), (1, 0), (2, 0)}), span=(0, 4))
     assert printable_once(glyph) == Glyph(frozenset({(0, 0), (2, 0)}), span=(0, 4))
+
+
+def test_a_proportional_cell_is_the_extent_with_a_column_either_side():
+    assert GENERATOR.proportional_cell(Glyph(frozenset({(2, 0), (5, 3)}))) == (6, -1)
+    assert GENERATOR.proportional_cell(Glyph(frozenset({(2, 0)}), span=(0, 4))) == (7, 1)
+
+
+def test_a_blank_proportional_cell_is_ten_columns():
+    assert GENERATOR.proportional_cell(Glyph(frozenset())) == (10, 0)
