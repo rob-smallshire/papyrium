@@ -197,6 +197,12 @@ and the column builders (`$FB88`) choose by pitch:
 | Condensed elite | As condensed pica: 12 columns at 1/240 inch | As condensed pica: 12 columns at 1/240 inch |
 | Proportional | Sanserif's second pass at half width, its width + 2 columns at 1/120 inch | The pica table, its width + 4 columns at 1/240 inch |
 
+Proportional draft does not use the draft table's first and last
+columns for ROM characters: like pica, it is made from Sanserif at half
+width, its advance half Sanserif's width plus 2 columns (`$FAD7`). The
+draft table's header bytes matter only for characters copied into RAM
+with `ESC :`, which keep them as their attribute bytes.
+
 "At half width" (`$FBBB`) ORs each pair of columns into one and removes
 any dot the column before printed, so no pin fires in successive
 columns; the left and right spaces are halved too. Every Sanserif entry
@@ -230,6 +236,22 @@ blanks. In fixed pitch the gap is one column, so the cell is 24 columns
 in pica (23 + 1). In proportional spacing the left and right spaces are
 dropped and the gap is 4 columns: the advance is the glyph's width plus
 4/240 inch.
+
+## Character sizes
+
+`ESC h n` sets one bit of `$5D` (`$9A92`): 1 double (0x08), 2 quadruple
+(0x80), 3 and 4 the lower and upper halves of double (0x02, 0x04), 5 and
+6 the lower and upper halves of quadruple (0x20, 0x40), 0 none. `ESC w 1`
+(double height on the base line) is bit 3 of `$BC` (`$9B1E`). Each
+change first prints the line waiting in the buffer and cancels
+superscript and subscript. The line sequencer has a branch for each
+(`$CA01`-`$CA25`): `$BC` bit 3 and double to `$CB65`, quadruple to
+`$CC7A`, its upper and lower halves to `$CC54` and `$CC46`, double's
+upper and lower halves to `$CB4E` and `$CB19`.
+
+Superscript and subscript appear to be made by keeping every other row
+of the character's columns, the pass choosing which (`$E2F8`); this is
+not yet confirmed.
 
 ## Colour
 
@@ -277,5 +299,8 @@ technical manual, worked by the carriage at the home position.
 
 ## Not yet decoded
 
-- The sequencer's branches for double height and quadruple size
-  (`$CB19`-`$CCEE`), and the three shade records 0x32-0x34.
+- How the enlarged sizes build their columns and which rows each pass
+  prints (the routines around `$E2F8` and `$D2B5`-`$D4A3`), and the
+  feeds between their passes.
+- Superscript and subscript, to confirm.
+- The three shade records 0x32-0x34, which nothing found so far reads.
