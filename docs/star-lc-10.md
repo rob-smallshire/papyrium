@@ -341,8 +341,8 @@ pages within one or two of these.
 
 | Bytes | Mode | Effect | Page | vs FX-80 |
 |---|---|---|---|---|
-| `ESC t n` | Std | Standard set (0) or IBM set (1, #2 unless `ESC 7` was sent) at 128-254 | 63-64 | new |
-| `ESC 6` / `ESC 7` | Both | IBM set #2 / #1; held until `ESC t 1` in Std | 64 | different meaning |
+| `ESC t n` | Std | Standard set (0) or IBM set (1, #2 unless `ESC 7` was sent; the firmware gives the set switch 1-7 chose, #1 with it on) at 128-254 | 63-64 | new |
+| `ESC 6` / `ESC 7` | Both | IBM set #2 / #1; held until `ESC t 1` in Std (the firmware ignores them until then) | 64 | different meaning |
 | `ESC R n` | Std | International set 0-13 | 64 | four more sets |
 | `FS R n` | IBM | International set 0-13 | 64 | |
 | `ESC \ n1 n2` | IBM | Print the next n1 + 256 n2 bytes as characters, no controls; codes with no glyph print a space | 65 | Proprinter |
@@ -635,19 +635,15 @@ the differences:
   italics, `FS Q` for the margin and `ESC A n ESC 2` for spacing (45).
 
 Papyrium builds IBM mode on its IBM Proprinter II model's language
-(`papyrium.model.star_lc10.ibm_mode`, on `papyrium.language.proprinter`).
-Where neither this manual nor the firmware traced so far says, it
-assumes so:
-
-- The commands marked Both keep their Standard mode handlers, as one
-  firmware table would, so `ESC B` and `ESC D` count stops as Standard
-  mode does, not from 1 as the Proprinter does; VT goes to the next top
-  of form past the last stop; DEL deletes; SO's double width outlasts CR
-  and CAN; `ESC G` is double strike rather than the Proprinter's NLQ.
-- `ESC I` 0 and 4 also return to pica, and 1 and 5 choose elite; the NLQ
-  values leave the pitch as it is.
-- Proportional spacing uses the LC-10's own character widths, not IBM's
-  table.
+(`papyrium.model.star_lc10.ibm_mode`, on `papyrium.language.proprinter`),
+each command following the firmware's handler, which
+`docs/star-lc10-firmware.md` lists under IBM mode: the commands both
+modes share keep Standard mode's handling where the firmware shares the
+handler; NLQ is suspended by emphasized, scripts and condensed as on the
+Proprinter; `ESC I` keeps the pitch but for 1 and 5; the power-on tab
+stops are columns 9, 17, ...; `ESC B` counts lines from 1. The firmware's
+undocumented `ESC 0x01` and `ESC 0x02`, which switch modes, are not
+modelled.
 
 ## LC-10 Colour
 

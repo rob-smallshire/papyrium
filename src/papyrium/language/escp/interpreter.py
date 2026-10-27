@@ -31,7 +31,13 @@ from dataclasses import dataclass, field, replace
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Ink, InkDots, Page, TextMark, inches
-from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
+from papyrium.language.escp.charsets import (
+    ADDITIONAL_LOCATION,
+    IBM_LOCATION,
+    SET_2_LOW_CODES,
+    character_at,
+    rom_location,
+)
 from papyrium.language.escp.generator import SCRIPT_ROW_PITCH, CharacterStyle
 from papyrium.language.escp.mechanism import EscpMechanism
 
@@ -327,13 +333,21 @@ class EscpInterpreter(Interpreter):
     def _is_printable(self, byte: int) -> bool:
         """Whether *byte* prints a character; the high codes mirror the controls."""
         code = byte & 0x7F
+        if byte & 0x80 and self._graphics_table and self._mechanism.ibm_character_sets:
+            # Set #1 obeys codes 128-159 as controls; set #2 prints them.
+            return self._ibm_set == 2 or byte >= 0xA0
         if code >= 0x20 and code != DEL:
-            if byte & 0x80 and self._graphics_table and self._mechanism.ibm_character_sets:
-                return self._ibm_set == 2 or byte >= 0xA0
             return True
         if byte & 0x80:
             return self._high_codes_printable
+        if byte in SET_2_LOW_CODES and self._in_ibm_set_2():
+            return True
         return code != DEL and self._low_codes_printable and code not in self._mechanism.controls
+
+    def _in_ibm_set_2(self) -> bool:
+        """Whether codes print from IBM character set #2, as the Star LC-10's
+        do with the IBM table chosen and set #2."""
+        return self._mechanism.ibm_character_sets and self._graphics_table and self._ibm_set == 2
 
     def _control(self, code: int) -> ArgumentReader:
         if code == ESC:
@@ -398,6 +412,8 @@ class EscpInterpreter(Interpreter):
         code = byte & 0x7F
         if byte & 0x80 and self._graphics_table:
             return IBM_LOCATION + code
+        if byte in SET_2_LOW_CODES and self._in_ibm_set_2():
+            return ADDITIONAL_LOCATION + byte
         if code >= 0x20:
             code = rom_location(code, self._character_set, self._mechanism.national_differences)
         return code | (byte & 0x80)
@@ -1034,9 +1050,17 @@ class EscpInterpreter(Interpreter):
             table["x"] = self._esc_nlq
             table["k"] = self._esc_typeface
         if self._mechanism.ibm_character_sets:
-            table["6"] = setter("_ibm_set", 2)
-            table["7"] = setter("_ibm_set", 1)
+            table["6"] = lambda: self._choose_ibm_set(2)
+            table["7"] = lambda: self._choose_ibm_set(1)
         return table
+
+    def _choose_ibm_set(self, ibm_set: int) -> None:
+        """ESC 6 and ESC 7, which choose an IBM set only while the IBM table
+        is in use."""
+        if self._graphics_table:
+            self._ibm_set = ibm_set
+        else:
+            logger.debug("ignoring ESC 6 or 7 without the IBM table")
 
     def _fs_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
         """The commands after FS: none, FS and the byte after it being ignored."""

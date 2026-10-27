@@ -18,7 +18,12 @@ from collections.abc import Callable
 
 from papyrium.core.dotfont import DotFont, Glyph
 from papyrium.core.page import inches
-from papyrium.language.escp.charsets import ADDITIONAL_LOCATION, IBM_LOCATION, rom_location
+from papyrium.language.escp.charsets import (
+    ADDITIONAL_LOCATION,
+    IBM_LOCATION,
+    SET_2_LOW_CODES,
+    rom_location,
+)
 from papyrium.language.escp.interpreter import (
     DC2,
     DC3,
@@ -43,9 +48,6 @@ DOWNLOAD = 4
 
 #: Fastfont's cell: ten columns of 1/120 inch, 12 characters to the inch.
 FASTFONT_CELL_COLUMNS = 10
-
-#: The low codes character set 2 prints: the card suits and the section sign.
-SET_2_LOW_CODES = frozenset({3, 4, 5, 6, 21})
 
 #: The block graphics, never underscored or overscored: line drawing and
 #: shading at 176-223, and 244.

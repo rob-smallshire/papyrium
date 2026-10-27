@@ -120,3 +120,26 @@ def test_fs_and_the_byte_after_it_are_ignored_in_standard_mode():
     interpreter = StarLC10(name="star-lc10").create_interpreter()
     (page,) = interpreter.feed(b"\x1c4AB\r\n\x0c") + interpreter.finish()
     assert [mark.character for mark in page.text] == ["A", "B"]
+
+
+def _standard_text(data, **options):
+    interpreter = StarLC10(name="star-lc10", **options).create_interpreter()
+    pages = interpreter.feed(data + b"\r\n\x0c") + interpreter.finish()
+    return "".join(mark.character for page in pages for mark in page.text).strip()
+
+
+def test_the_ibm_table_starts_in_the_set_switch_1_7_chooses():
+    # The firmware's power-on modes ($9060): set #2 with 1-7 off, #1 with it on.
+    assert _standard_text(b"\x80A", graphics_table=True) == "ÇA"
+    assert _standard_text(b"\x1bt\x01\x80A") == "A"
+
+
+def test_esc_6_and_7_choose_the_ibm_set_only_while_the_ibm_table_is_in_use():
+    assert _standard_text(b"\x1bt\x01\x1b6\x80") == "Ç"
+    assert _standard_text(b"\x1b6\x1bt\x01\x80A") == "A"
+    assert _standard_text(b"\x1b7\x80A", graphics_table=True) == "A"
+
+
+def test_ibm_set_2_prints_the_card_suits_and_section_sign():
+    assert _standard_text(b"\x03\x04\x05\x06\x15", graphics_table=True) == "♥♦♣♠§"
+    assert _standard_text(b"\x03A") == "A"

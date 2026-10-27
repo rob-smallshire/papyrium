@@ -44,6 +44,9 @@ IBM_LOCATION = 0x200
 #: The IBM PC's symbols at codes 0-31, the additional set of IBM mode, at
 #: locations 0x300 on; code 0 is a slashed zero.
 ADDITIONAL_LOCATION = 0x300
+#: The low codes IBM character set #2 prints: the card suits and the section sign.
+SET_2_LOW_CODES = frozenset({3, 4, 5, 6, 21})
+
 ADDITIONAL_CHARACTERS = ("0\u0338", *"☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
 
 

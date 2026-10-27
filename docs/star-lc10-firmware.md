@@ -128,8 +128,8 @@ The vectors:
 | `$FFFC` | `_INT2` (P01) and `BRK` | `$FF7E` |
 | `$FFFE` | Reset | `$8100` |
 
-`disassemble.sh` disassembles the program with MAME's `unidasm`
-(architecture `m740`), used as a tool only, into
+`tools/lc10-rom/disassemble.py` disassembles the program with MAME's
+`unidasm` (architecture `m740`), used as a tool only, into
 `docs/local/star-lc10/LC10-NX1P-1.5CL.dis`. Build `unidasm` from a MAME
 checkout with `make EMULATOR=0 TOOLS=1 NOWERROR=1`; the script looks for
 it in `docs/local/m50734/`.
@@ -139,13 +139,51 @@ development board. Its summary of register addresses disagrees with
 MAME's and with itself, and most of its pages and downloads were missing
 in October 2026, so MAME is the reference here.
 
+## Navigating the program
+
+`tools/lc10-rom/lc10-map.txt` is the map of the program: where it keeps
+data rather than code, and a name and a line of description for every
+routine, entry point and RAM location traced so far, every command
+handler among them. `disassemble.py` reads it, disassembles only the
+code, so the listing stays on instruction boundaries after the tables in
+the program, prints the command tables as decoded entries (`'I' ->
+$9513  ibm_esc_i`), heads each named routine with its description, and
+notes the name of each address an instruction refers to:
+
+```
+; ibm_esc_m: ESC M in IBM mode: elite, dropping condensed, NLQ again if asked for
+9490: 07 39 f9  bbs 0, $39, $948c       ; panel_state
+```
+
+To find a command, look up its handler in the map or the decoded
+tables (search the listing for `; ibm_esc_x:`); to follow a RAM bit, search
+for its name. When tracing finds something, give it a name in the map and
+run the script again, and write up here what it shows.
+
+Where to start:
+
+| At | Is |
+|---|---|
+| `$8100` | Power on |
+| `$83B8` | `next_byte`: the main loop's next byte; every handler ends here |
+| `$8423` | Control codes: `standard_controls` (`$B175`) or `ibm_controls` (`$B1A6`) by IBM mode |
+| `$B1D7`, `$B2DC` | ESC: `standard_escapes` (`$B1F4`) or `ibm_escapes` (`$B2F9`) |
+| `$B3E1`, `$B3F8` | FS: `standard_fs` (`$B3F7`, empty) or `ibm_fs` (`$B40E`) |
+| `$B424` | `find_command`: the search all the tables share |
+| `$C9A7` | The line sequencer, which prints a line |
+| `$E5A9`, `$FB88` | The character setup and column builders |
+
+The state the commands change is in a few zero-page bytes, named in the
+map: `$37` and `$38` the DIP switches, `$3A` and `$3B` the modes set from
+them, `$41` the pitch, `$42` and `$5C` the print attributes and mode.
+
 ## What the program settles
 
 Addresses are CPU addresses in the program; RAM names are zero-page
 locations.
 
 **Escape commands** are looked up in tables of three-byte entries, the
-command byte and the handler's address, ending with 0xFF: Standard mode
+command byte and the handler's address, ending with 0x00: Standard mode
 at `$B1F4`, IBM mode at `$B2F9`. `ESC 4` and `ESC 5` set and clear bit 1
 of `$42` (unless the panel's style lock, bit 1 of `$39`, is on); `ESC p`
 is bit 5, `ESC _` bit 7. `$5C` bit 2 is NLQ (`ESC x 1` also sets bit 4 and
@@ -245,26 +283,79 @@ dropped and the gap is 4 columns: the advance is the glyph's width plus
 
 ## IBM mode
 
-Control codes are dispatched through tables of their own, like the
-escapes: Standard mode's at `$B175`, IBM mode's at `$B1A6`, which point
-ESC at the IBM escape table (`$B2F9`) and differ for SI (`$94A4`, always
-17 to the inch), DC2 (`$9472`, also back to pica) and DC3 (ignored). FS
-reads one more byte: in Standard mode its table (`$B3F7`) is empty, so
-FS and that byte are ignored; in IBM mode its table (`$B40E`) gives
-`FS 4`, `FS 5`, `FS :`, `FS =`, `FS Q`, `FS R` and `FS \`, each the
-handler of Standard mode's escape of that letter. These are Star's: IBM
-mode reassigns those escapes to the Proprinter's meanings and moves
-Standard mode's behind FS. The IBM escape table lacks `ESC SP` and
-ignores `ESC t`; its `ESC 2`, `4`, `5`, `:`, `=`, `I`, `M`, `P`, `Q`, `R`,
-`\` and `^` are the Proprinter's. Its handlers for `ESC E`, `F`, `S`,
-`T` and `x` differ from Standard mode's in ways not yet traced.
+IBM mode is bit 5 of `$37`, which holds DIP switch 1-6 off; besides the
+switch, two commands the manual does not mention change it: `ESC 0x01`
+(`$B167`) clears it, Standard mode, and `ESC 0x02` (`$B16E`) sets it, IBM
+mode, each also switching the IBM table (`$3A` bit 2). `ESC @` sets `$3A`
+and `$3B` from `$37` and `$38` again (`$9957`).
 
-`ESC =` (`$AA06`, the Proprinter's download form) is ignored with NLQ
-selected or the RAM serving as a buffer; it takes its count, subtracts
-two, and defines one character for each 13 bytes left, from the code
-that follows. `ESC I` (`$9513`) takes 0-7 or the digits: 0 draft and 1
-draft elite from the ROM, 2 Sanserif and 3 or 7 Courier in NLQ, 4 and 5
-draft and draft elite from the download set, 6 NLQ from it.
+Control codes (`$8423`), escapes and the commands after FS each have a
+table for each mode. Of the escapes, IBM mode's table shares most
+handlers with Standard mode's, and those test the mode where they differ;
+it has its own for SI, `ESC 2`, `4`, `5`, `:`, `=`, `E`, `F`, `M`, `P`,
+`Q`, `R`, `S`, `T`, `\`, `^` and `x`, adds `ESC I`, leaves out `ESC SP`,
+and gives `ESC t` to the unknown command routine, which drops the
+letter. Of the control codes, SI and DC2 have IBM handlers and DC3 is
+unknown, so ignored. FS gives Star's commands: `FS 4`, `5`, `:`, `=`,
+`Q`, `R` and `\` run Standard mode's `ESC` handlers.
+
+**NLQ.** `$5C` bit 4 is NLQ asked for and bit 2 NLQ printing. IBM mode
+suspends NLQ as the Proprinter does: `ESC x 1` and `ESC I 2`, `3`, `7` ask
+for it (`$94D3`), and it prints unless emphasized, a script or condensed
+is on; `ESC E`, `ESC S` and SI stop it printing, and `ESC F`, `ESC T`,
+DC2 and `ESC M` start it again if it was asked for. Standard mode's
+`ESC x 1` instead clears emphasized, and its `ESC E` is ignored in NLQ.
+
+**`ESC I`** (`$9513`) takes 0-7 or the digits: 0 and 1 draft from the ROM
+(`$94FA`, and `$42` bit 3, the download set, cleared), 1 then running
+`ESC M`; 2 Sanserif and 3 or 7 Courier, asked for as by `ESC x 1`, the
+download set left as it was; 4 and 5 the download set in draft
+(`$959E`), emphasized off, 5 then `ESC M`; 6 the download set in NLQ
+(`$95B6`) whatever the other modes, emphasized and condensed off, and
+Sanserif. None changes the pitch but 1 and 5. 4, 5 and 6 do nothing to
+the set or quality while the RAM is a buffer (`$3B` bit 4, switch 2-1),
+though 5 still chooses elite and 6 Sanserif.
+
+**Pitch.** SI (`$94A4`) is 17 cpi from pica or elite; DC2 (`$9472`)
+returns to pica from elite or condensed; `ESC M` and `ESC :` (`$9490`,
+`ESC :` entering one byte earlier, on a NOP) choose elite and drop
+condensed. IBM mode's `ESC E` (`$95F8`) works at any pitch, where
+Standard mode's (`$95D9`) works only at pica. `ESC !` (`$92F8`) calls each
+mode's own SI, DC2, `ESC M`, `ESC E` and `ESC F`: in IBM mode condensed
+(bit 2) leaves elite (bit 0) unread, and emphasized (bit 3) takes effect
+only at pica, in either mode.
+
+**Commands whose argument may be another byte.** `ESC P` (`$96D9`) and
+`ESC 5` (`$9165`) read their argument raw: 0 and 1 set proportional and
+the CR line feed (`$3A` bit 7); any other byte is taken as received, after
+`ESC P` has chosen pica, so Standard mode's `ESC P` still works.
+
+**Spacing and feeds.** `ESC A` (`$97EB`) keeps its spacing in `$0112`
+in IBM mode, for `ESC 2` (`$97CD`) to bring in, 72 steps (1/6 inch) after
+`ESC @`; it and `ESC 3` (`$97D5`) ignore 0 in IBM mode. `ESC J` (`$A0ED`)
+and `ESC j` (`$A12A`) return the carriage first in IBM mode when a line
+feed does (`$3A` bit 6, switch 1-2 on).
+
+**Tabs.** `ESC D` (`$A501`) keeps up to 32 stops, 28 in IBM mode, as
+column numbers, and HT (`$A562`) moves that many columns of the pitch
+they were set in, in either mode. The power-on stops (`$8A6B`, also IBM
+`ESC R`) are columns 8, 16, ... in Standard mode and 9, 17, ... in IBM
+mode: Star read the Proprinter's "every eight from column 9" as nine
+columns in. `ESC B` and `ESC b` (`$A6C3`) keep up to 16 vertical stops;
+in IBM mode each line n but 1 counts as n - 1 (`$A757`).
+
+**Character sets.** `$3A` bit 2 is the IBM table and bit 3 set #2, from
+switch 1-7 at power on (`$9060`): in Standard mode 1-7 off sets both, on
+clears both; in IBM mode bit 2 is always set and 1-7 on sets bit 3.
+`ESC t` changes only bit 2, and `ESC 6` and `ESC 7` (`$939E`, `$93A6`)
+change bit 3 only while bit 2 is set. So in Standard mode with 1-7 on,
+`ESC t 1` gives set #1, whatever `ESC 6` sent before it; the user manual
+says set #2 unless `ESC 7` was sent. With set #2 the low codes 3-6 and 21
+print, the card suits and §, in either mode (`$8445`).
+
+**Not modelled by Papyrium:** the mode switching commands `ESC 0x01` and
+`ESC 0x02`, which would change the language part way through a job, and
+the control panel's locks.
 
 ## Download characters
 

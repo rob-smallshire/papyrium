@@ -143,8 +143,9 @@ class EscpMechanism:
     #: FS begins a command: ignored with the byte after it in ESC/P, as in
     #: the Star LC-10's Standard mode; Star's own in its IBM mode.
     fs_prefix: bool = False
-    #: ESC 6 and ESC 7 choose IBM character set #2 or #1 for the IBM table,
-    #: rather than whether codes 128-159 print.
+    #: ESC 6 and ESC 7 choose IBM character set #2 or #1 while the IBM table
+    #: is in use, rather than whether codes 128-159 print; set #2 prints the
+    #: card suits and the section sign among the low codes.
     ibm_character_sets: bool = False
     #: The IBM character set at power on: #2, or #1, in which codes 128-159
     #: are controls.

@@ -100,3 +100,65 @@ def test_the_lc10_colour_prints_in_colour_in_ibm_mode():
 def test_esc_d_takes_at_most_28_stops():
     stops = bytes(range(1, 31)) + b"\x00"
     assert ibm(ESC + b"D" + stops + b"\t" * 29 + b"A") == standard(b" " * 28 + b"A")
+
+
+# What the firmware's IBM mode handlers show (docs/star-lc10-firmware.md).
+
+
+def test_esc_i_0_and_4_keep_the_pitch():
+    assert ibm(ESC + b":" + ESC + b"I\x00Elite") == standard(ESC + b"MElite")
+
+
+def test_esc_i_1_is_elite_dropping_condensed():
+    assert ibm(b"\x0f" + ESC + b"I\x01Elite") == standard(ESC + b"MElite")
+
+
+def test_emphasized_condensed_and_scripts_suspend_nlq_until_they_end():
+    for start, end in ((b"E", b"F"), (b"S\x01", b"T")):
+        data = ESC + b"x\x01" + ESC + start + b"A" + ESC + end + b"Courier"
+        assert ibm(data) == standard(ESC + start + b"A" + ESC + end + ESC + b"x\x01Courier")
+    data = ESC + b"x\x01\x0fA\x12Courier"
+    assert ibm(data) == standard(b"\x0fA\x12" + ESC + b"x\x01Courier")
+
+
+def test_emphasized_works_at_any_pitch():
+    assert ibm(ESC + b":" + ESC + b"EA") != ibm(ESC + b":A")
+
+
+def test_esc_i_6_prints_nlq_regardless():
+    define = ESC + b"=\x0f\x00\x14A" + bytes([0, 0, 0x80] + [0] * 10)
+    with_emphasis = ibm(ESC + b"E" + define + ESC + b"I\x06B", download_characters=True)
+    assert with_emphasis == standard(ESC + b"x\x01" + ESC + b"k\x01B")
+
+
+def test_download_print_modes_are_ignored_with_the_ram_a_buffer():
+    assert ibm(ESC + b"I\x06B") == ibm(b"B")
+
+
+def test_power_on_tabs_are_every_eight_columns_from_column_9():
+    assert ibm(b"\tA") == standard(b" " * 9 + b"A")
+    assert ibm(ESC + b"D\x02\x00" + ESC + b"R\tA") == standard(b" " * 9 + b"A")
+
+
+def test_esc_b_counts_lines_from_1_at_the_top():
+    assert ibm(ESC + b"B\x03\x00\x0bA") == standard(b"\n\nA")
+    assert ibm(ESC + b"B\x01\x00\x0bA") == standard(b"\nA")
+
+
+def test_master_select_condensed_is_17_cpi_and_never_elite():
+    assert ibm(ESC + b"!\x05AA") == standard(b"\x0fAA")
+    assert ibm(ESC + b"!\x01AA") == standard(ESC + b"MAA")
+
+
+def test_esc_p_with_another_byte_chooses_pica_and_reads_the_byte_again():
+    assert ibm(ESC + b":" + ESC + b"PA") == standard(b"A")
+
+
+def test_esc_5_with_another_byte_reads_it_again():
+    assert ibm(ESC + b"5A") == standard(b"A")
+
+
+def test_esc_j_returns_the_carriage_with_switch_1_2_on():
+    assert ibm(b"AB" + ESC + b"J\x24C") == standard(b"AB\nC")
+    unreturned = ibm(b"AB" + ESC + b"J\x24C", auto_carriage_return=False)
+    assert unreturned == standard(b"AB" + ESC + b"J\x24C", auto_carriage_return=False)

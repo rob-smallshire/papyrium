@@ -129,8 +129,14 @@ class StarLC10(PrinterModel):
                 cancel_ends_one_line_enlarged=False,
             )
         else:
+            # Switch 1-7 off chooses the IBM table in IBM set #2; with it on,
+            # ESC t 1 chooses the table in set #1 ($9060).
             self._mechanism = EscpMechanism(
-                **common, graphics_table=graphics_table, commands=_COMMANDS
+                **common,
+                graphics_table=graphics_table,
+                ibm_character_sets=True,
+                ibm_set=2 if graphics_table else 1,
+                commands=_COMMANDS,
             )
 
     #: The LC-10 has a black ribbon; the LC-10 Colour a four-colour one.
