@@ -6,21 +6,14 @@ from papyrium.core.dotfont import DotFont
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.exception import ConfigurationError
 from papyrium.extension import create_extension, namespace_for
-from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
+from papyrium.language.escp import EscpMechanism, options
 from papyrium.language.escp.charsets import LC10_NATIONAL_DIFFERENCES, LX800_CHARACTER_SETS
 from papyrium.language.proprinter import ProprinterMechanism
 from papyrium.model.star_lc10 import demo
 from papyrium.model.star_lc10.generator import LC10CharacterGenerator
-from papyrium.model.star_lc10.ibm_mode import LC10IbmModeInterpreter
+from papyrium.model.star_lc10.interpreter import LC10Interpreter
 
 __all__ = ["StarLC10", "StarLC10Colour"]
-
-#: The commands after ESC in the LC-10's Standard mode, as its firmware's
-#: command table lists them (docs/star-lc10-firmware.md).
-_COMMANDS = frozenset(
-    "\x01\x02\n\x0c\x0e\x0f\x19 !#$%&*+-/0123456789:<=>?@ABCDEFGHJKLMNOPQRSTUWXYZ[\\^_"
-    "abcefhijklprtwx~"
-)
 
 #: The NLQ typefaces in ESC k order: Courier, Sanserif, Orator with small
 #: capitals and Orator with lower case.
@@ -46,6 +39,7 @@ class StarLC10(PrinterModel):
     ESC r, and of the embedded commands it obeys only the sheet feeder's.
     IBM mode, in which it follows the IBM Proprinter II, takes the
     Proprinter's character sets and commands and keeps its own characters.
+    ESC 0x01 and ESC 0x02 change mode part way through a job.
 
     Options model its DIP switches, at their factory settings by default,
     and its paper: form-length in inches (11, switch 1-1; 12 with it off),
@@ -119,25 +113,15 @@ class StarLC10(PrinterModel):
             proportional_emphasized=False,
             fs_prefix=True,
         )
-        if ibm_mode:
-            # Switch 1-7 chooses IBM character set #2 (on) or #1 (off), and
-            # SO's double width lasts past CR and CAN.
-            self._mechanism: EscpMechanism = ProprinterMechanism(
-                **common,
-                ibm_set=1 if graphics_table else 2,
-                carriage_return_ends_one_line_enlarged=False,
-                cancel_ends_one_line_enlarged=False,
-            )
-        else:
-            # Switch 1-7 off chooses the IBM table in IBM set #2; with it on,
-            # ESC t 1 chooses the table in set #1 ($9060).
-            self._mechanism = EscpMechanism(
-                **common,
-                graphics_table=graphics_table,
-                ibm_character_sets=True,
-                ibm_set=2 if graphics_table else 1,
-                commands=_COMMANDS,
-            )
+        # Both modes' settings: switch 1-7 (graphics_table) chooses the IBM
+        # table and set by mode, and SO's double width outlasts CR and CAN.
+        self._mechanism = ProprinterMechanism(
+            **common,
+            graphics_table=graphics_table,
+            ibm_character_sets=True,
+            carriage_return_ends_one_line_enlarged=False,
+            cancel_ends_one_line_enlarged=False,
+        )
 
     #: The LC-10 has a black ribbon; the LC-10 Colour a four-colour one.
     _COLOUR_RIBBON = False
@@ -153,15 +137,15 @@ class StarLC10(PrinterModel):
         return ModelIdentity(manufacturer="Star", model=self._MODEL_NAME)
 
     def languages(self) -> tuple[str, ...]:
-        return ("proprinter",) if self._ibm_mode else ("escp",)
+        """ESC/P and the Proprinter's language, the one switch 1-6 chooses at
+        power on first: ESC 0x01 and ESC 0x02 change between them."""
+        return ("proprinter", "escp") if self._ibm_mode else ("escp", "proprinter")
 
     def demo(self) -> bytes:
         return demo.demo()
 
     def create_interpreter(self) -> Interpreter:
-        if self._ibm_mode:
-            return LC10IbmModeInterpreter(self._mechanism)
-        return EscpInterpreter(self._mechanism)
+        return LC10Interpreter(self._mechanism, ibm_mode=self._ibm_mode)
 
 
 class StarLC10Colour(StarLC10):

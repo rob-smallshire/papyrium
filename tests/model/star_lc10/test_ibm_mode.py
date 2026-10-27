@@ -13,22 +13,17 @@ def _pages(data, *, ibm_mode, model=StarLC10, **options):
 
 def ibm(data, **options):
     """The dots *data* prints in IBM mode."""
-    return [page.dots for page in _pages(data, ibm_mode=True, **options)]
+    return [sorted(page.dots) for page in _pages(data, ibm_mode=True, **options)]
 
 
 def standard(data, **options):
     """The dots *data* prints in Standard mode."""
-    return [page.dots for page in _pages(data, ibm_mode=False, **options)]
+    return [sorted(page.dots) for page in _pages(data, ibm_mode=False, **options)]
 
 
 def text(data, **options):
     pages = _pages(data, ibm_mode=True, **options)
     return "".join(mark.character for page in pages for mark in page.text).strip()
-
-
-def test_switch_1_6_off_speaks_the_proprinters_language():
-    assert StarLC10(name="star-lc10", ibm_mode=True).languages() == ("proprinter",)
-    assert StarLC10(name="star-lc10").languages() == ("escp",)
 
 
 def test_draft_prints_as_in_standard_mode():
@@ -162,3 +157,36 @@ def test_esc_j_returns_the_carriage_with_switch_1_2_on():
     assert ibm(b"AB" + ESC + b"J\x24C") == standard(b"AB\nC")
     unreturned = ibm(b"AB" + ESC + b"J\x24C", auto_carriage_return=False)
     assert unreturned == standard(b"AB" + ESC + b"J\x24C", auto_carriage_return=False)
+
+
+# ESC 0x01 and ESC 0x02: Standard and IBM mode from software ($B167, $B16E).
+
+SOH, STX = ESC + b"\x01", ESC + b"\x02"
+
+
+def test_esc_stx_switches_to_ibm_mode():
+    assert standard(STX + ESC + b"I\x02Sanserif") == ibm(ESC + b"I\x02Sanserif")
+    assert standard(b"A" + STX + FS + b"4B") == standard(b"A" + ESC + b"4B")
+
+
+def test_esc_soh_switches_back_to_standard_mode():
+    assert ibm(SOH + ESC + b"4Italic") == standard(ESC + b"4Italic")
+    # Only the mode changes: the tab stops IBM mode set at power on stay.
+    assert ibm(SOH + b"\tA") == standard(b" " * 9 + b"A")
+
+
+def test_esc_at_keeps_the_mode():
+    assert standard(STX + ESC + b"@" + ESC + b"I\x02S") == ibm(ESC + b"I\x02S")
+
+
+def test_the_ibm_set_bit_carries_across_a_switch():
+    # Switch 1-7 on: Standard mode's set #1 stays set #1 in IBM mode, where
+    # power on in IBM mode would have chosen set #2.
+    assert text(b"\x80A") == "ÇA"
+    pages = _pages(STX + b"\x80A", ibm_mode=False)
+    assert "".join(m.character for p in pages for m in p.text).strip() == "A"
+
+
+def test_the_switch_chooses_the_language_first_spoken():
+    assert StarLC10(name="star-lc10").languages() == ("escp", "proprinter")
+    assert StarLC10(name="star-lc10", ibm_mode=True).languages() == ("proprinter", "escp")

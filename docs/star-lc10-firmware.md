@@ -353,9 +353,62 @@ change bit 3 only while bit 2 is set. So in Standard mode with 1-7 on,
 says set #2 unless `ESC 7` was sent. With set #2 the low codes 3-6 and 21
 print, the card suits and §, in either mode (`$8445`).
 
-**Not modelled by Papyrium:** the mode switching commands `ESC 0x01` and
-`ESC 0x02`, which would change the language part way through a job, and
-the control panel's locks.
+Papyrium follows this with one interpreter for both modes
+(`papyrium.model.star_lc10.interpreter`), the mode a bit in it as in the
+firmware, so `ESC 0x01` and `ESC 0x02` change language part way through a
+job; switching keeps everything else, the tab stops and the IBM set
+among it. The control panel's locks are not modelled.
+
+## Where the firmware and the manuals differ
+
+The firmware is what the printer does, so Papyrium follows it where it
+departs from the user manual (cited by page) or the technical manual
+(TM). Each is described above where the firmware's address is given.
+
+It contradicts them:
+
+- **NLQ's second pass** is 1/144 inch below the first, as the user
+  manual says; the TM's 1/216 inch is only the finest feed a command can
+  ask for (NLQ passes and paper movement).
+- **`ESC t 1` in Standard mode** chooses the IBM set that switch 1-7
+  chose at power on, set #1 with it on, and `ESC 6` and `ESC 7` are
+  ignored until the IBM table is in use; the manual (63-64) says set #2
+  unless `ESC 7` was sent, and that `ESC 6` and `ESC 7` are held until
+  `ESC t 1` (IBM mode, Character sets).
+- **`ESC J` and `ESC j`** return the carriage only in IBM mode, with
+  switch 1-2 on; the manual (72) gives them to both modes alike, and
+  says only that they do not move horizontally with 1-2 off (IBM mode,
+  Spacing and feeds).
+- **`ESC B` in IBM mode** counts lines from 1, line n but the first
+  being n - 1 lines down; the manual (74-75) says the stops are in lines
+  for both modes alike (IBM mode, Tabs).
+- **Standard mode's `ESC E`** works only at pica, not just in draft as
+  the manual (61) says: elite and condensed ignore it (`$95D9`).
+
+It does what they do not mention:
+
+- **`ESC 0x01` and `ESC 0x02`** switch to Standard and IBM mode
+  (IBM mode).
+- **IBM character set #2 prints the card suits and §** at codes 3-6 and
+  21 in either mode, with the IBM table in use (Character sets).
+- **IBM mode suspends NLQ** for emphasized, the scripts and condensed,
+  resuming it when they end, as the Proprinter does; Standard mode's
+  `ESC x 1` turns emphasized off instead (NLQ).
+- **`ESC I`** keeps the pitch for all but 1 and 5, 6 chooses Sanserif
+  and forces NLQ on, and 4-6 do nothing to the set while the RAM is a
+  buffer (`ESC I`).
+- **IBM mode's power-on tab stops** are columns 9, 17, ..., one column
+  further than Standard mode's (Tabs).
+- **IBM mode's `ESC P` and `ESC 5`** read any byte but 0 and 1 again,
+  `ESC P` choosing pica first; **`ESC !`** in IBM mode never gives
+  condensed elite, and in either mode sets emphasized only at pica
+  (Pitch).
+- **IBM mode's `ESC =`** is the download command, not `ESC &` as the
+  manual's decimal and hex columns (84) have it.
+- **The ribbon's colours** are struck lightest band first, a mixed
+  colour through both its bands, and bands are changed by short strokes
+  of the carriage at the left end; the manuals do not describe either
+  (Colour).
 
 ## Download characters
 

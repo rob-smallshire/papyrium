@@ -165,5 +165,5 @@ emulates: the IBM Proprinter's language, `papyrium.language.proprinter`,
 shares the ESC/P interpreter's machinery and makes NLQ from the draft
 characters as the Proprinter does (`nlq_from_draft`), a mode-dependent
 transform, since it applies to download characters too. The LC-10's IBM
-mode (`papyrium.model.star_lc10.ibm_mode`) is a variant of that
+mode (`papyrium.model.star_lc10.interpreter`) is a variant of that
 language, keeping the LC-10's own typefaces and character generator.

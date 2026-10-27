@@ -1,14 +1,20 @@
-"""The LC-10's IBM mode: the Proprinter II's language on the LC-10.
+"""The Star LC-10's interpreter: ESC/P in Standard mode, the IBM Proprinter
+II's language in IBM mode.
 
-With switch 1-6 off (or after ``ESC 0x02``) the LC-10 emulates an IBM
-Proprinter II, and per the emulation rule this is built on the
-Proprinter's language as a variant. From the Proprinter it takes its
-character sets 1 and 2 and the commands whose letters mean something
-else there. It keeps its own typefaces and character generator, which
-``ESC I`` chooses among in place of the Proprinter's faces, ``ESC G``
-being double strike, and the commands the two modes share; Star's
-commands after FS give back the Standard mode commands whose letters the
-Proprinter's took.
+The firmware keeps the mode in one bit (``$37`` bit 5), set from switch
+1-6 at power on and by ``ESC 0x01`` and ``ESC 0x02`` at any time, and
+looks up commands in a table for each mode; the handlers the modes share
+test the bit where they differ. So does this interpreter, one for both
+modes, so that a job can change mode part way through.
+
+Standard mode is the ESC/P interpreter with the LC-10's mechanism. IBM
+mode is built, per the emulation rule, on the Proprinter's language as a
+variant: from the Proprinter it takes its character sets 1 and 2 and the
+commands whose letters mean something else there. It keeps the LC-10's
+own typefaces and character generator, which ``ESC I`` chooses among in
+place of the Proprinter's faces, ``ESC G`` being double strike, and the
+commands the two modes share; Star's commands after FS give back the
+Standard mode commands whose letters the Proprinter's took.
 
 Each handler follows the firmware's (``docs/star-lc10-firmware.md``,
 whose IBM mode section lists them by address). Where IBM mode has a
@@ -35,6 +41,13 @@ from papyrium.language.proprinter.interpreter import DRAFT, ProprinterInterprete
 
 logger = logging.getLogger(__name__)
 
+#: The commands after ESC in Standard mode, as its firmware's command table
+#: lists them ($B1F4).
+STANDARD_COMMANDS = frozenset(
+    "\x01\x02\n\x0c\x0e\x0f\x19 !#$%&*+-/0123456789:<=>?@ABCDEFGHJKLMNOPQRSTUWXYZ[\\^_"
+    "abcefhjklprtwx~"
+)
+
 #: The ESC/P commands whose Standard mode handlers serve IBM mode too.
 _COMMANDS_OF_BOTH_MODES = "\n\x0c\x0e$%&*-/89?BDGHWabcefhjklprw~"
 
@@ -45,18 +58,64 @@ _COURIER, _SANSERIF = 0, 1
 _VERTICAL_TAB_STOPS = 16
 
 
-class LC10IbmModeInterpreter(ProprinterInterpreter):
-    """The Proprinter's language as the Star LC-10 speaks it in IBM mode."""
+class LC10Interpreter(ProprinterInterpreter):
+    """The Star LC-10's languages, starting in IBM mode (*ibm_mode*, switch
+    1-6 off) or Standard mode."""
+
+    def __init__(self, mechanism, *, ibm_mode: bool = False) -> None:
+        # $37 bit 5, which ESC @ leaves as it is.
+        self._ibm = ibm_mode
+        super().__init__(mechanism)
 
     def _initialise(self) -> None:
         super()._initialise()
         # $5C bit 4: NLQ asked for, which emphasized, the scripts and
         # condensed suspend; _nlq, bit 2, is whether it prints.
         self._nlq_requested = self._nlq
+        self._character_table_from_switches()
+        if not self._ibm:
+            self._ram_holds_rom = False
+
+    def _character_table_from_switches(self) -> None:
+        """The IBM table and set as power on and ESC @ choose them ($9060):
+        IBM mode always has the table, in set #2 with switch 1-7 on;
+        Standard mode has both with 1-7 off, the italic table and set #1
+        with it on."""
+        switch_1_7_off = self._mechanism.graphics_table
+        if self._ibm:
+            self._graphics_table = True
+            self._ibm_set = 1 if switch_1_7_off else 2
+        else:
+            self._graphics_table = switch_1_7_off
+            self._ibm_set = 2 if switch_1_7_off else 1
+
+    # -- The mode ---------------------------------------------------------------
+
+    def _switch_mode(self, ibm: bool) -> None:
+        """ESC 0x01 ($B167) and ESC 0x02 ($B16E): Standard or IBM mode, with
+        the IBM table off or on; the IBM set is kept."""
+        self._ibm = self._graphics_table = ibm
+        self._escapes = self._ibm_escapes if ibm else self._standard_escapes
+        self._fs_commands = self._fs_table()
 
     def _escape_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
-        table = super()._escape_table()
+        """The current mode's escapes, keeping both for a change of mode."""
         escp = EscpInterpreter._escape_table(self)
+        self._standard_escapes = {
+            letter: handler for letter, handler in escp.items() if letter in STANDARD_COMMANDS
+        }
+        self._standard_escapes["E"] = self._esc_emphasized_standard
+        self._standard_escapes["x"] = self._esc_nlq_standard
+        self._ibm_escapes = self._ibm_escape_table(escp)
+        for table in (self._standard_escapes, self._ibm_escapes):
+            table["\x01"] = lambda: self._switch_mode(False)
+            table["\x02"] = lambda: self._switch_mode(True)
+        return self._ibm_escapes if self._ibm else self._standard_escapes
+
+    def _ibm_escape_table(
+        self, escp: dict[str, Callable[[], ArgumentReader | None]]
+    ) -> dict[str, Callable[[], ArgumentReader | None]]:
+        table = super()._escape_table()
         table.update({letter: escp[letter] for letter in _COMMANDS_OF_BOTH_MODES})
         table.update(
             {
@@ -79,8 +138,11 @@ class LC10IbmModeInterpreter(ProprinterInterpreter):
         return table
 
     def _fs_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
-        """Star's commands after FS ($B40E): the Standard mode commands whose
-        letters the Proprinter's commands took."""
+        """Star's commands after FS in IBM mode ($B40E): the Standard mode
+        commands whose letters the Proprinter's commands took. Standard
+        mode has none ($B3F7)."""
+        if not self._ibm:
+            return {}
         return {
             "4": self._esc_italic,
             "5": lambda: setattr(self, "_italic", False),
@@ -91,8 +153,27 @@ class LC10IbmModeInterpreter(ProprinterInterpreter):
             "\\": self._esc_relative_position,
         }
 
+    # -- What the mode changes ---------------------------------------------------
+
+    def _is_printable(self, byte: int) -> bool:
+        if self._ibm:
+            return super()._is_printable(byte)
+        return EscpInterpreter._is_printable(self, byte)
+
+    def _location(self, byte: int) -> int:
+        if self._ibm:
+            return super()._location(byte)
+        return EscpInterpreter._location(self, byte)
+
+    def _is_lined(self, location: int) -> bool:
+        if self._ibm:
+            return super()._is_lined(location)
+        return EscpInterpreter._is_lined(self, location)
+
     def _control(self, code: int) -> ArgumentReader:
-        if code == SI:
+        if not self._ibm:
+            yield from EscpInterpreter._control(self, code)
+        elif code == SI:
             self._condensed_ibm()
         elif code == DC2:
             self._pica_ibm()
@@ -122,7 +203,9 @@ class LC10IbmModeInterpreter(ProprinterInterpreter):
 
     def _is_emphasized(self) -> bool:
         # IBM mode's emphasized prints at any pitch, NLQ being suspended.
-        return self._emphasized
+        if self._ibm:
+            return self._emphasized
+        return EscpInterpreter._is_emphasized(self)
 
     def _proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int]:
         return EscpInterpreter._proportional_cell(self, location, glyph)
@@ -136,12 +219,17 @@ class LC10IbmModeInterpreter(ProprinterInterpreter):
     def _default_tabs(self) -> list[int]:
         """Every eight columns from column 9 ($8A6B), one column further
         than Standard mode's, HT moving that many columns in either."""
+        if not self._ibm:
+            return EscpInterpreter._default_tabs(self)
         return [column * PICA_WIDTH for column in range(9, self._mechanism.columns, 8)]
 
     def _store_vertical_tabs(self, channel: int) -> ArgumentReader:
-        """Up to 16 stops, each line n but the first n - 1 lines down ($A757)."""
+        """Up to 16 stops, each line n but the first n - 1 lines down in IBM
+        mode ($A757)."""
         lines = yield from self._read_stops(_VERTICAL_TAB_STOPS)
-        stops = [(line - 1 if line > 1 else line) * self._line_spacing for line in lines]
+        if self._ibm:
+            lines = [line - 1 if line > 1 else line for line in lines]
+        stops = [line * self._line_spacing for line in lines]
         stops = [stop for stop in stops if stop < self._form_length]
         self._vertical_tab_channels[channel] = stops
         if self._vertical_tab_channel == channel:
@@ -180,6 +268,24 @@ class LC10IbmModeInterpreter(ProprinterInterpreter):
         """ESC M and ESC : ($9490): elite, from pica or condensed."""
         self._elite, self._condensed = True, False
         self._resume_nlq()
+
+    def _esc_nlq_standard(self) -> ArgumentReader:
+        """Standard mode's ESC x ($9431): NLQ, emphasized off (1), or draft (0)."""
+        n = self._flag_or_digit((yield))
+        if n == 1:
+            self._print_line()
+            self._nlq_requested = self._nlq = True
+            self._emphasized = False
+        elif n == 0:
+            self._cancel_nlq()
+
+    def _esc_emphasized_standard(self) -> None:
+        """Standard mode's ESC E ($95D9): emphasized, only in draft at pica."""
+        if self._nlq or self._elite or self._condensed:
+            logger.debug("ignoring ESC E: emphasized is draft pica only")
+            return
+        self._print_line()
+        self._emphasized = True
 
     def _esc_nlq_ibm(self) -> ArgumentReader:
         """ESC x ($94BD): NLQ (1) or draft (0), as a code or a digit."""

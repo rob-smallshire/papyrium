@@ -78,6 +78,8 @@ sets 1 and 2 and the commands whose letters it gives other meanings
 `^`), with Star's `FS` commands for the Standard mode ones they displace.
 It keeps its own typefaces, which `ESC I` chooses among (0 draft, 1 draft
 elite, 2 Sanserif, 3 or 7 Courier, 4 to 6 from the download set), and the
-commands both modes share.
+commands both modes share. As in the firmware, one interpreter speaks
+both, so `ESC 0x01` and `ESC 0x02`, which the manual does not mention,
+change between Standard and IBM mode part way through a job.
 
 {{ common.licence(repo_url("LICENSE")) }}

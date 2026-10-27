@@ -460,6 +460,8 @@ default vertical tabs. Unknown escape sequences are not discussed.
 - LF and `ESC LF` move to the left margin when switch 1-2 is on (the
   factory setting); VT and FF always do. `ESC J` and `ESC j` do not
   move horizontally when 1-2 is off, so with 1-2 on they presumably do.
+  The firmware says otherwise: only in IBM mode do they return the
+  carriage, with 1-2 on (`docs/star-lc10-firmware.md`).
 - CR prints and returns; with 1-8 off (or IBM `ESC 5 1`) it also feeds.
 - `ESC J`, `ESC j`, `ESC LF`, `ESC FF` and `ESC i` are all marked as
   ignored under friction feed; for `ESC J` this looks like an error
@@ -635,15 +637,17 @@ the differences:
   italics, `FS Q` for the margin and `ESC A n ESC 2` for spacing (45).
 
 Papyrium builds IBM mode on its IBM Proprinter II model's language
-(`papyrium.model.star_lc10.ibm_mode`, on `papyrium.language.proprinter`),
+(`papyrium.model.star_lc10.interpreter`, on `papyrium.language.proprinter`),
 each command following the firmware's handler, which
 `docs/star-lc10-firmware.md` lists under IBM mode: the commands both
 modes share keep Standard mode's handling where the firmware shares the
 handler; NLQ is suspended by emphasized, scripts and condensed as on the
 Proprinter; `ESC I` keeps the pitch but for 1 and 5; the power-on tab
-stops are columns 9, 17, ...; `ESC B` counts lines from 1. The firmware's
-undocumented `ESC 0x01` and `ESC 0x02`, which switch modes, are not
-modelled.
+stops are columns 9, 17, ...; `ESC B` counts lines from 1. One interpreter
+speaks both modes, as the firmware does, so the undocumented `ESC 0x01`
+and `ESC 0x02` switch between them part way through a job.
+`docs/star-lc10-firmware.md` lists where the firmware departs from this
+manual.
 
 ## LC-10 Colour
 
@@ -818,7 +822,8 @@ for everything needed to simulate the LC-10 and LC-10 Colour.
 - The IBM download command (84) is shown as `ESC =` in the ASCII column
   and the command summary but as 38 (`&`) in the decimal and hex
   columns. The Proprinter uses `ESC =`; which does the LC-10 accept?
-  The TM has no command reference.
+  The TM has no command reference. The firmware settles it: `ESC =`
+  (`$AA06` in the IBM escape table).
 - `FS 5` is printed with hex 1C 33 (61); decimal 28 53 is surely right.
 - `ESC J` is said to be ignored under friction feed (72), which would
   make it useless on single sheets; probably copied from `ESC j`.

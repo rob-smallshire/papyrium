@@ -7,6 +7,7 @@ from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp import CharacterSet
 from papyrium.model.star_lc10 import StarLC10
 from papyrium.model.star_lc10.generator import LC10CharacterGenerator
+from papyrium.model.star_lc10.interpreter import STANDARD_COMMANDS
 
 SAMPLE_JOB = b"\x1b@Star LC-10\r\n\x1bx\x01Near letter quality\x1bx\x00\r\n\x0cSecond page\r\n\x0c"
 
@@ -30,7 +31,7 @@ def test_is_registered_on_the_model_axis():
 def test_identity_and_language():
     model = StarLC10(name="star-lc10")
     assert model.identity().display_name == "Star LC-10"
-    assert model.languages() == ("escp",)
+    assert model.languages() == ("escp", "proprinter")
 
 
 def test_defaults_match_the_factory_switch_settings():
@@ -81,11 +82,12 @@ def test_prints_with_the_lc10s_character_generator():
 
 @pytest.mark.parametrize("command", ["p", "4", "5", "k", "x", "a", "t", "-", "!", "j"])
 def test_obeys_the_standard_mode_commands(command):
-    assert command in _mechanism().commands
+    assert command in STANDARD_COMMANDS
 
 
 def test_ignores_the_commands_it_lacks():
-    assert "I" not in _mechanism().commands
+    assert "I" not in STANDARD_COMMANDS
+    assert _standard_text(b"\x1bI\x02A") == "A"
 
 
 def test_block_graphics_are_twelve_dots_high_so_lines_join():
