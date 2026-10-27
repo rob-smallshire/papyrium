@@ -110,3 +110,23 @@ which is the test that a refactoring has not changed behaviour.
 
 Steps 1 to 3 the LC-10 needs whether or not fonts can be derived; once
 they are done, derived fonts cost little.
+
+## Progress
+
+Steps 1 to 4 are done:
+
+1. A glyph may carry its `span` (`U+0021 span 2 5`), and proportional
+   spacing reads its `extent`.
+2. `papyrium.language.escp.generator`: a `CharacterGenerator` turns a
+   glyph in a `CharacterStyle` into dots, its `proportional_cell` gives
+   a character's proportional width, and its parameters hold the rules
+   that were mechanism booleans (`prints_adjacent_dots_once`,
+   `nlq_emphasized`) and NLQ's pass offset. An NLQ font's columns span
+   its cell.
+3. The mechanism's `elite_font`, `nlq_elite` and `nlq_elite_fonts` choose
+   fonts by pitch.
+4. `DerivedDotFont`, with the `pass_rows` and `half_width` transforms;
+   `lc10-draft` is derived from `lc10-nlq-sanserif`.
+
+The block graphics stay a file: their 12-dot extension is a printing
+pass, which the LC-10's generator will make, not a fixed derivation.
