@@ -1,0 +1,189 @@
+# A map of the Star LC-10 Colour's program, firmware version 1.5, as traced
+# so far: where it keeps data rather than code, and what its routines and
+# RAM locations do, in our own words. tools/lc10-rom/disassemble.py reads
+# it to lay out and annotate the disassembly; docs/star-lc10-firmware.md
+# explains what it shows.
+#
+# Each line is a CPU address or range, a kind, a name and a description.
+# Kinds: data (bytes), commands (a command table: a byte and its handler's
+# address, three bytes an entry, ended by a zero), code (a routine or an
+# entry point within one), ram (a zero-page or RAM location).
+
+# -- Data in the program -----------------------------------------------------
+
+$8000-$80FF  data      program_data       Settings and the international sets: ESC R 1 at $8040 up to 12 at $80C4, then USA at $80D0
+$B175-$B1A5  commands  standard_controls  Standard mode's control codes
+$B1A6-$B1D6  commands  ibm_controls       IBM mode's control codes
+$B1F4-$B2DB  commands  standard_escapes   Standard mode's escape commands
+$B2F9-$B3E0  commands  ibm_escapes        IBM mode's escape commands
+$B3F7-$B3F7  commands  standard_fs        Standard mode's commands after FS: none
+$B40E-$B423  commands  ibm_fs             IBM mode's commands after FS: Star's
+$905B-$905F  data      fill_905b          Unused
+$B139-$B166  data      self_test_text     The self-test's heading: "DIP-SW" and the switch numbers
+$B452-$B46F  data      fill_b452          Unused
+$E810-$E81F  data      nlq_typefaces      The NLQ index table of each typeface: pica, then elite at $E818
+
+# -- The main loop and command dispatch ---------------------------------------
+
+$8100  code  reset                     Power on
+$83B8  code  next_byte                 Take the next input byte and act on it, unless deselected ($39 bit 4); handlers end here, and unknown escapes come here
+$B1D7  code  standard_escape           ESC in Standard mode: read the command and look it up in standard_escapes
+$B2DC  code  ibm_escape                ESC in IBM mode: read the command and look it up in ibm_escapes
+$B3E1  code  standard_fs_command       FS in Standard mode: read a byte and look it up in standard_fs, which is empty
+$B3F8  code  ibm_fs_command            FS in IBM mode: read a byte and look it up in ibm_fs
+$8423  code  choose_control_table      A control code: look it up in ibm_controls in IBM mode ($37 bit 5), else standard_controls
+$87C2  code  carriage_return           Print the line and return the head to the left margin
+$8A6B  code  reset_tabs                Horizontal stops every 8 columns from 8, or from 9 in IBM mode; called by ESC @ and IBM mode's ESC R
+$9060  code  read_switch_modes         At power on, set $3A and $3B from the DIP switches ($37, $38)
+$94D3  code  request_nlq               NLQ asked for ($5C bit 4); it prints ($5C bit 2) unless emphasized, a script or condensed
+$94FA  code  cancel_nlq                Draft: clear $5C bits 2 and 4
+$959E  code  download_draft_mode       ESC I 4 and 5: the download set in draft, emphasized off; nothing with the RAM a buffer
+$95B6  code  download_nlq_mode         ESC I 6: the download set in NLQ whatever the modes, emphasized and condensed off; nothing with the RAM a buffer
+$9718  code  set_typeface              The NLQ typeface in Y, 0-3, into $A1 bits 4-5
+$A757  code  ibm_line_number           In IBM mode, a vertical stop's line n less one, unless 1
+$B424  code  find_command              Look the command in A up in the table at ($3F); carry set if found, $3F-$40 then the handler
+$B44A  code  read_command_byte         Read the next byte of a command
+$B44E  code  flush_line                Print what the line buffer holds, before a change of mode (calls $8733)
+$B4D4  code  read_byte                 Read the next input byte
+$B52E  code  read_flag                 Read an argument, turning the digits "0" and "1" into 0 and 1
+
+# -- Command handlers, by table entry ------------------------------------------
+
+$B167  code  esc_soh                   ESC 0x01: Standard mode, as switch 1-6 on (undocumented)
+$B16E  code  esc_stx                   ESC 0x02: IBM mode, as switch 1-6 off (undocumented)
+$925D  code  esc_lf                    ESC LF: reverse line feed
+$92C0  code  esc_ff                    ESC FF: back to the top of the page
+$9735  code  so                        SO and ESC SO: double width for the line
+$93F9  code  std_si                    SI and ESC SI in Standard mode: condensed, keeping elite
+$94A4  code  ibm_si                    SI and ESC SI in IBM mode: 17 cpi from pica or elite, suspending NLQ
+$AF44  code  esc_em                    ESC EM: the sheet feeder
+$92F8  code  esc_bang                  ESC !: master select
+$A0E6  code  esc_hash                  ESC #: bit 7 as received
+$A189  code  esc_dollar                ESC $: absolute position
+$AC19  code  esc_percent               ESC %: download or ROM set
+$A8FD  code  esc_ampersand             ESC &: define download characters
+$9C6C  code  esc_star                  ESC *: bit image in mode m
+$A80F  code  esc_plus                  ESC +: macro
+$9759  code  esc_minus                 ESC -: underline
+$A802  code  esc_slash                 ESC /: vertical tab channel
+$97C0  code  esc_0                     ESC 0: 1/8 inch spacing
+$97C4  code  esc_1                     ESC 1: 7/72 inch spacing
+$97C8  code  std_esc_2                 ESC 2 in Standard mode: 1/6 inch spacing
+$97CD  code  ibm_esc_2                 ESC 2 in IBM mode: bring ESC A's spacing ($0112) into force
+$97D5  code  esc_3                     ESC 3: n/216 inch spacing; IBM mode ignores 0
+$976C  code  std_esc_4                 ESC 4 in Standard mode, FS 4 in IBM mode: italic
+$98D9  code  ibm_esc_4                 ESC 4 in IBM mode: this line is the top of form
+$9773  code  std_esc_5                 ESC 5 in Standard mode, FS 5 in IBM mode: italic off
+$9165  code  ibm_esc_5                 ESC 5 in IBM mode: CR feeds (1) or not (0); another byte is read again
+$939E  code  esc_6                     ESC 6: IBM character set #2
+$93A6  code  esc_7                     ESC 7: IBM character set #1
+$99A2  code  esc_8                     ESC 8: ignore paper out
+$99AA  code  esc_9                     ESC 9: obey paper out
+$AC66  code  std_esc_colon             ESC : in Standard mode: copy the ROM to the RAM; FS : enters at $AC63
+$948F  code  ibm_esc_colon             ESC : in IBM mode: a NOP, then ESC M
+$A170  code  esc_less                  ESC <: one line unidirectional
+$A0DA  code  std_esc_equals            ESC = in Standard mode, FS = in IBM mode: bit 7 clear
+$AA06  code  ibm_esc_equals            ESC = in IBM mode: download characters, the Proprinter's form
+$A0E0  code  esc_greater               ESC >: bit 7 set
+$A245  code  esc_question              ESC ?: reassign a bit image mode
+$993F  code  esc_at                    ESC @: initialise
+$97EB  code  esc_a_upper               ESC A: n/72 inch spacing; IBM mode keeps it in $0112 for ESC 2 and ignores 0
+$A6C3  code  esc_b_upper               ESC B: vertical tabs in channel 0
+$986C  code  esc_c_upper               ESC C: form length
+$A501  code  esc_d_upper               ESC D: horizontal tabs, 32 stops, or 28 in IBM mode, kept as column numbers
+$95D9  code  std_esc_e                 ESC E in Standard mode: emphasized, only at pica and not in NLQ
+$95F8  code  ibm_esc_e                 ESC E in IBM mode: emphasized at any pitch, suspending NLQ
+$95EE  code  std_esc_f                 ESC F in Standard mode: emphasized off
+$960E  code  ibm_esc_f                 ESC F in IBM mode: emphasized off, NLQ again if asked for
+$961D  code  esc_g_upper               ESC G: double strike
+$9627  code  esc_h_upper               ESC H: double strike off
+$A0ED  code  esc_j_upper               ESC J: feed n/216 inch; in IBM mode a carriage return first with switch 1-2 on
+$9C75  code  esc_k_upper               ESC K: 60 dpi bit image
+$9C7A  code  esc_l_upper               ESC L: 120 dpi bit image
+$93E8  code  std_esc_m                 ESC M in Standard mode: elite, condensed pica to condensed elite
+$9490  code  ibm_esc_m                 ESC M in IBM mode: elite, dropping condensed, NLQ again if asked for
+$98DE  code  esc_n_upper               ESC N: bottom margin
+$9905  code  esc_o_upper               ESC O: cancel the margins
+$93D8  code  std_esc_p                 ESC P in Standard mode: pica
+$96D9  code  ibm_esc_p                 ESC P in IBM mode: proportional (0, 1); another byte chooses pica and is read again
+$A287  code  std_esc_q                 ESC Q in Standard mode, FS Q in IBM mode: right margin
+$9985  code  ibm_esc_q                 ESC Q in IBM mode: 3 deselects until DC1
+$93C2  code  std_esc_r                 ESC R in Standard mode, FS R in IBM mode: international set
+$A4FB  code  ibm_esc_r                 ESC R in IBM mode: reset the tabs ($8A6B)
+$9632  code  std_esc_s                 ESC S in Standard mode: superscript or subscript
+$967E  code  ibm_esc_s                 ESC S in IBM mode: script, suspending NLQ
+$9667  code  std_esc_t                 ESC T in Standard mode: script off
+$96BD  code  ibm_esc_t                 ESC T in IBM mode: script off, NLQ again if asked for
+$A0C6  code  esc_u_upper               ESC U: unidirectional
+$9742  code  esc_w_upper               ESC W: double width
+$A4E4  code  esc_x_upper               ESC X: both margins
+$9C7F  code  esc_y_upper               ESC Y: 120 dpi bit image, no adjacent dots
+$9C84  code  esc_z_upper               ESC Z: 240 dpi bit image, no adjacent dots
+$9B85  code  esc_bracket               ESC [: ESC [ @ sizes
+$9E32  code  std_esc_backslash         ESC \ in Standard mode, FS \ in IBM mode: relative move
+$99B1  code  ibm_esc_backslash         ESC \ in IBM mode: print n1 + 256 n2 bytes from the All Characters Chart ($0121, $41 bit 4)
+$9C58  code  std_esc_caret             ESC ^ in Standard mode: nine-pin graphics
+$99D1  code  ibm_esc_caret             ESC ^ in IBM mode: print one byte from the All Characters Chart
+$977E  code  esc_underscore            ESC _: overline
+$9911  code  esc_a                     ESC a: justification
+$A6C7  code  esc_b                     ESC b: vertical tabs in a channel
+$98AB  code  esc_c                     ESC c: top margin
+$9FB5  code  esc_e                     ESC e: regular tabs
+$9F4F  code  esc_f                     ESC f: skip
+$9A92  code  esc_h                     ESC h: character size
+$A86E  code  esc_i                     ESC i: immediate print
+$A12A  code  esc_j                     ESC j: reverse feed; in IBM mode a carriage return first with switch 1-2 on
+$9707  code  esc_k                     ESC k: NLQ typeface, 0-3 or the digits
+$A396  code  esc_l                     ESC l: left margin
+$96F0  code  esc_p                     ESC p: proportional
+$9828  code  esc_r                     ESC r: colour
+$93AD  code  std_esc_t_table           ESC t in Standard mode: the character table
+$9B1E  code  esc_w                     ESC w: double height
+$9431  code  std_esc_x                 ESC x in Standard mode: NLQ, clearing emphasized
+$94BD  code  ibm_esc_x                 ESC x in IBM mode: NLQ asked for, suspended by emphasized, scripts and condensed ($94D3)
+$9971  code  esc_tilde                 ESC ~: slashed zero
+$9513  code  ibm_esc_i                 ESC I: print mode 0-7 or the digits
+$B470  code  bel                       BEL
+$99E0  code  bs                        BS
+$A562  code  ht                        HT: to the next stop, n column widths from the margin
+$917C  code  lf                        LF
+$A760  code  vt                        VT
+$9285  code  ff                        FF
+$9103  code  cr                        CR
+$999F  code  dc1                       DC1: select
+$973A  code  dc4                       DC4: SO's double width off
+$996B  code  can                       CAN: delete the line
+$9418  code  std_dc2                   DC2 in Standard mode: condensed off
+$9991  code  std_dc3                   DC3 in Standard mode: deselect until DC1
+$9472  code  ibm_dc2                   DC2 in IBM mode: pica, from elite or condensed, NLQ again if asked for
+
+# -- Characters ------------------------------------------------------------
+
+$C9A7  code  print_line                The line sequencer: print a line by its mode
+$CA37  code  print_draft_line          Plain draft, one pass
+$CA94  code  print_two_pass_line       Double-strike, superscript and subscript: two passes 1/144 inch apart
+$CADD  code  print_nlq_line            NLQ: the first pass, 1/144 inch, the second
+$E5A9  code  character_setup           Choose a character's table by pitch
+$F971  code  nlq_spacing               An NLQ character's spaces and gap
+$FB88  code  build_columns             Build a character's columns by pitch
+$FBBB  code  half_width                OR each pair of columns, dropping dots the column before printed
+$FC50  code  block_graphics_extension  Repeat a block graphics column's two lowest dots for rows 8-11
+$FD03  code  italic_slant              Slant a character's columns for italic
+
+# -- RAM ---------------------------------------------------------------------
+
+$37    ram  dip_switches_1   DIP switches 1-1 to 1-8 as bits 0-7, a bit set for a switch off; bit 5 (1-6 off) is IBM mode, which ESC 0x01 and 0x02 also change
+$38    ram  dip_switches_2   DIP switches 2-1 to 2-4 as bits 0-3, set for off
+$39    ram  panel_state      Bit 0 the pitch lock, bit 1 the style lock, bit 4 deselected, bits 5-6 the input state
+$3A    ram  modes            Bit 2 the IBM table at 128-255, bit 3 IBM character set #2, bit 6 LF returns the head (switch 1-2 on), bit 7 CR feeds too (switch 1-8 off, IBM ESC 5)
+$3B    ram  memory_modes     Bit 4 the RAM is a buffer, not download characters (switch 2-1)
+$3C    ram  dispatch_state   Bit 2: a handler returns to its caller rather than to next_byte (IBM ESC P)
+$3F    ram  table_pointer    The command table being searched, then the handler found ($3F-$40)
+$41    ram  pitch            Bit 0 pica, bit 1 elite, bit 2 condensed, bit 4 printing codes from the All Characters Chart (IBM ESC \ and ^)
+$42    ram  print_attributes Bit 0 double width, bit 1 italic, bit 2 underline, bit 3 the download set, bit 5 proportional, bit 7 overline
+$5C    ram  print_mode       Bit 1 double-strike, bit 2 NLQ printing, bit 3 ESC W's double width, bit 4 NLQ asked for, bit 5 subscript, bit 6 superscript, bit 7 emphasized
+$5D    ram  character_size   One bit for each ESC h size
+$A1    ram  nlq_typeface     Bits 4-5 the ESC k typeface
+$0112  ram  ibm_spacing      IBM mode's ESC A spacing, in 1/432 inch steps, for ESC 2; 72 at ESC @
+$0121  ram  chart_count      Bytes left to print from the All Characters Chart (IBM ESC \ and ^), to $0122
+$0234  ram  tab_stops        Horizontal stops as column numbers, after the pitch they were set in
