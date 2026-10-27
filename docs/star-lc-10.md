@@ -728,8 +728,11 @@ New work:
    download form. Much of it is shared with the M-1109's Mode II, so
    building it once for both is the efficient order.
 2. **Four NLQ typefaces with italics**, Orator's two variants and its
-   extra dot of height, on a 1/240 by 1/144 inch two-pass grid. These
-   must be reconstructed from printed output as our own font data.
+   extra dot of height, on a 1/240 by 1/144 inch two-pass grid. The
+   upright characters, draft and NLQ in pica and elite, are extracted
+   from the firmware into `papyrium-font-lc10` (Firmware below); the
+   slant of the italics is computed by the printer and still to be read
+   from the program.
 3. **Character sizes**: `ESC h` double and quadruple size with the
    cap-line alignment and temporary line spacing, `ESC w` double height,
    `ESC [ @`, and the half-character modes 3-6.
@@ -747,6 +750,34 @@ New work:
    ordinary text handling yet still capture every byte.
 7. Model options for friction versus tractor feed (several reverse feeds
    are ignored under friction) and the panel pitch/style locks.
+
+## Firmware
+
+An LC-10 Colour's EPROM, firmware version 1.5, was read from a friend's
+printer in October 2026 and is kept uncommitted as
+`docs/local/star-lc10/LC10-NX1P-1.5CL.bin`. Rob decided it may be used
+for everything needed to simulate the LC-10 and LC-10 Colour.
+`tools/lc10-rom/README.md` describes its tables. What it settles:
+
+- **Characters**: draft and the four NLQ typefaces, in pica and elite,
+  for 211 locations: the slashed zero, the additional set (1-31), ASCII,
+  the IBM PC's 0x7F-0xAF and 0xE0-0xFF, and ø, ¤ and ß. The IBM block
+  and box drawing characters are a separate 11-column table.
+- **No italic characters** are stored: the printer slants the upright
+  ones, in draft and NLQ.
+- **NLQ cells**: left space, glyph and right space make 23 columns at
+  1/240 inch in pica and 19 in elite, matching the matrices on page 54.
+  Elite has narrower forms of the widest characters (M, W, ...), not
+  the pica glyphs crowded together.
+- **Orator** sits two half-dot rows lower than Courier and Sanserif,
+  its base line on row 15 against their 13: the "one dot taller" of
+  page 23. Its lower case dips half a dot below the base line for g, j,
+  p, q and y, which the manual calls having no descenders.
+- **National sets**: stored in page 64's order (England, Denmark I,
+  Sweden, Italy), which supports page 64 against page 106. Spain I and
+  Spain II print ´, not `, at code 96; Latin America prints ü there.
+- **Draft proportional spacing** uses each character's first and last
+  column from its header byte; narrow characters are widened.
 
 ## Open questions
 
@@ -835,4 +866,4 @@ against the printer.
   https://minuszerodegrees.net/manuals/Star%20Micronics/dot_matrix/Star%20Micronics%20-%20NX-1000%20-%20Users%20Manual.pdf
 - **Firmware**: no public dump of the LC-10 family's ROM is known. Per
   the TM it is a single 64 KB 27512 EPROM (Star part 08220116) beside an
-  M50734 CPU (TM 15, 84).
+  M50734 CPU (TM 15, 84). We now have our own (Firmware below).

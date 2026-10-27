@@ -73,6 +73,7 @@ papyrium-font-m1109-draft = { workspace = true }
 papyrium-font-m1109-nlq = { workspace = true }
 papyrium-font-lx800-draft = { workspace = true }
 papyrium-font-lx800-nlq-roman = { workspace = true }
+papyrium-font-lc10 = { workspace = true }
 papyrium-output-png = { workspace = true }
 papyrium-cli = { workspace = true }
 papyrium-transport-raw-tcp = { workspace = true }
@@ -103,6 +104,7 @@ workspace = [
     "papyrium-font-m1109-nlq",
     "papyrium-font-lx800-draft",
     "papyrium-font-lx800-nlq-roman",
+    "papyrium-font-lc10",
     "papyrium-language-escp",
     "papyrium-model-epson-fx80",
     "papyrium-model-brother-m1109",
@@ -212,6 +214,11 @@ search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 
 [[tool.bumpversion.files]]
+filename = "packages/papyrium-font-lc10/src/papyrium/font/lc10/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
 filename = "packages/papyrium-language-escp/src/papyrium/language/escp/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
@@ -265,6 +272,7 @@ testpaths = [
     "packages/papyrium-font-m1109-nlq/tests",
     "packages/papyrium-font-lx800-draft/tests",
     "packages/papyrium-font-lx800-nlq-roman/tests",
+    "packages/papyrium-font-lc10/tests",
     "packages/papyrium-language-escp/tests",
     "packages/papyrium-model-epson-fx80/tests",
     "packages/papyrium-model-brother-m1109/tests",

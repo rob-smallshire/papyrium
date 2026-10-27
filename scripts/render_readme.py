@@ -91,6 +91,7 @@ PACKAGE_ORDER = (
     "papyrium-font-m1109-nlq",
     "papyrium-font-lx800-draft",
     "papyrium-font-lx800-nlq-roman",
+    "papyrium-font-lc10",
     "papyrium-output-png",
     "papyrium-output-pdf",
     "papyrium-advertiser-mdns",
