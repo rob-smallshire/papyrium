@@ -22,8 +22,7 @@ spacing in 1/8, 7/72, n/72 (`ESC A`, brought into force by `ESC 2`) and
 n/216 inch; form length, top of form, perforation skip, vertical and
 horizontal tabs numbered from 1, margins; bit-image graphics (`ESC K`,
 `L`, `Y`, `Z`); draft download characters (`ESC =`), with line drawing
-and shading; switches 1, 3, 5 and 6. The Star LC-10's `FS` commands of its
-IBM mode are there for a mechanism that asks for them (`fs_prefix`).
+and shading; switches 1, 3, 5 and 6.
 
 Proportional spacing takes each character's width and offset from IBM's
 table (`PROPORTIONAL_WIDTHS`), in draft and, on its finer grid, in NLQ;

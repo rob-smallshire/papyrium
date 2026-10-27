@@ -112,10 +112,3 @@ def test_esc_p_commands_the_proprinter_lacks_are_ignored():
 
 def test_without_star_commands_fs_is_ignored():
     assert text(FS + b"4A") == "4A"
-
-
-def test_stars_fs_commands():
-    star = {"fs_prefix": True}
-    assert dots(FS + b"4A", **star) == [(LEFT + STEP + 3 * STEP, 0)]
-    assert text(FS + b"R\x02@", **star) == "§"
-    assert dots(FS + b"\\\x0a\x00A", **star) == [(LEFT + 10 * STEP + STEP, 0)]

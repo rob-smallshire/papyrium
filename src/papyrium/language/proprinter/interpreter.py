@@ -281,19 +281,6 @@ class ProprinterInterpreter(EscpInterpreter):
         )
         return table
 
-    def _fs_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
-        """Star's commands after FS in the LC-10's IBM mode: the ESC/P
-        commands whose letters the Proprinter's commands took."""
-        return {
-            "4": self._esc_italic,
-            "5": lambda: setattr(self, "_italic", False),
-            ":": self._esc_copy_rom,
-            "=": lambda: setattr(self, "_msb", 0),
-            "Q": self._esc_right_margin,
-            "R": self._esc_character_set,
-            "\\": self._esc_relative_position,
-        }
-
     def _esc_store_line_spacing(self) -> ArgumentReader:
         """Keep n/72 inch, 1-85, for ESC 2 to bring into force; 0 keeps the last."""
         n = yield

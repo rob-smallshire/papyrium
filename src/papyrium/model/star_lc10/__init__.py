@@ -8,8 +8,10 @@ from papyrium.exception import ConfigurationError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 from papyrium.language.escp.charsets import LC10_NATIONAL_DIFFERENCES, LX800_CHARACTER_SETS
+from papyrium.language.proprinter import ProprinterMechanism
 from papyrium.model.star_lc10 import demo
 from papyrium.model.star_lc10.generator import LC10CharacterGenerator
+from papyrium.model.star_lc10.ibm_mode import LC10IbmModeInterpreter
 
 __all__ = ["StarLC10", "StarLC10Colour"]
 
@@ -33,7 +35,8 @@ def _font(name: str) -> DotFont:
 
 
 class StarLC10(PrinterModel):
-    """Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P.
+    """Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or,
+    in IBM mode, the IBM Proprinter's language.
 
     Standard mode, in which the LC-10 follows the Epson LX-800, with the
     LC-10's own characters and character generator, from its firmware:
@@ -41,12 +44,16 @@ class StarLC10(PrinterModel):
     capitals or with lower case), each in pica and elite, and the IBM block
     graphics, twelve dots high so that boxes join. Its black ribbon ignores
     ESC r, and of the embedded commands it obeys only the sheet feeder's.
+    IBM mode, in which it follows the IBM Proprinter II, takes the
+    Proprinter's character sets and commands and keeps its own characters.
 
     Options model its DIP switches, at their factory settings by default,
     and its paper: form-length in inches (11, switch 1-1; 12 with it off),
     auto-carriage-return (yes, switch 1-2: a line feed also returns the
-    head to the left margin), graphics-table (no, switch 1-7 off: codes
-    128-254 from IBM character set #2 rather than italics),
+    head to the left margin), ibm-mode (no, switch 1-6 off: the IBM
+    Proprinter's language rather than ESC/P), graphics-table (no, switch
+    1-7 off: in Standard mode codes 128-254 from IBM character set #2
+    rather than italics, in IBM mode character set #1 rather than #2),
     auto-line-feed (no, switch 1-8 off), download-characters (no, switch
     2-1 off: the RAM holds download characters rather than a 4K buffer),
     character-set (usa, switches 2-2 to 2-4, or any of the thirteen ESC R
@@ -72,10 +79,12 @@ class StarLC10(PrinterModel):
         stationery: str = "fanfold",
         font: str = "lc10-draft",
         elite_font: str = "lc10-draft-elite",
+        ibm_mode: bool = False,
         **kwargs,
     ) -> None:
         super().__init__(name=name, **kwargs)
-        self._mechanism = EscpMechanism(
+        self._ibm_mode = ibm_mode
+        common = dict(
             colour_ribbon=self._COLOUR_RIBBON,
             embedded_commands=self._EMBEDDED_COMMANDS,
             font=options.nine_row_font(font),
@@ -95,7 +104,6 @@ class StarLC10(PrinterModel):
             character_set=options.character_set_option(character_set, LX800_CHARACTER_SETS),
             character_sets=LX800_CHARACTER_SETS,
             national_differences=LC10_NATIONAL_DIFFERENCES,
-            graphics_table=graphics_table,
             default_vertical_tabs=False,
             condensed_elite=True,
             nlq=True,
@@ -110,8 +118,20 @@ class StarLC10(PrinterModel):
             user_characters_by_quality=True,
             proportional_emphasized=False,
             fs_prefix=True,
-            commands=_COMMANDS,
         )
+        if ibm_mode:
+            # Switch 1-7 chooses IBM character set #2 (on) or #1 (off), and
+            # SO's double width lasts past CR and CAN.
+            self._mechanism: EscpMechanism = ProprinterMechanism(
+                **common,
+                ibm_set=1 if graphics_table else 2,
+                carriage_return_ends_one_line_enlarged=False,
+                cancel_ends_one_line_enlarged=False,
+            )
+        else:
+            self._mechanism = EscpMechanism(
+                **common, graphics_table=graphics_table, commands=_COMMANDS
+            )
 
     #: The LC-10 has a black ribbon; the LC-10 Colour a four-colour one.
     _COLOUR_RIBBON = False
@@ -127,12 +147,14 @@ class StarLC10(PrinterModel):
         return ModelIdentity(manufacturer="Star", model=self._MODEL_NAME)
 
     def languages(self) -> tuple[str, ...]:
-        return ("escp",)
+        return ("proprinter",) if self._ibm_mode else ("escp",)
 
     def demo(self) -> bytes:
         return demo.demo()
 
     def create_interpreter(self) -> Interpreter:
+        if self._ibm_mode:
+            return LC10IbmModeInterpreter(self._mechanism)
         return EscpInterpreter(self._mechanism)
 
 

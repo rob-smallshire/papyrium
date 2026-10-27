@@ -634,6 +634,21 @@ the differences:
 - The manual's BASIC demo needs `DC2` for pica, `FS 4`/`FS 5` for
   italics, `FS Q` for the margin and `ESC A n ESC 2` for spacing (45).
 
+Papyrium builds IBM mode on its IBM Proprinter II model's language
+(`papyrium.model.star_lc10.ibm_mode`, on `papyrium.language.proprinter`).
+Where neither this manual nor the firmware traced so far says, it
+assumes so:
+
+- The commands marked Both keep their Standard mode handlers, as one
+  firmware table would, so `ESC B` and `ESC D` count stops as Standard
+  mode does, not from 1 as the Proprinter does; VT goes to the next top
+  of form past the last stop; DEL deletes; SO's double width outlasts CR
+  and CAN; `ESC G` is double strike rather than the Proprinter's NLQ.
+- `ESC I` 0 and 4 also return to pica, and 1 and 5 choose elite; the NLQ
+  values leave the pitch as it is.
+- Proportional spacing uses the LC-10's own character widths, not IBM's
+  table.
+
 ## LC-10 Colour
 
 The LC-10 Colour manual is the LC-10 manual revised; DIP switches,

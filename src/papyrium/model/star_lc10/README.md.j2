@@ -47,7 +47,8 @@ the printer's DIP switches and paper:
 {{ options_table("star-lc10", {
     "form-length": "Form length in inches (switch 1-1 gives 11 or 12)",
     "auto-carriage-return": "A line feed also returns the head to the left margin (switch 1-2)",
-    "graphics-table": "Codes 128-254 from IBM character set #2 rather than italics (switch 1-7 off)",
+    "ibm-mode": "IBM mode: the IBM Proprinter II's language rather than ESC/P (switch 1-6 off)",
+    "graphics-table": "Standard mode: codes 128-254 from IBM character set #2 rather than italics. IBM mode: character set #1, which obeys codes 128-159 as controls, rather than #2 (switch 1-7 off)",
     "auto-line-feed": "Each carriage return also feeds a line (switch 1-8 off)",
     "download-characters": "The RAM holds download characters rather than a 4K input buffer (switch 2-1 off)",
     "character-set": "Power-on international set: any of the thirteen `ESC R` sets, by name or number (switches 2-2 to 2-4 give 0-7)",
@@ -70,6 +71,13 @@ height on the base line (`ESC w`), and `ESC [ @`.
 Download characters are defined as the LC-10 defines them, in draft or,
 with NLQ selected, in NLQ's two-pass grid (`ESC &`, `ESC %`, `ESC :`).
 
-Not modelled yet: IBM mode (switch 1-6).
+In IBM mode (`-M ibm-mode=yes`) the LC-10 speaks the IBM Proprinter
+II's language, built on `papyrium.language.proprinter`: its character
+sets 1 and 2 and the commands whose letters it gives other meanings
+(`ESC 2`, `4`, `5`, `6`, `7`, `:`, `=`, `A`, `J`, `P`, `Q`, `R`, `\`,
+`^`), with Star's `FS` commands for the Standard mode ones they displace.
+It keeps its own typefaces, which `ESC I` chooses among (0 draft, 1 draft
+elite, 2 Sanserif, 3 or 7 Courier, 4 to 6 from the download set), and the
+commands both modes share.
 
 {{ common.licence(repo_url("LICENSE")) }}

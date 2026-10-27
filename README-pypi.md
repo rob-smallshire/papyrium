@@ -98,7 +98,7 @@ $ papyrium list-models
 │ ibm-proprinter-ii │ IBM Proprinter II: an 80-column, 9-wire dot-matrix       │
 │                   │ printer speaking                                         │
 │ star-lc10         │ Star LC-10: an 80-column, 9-pin dot-matrix printer       │
-│                   │ speaking ESC/P.                                          │
+│                   │ speaking ESC/P or,                                       │
 │ star-lc10-colour  │ Star LC-10 Colour: the LC-10 with a four-colour ribbon.  │
 └───────────────────┴──────────────────────────────────────────────────────────┘
 
@@ -260,7 +260,7 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) |
 |  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) |
-|  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
+|  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) |
 |  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
