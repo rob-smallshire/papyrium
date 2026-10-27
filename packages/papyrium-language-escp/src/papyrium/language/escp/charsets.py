@@ -6,7 +6,8 @@ place of up to twelve ASCII characters: each national code points at one
 of those locations. The tables are the facts listed in Epson's FX-series
 manuals for ``ESC R n``; Norway, Denmark II and England II are the
 Brother M-1109's additions, and Spain II and Latin America the Epson
-LX-800's. Each printer numbers its sets for ``ESC R`` in its own order.
+LX-800's. Each printer numbers its sets for ``ESC R`` in its own order,
+and may depart from a set at a few codes.
 
 Characters some sets need beyond the 32 international ones are at
 locations 0x100 and up, and the IBM PC table's at 0x200 and up, clear of
@@ -33,8 +34,8 @@ INTERNATIONAL_CHARACTERS = tuple(
 
 #: Characters beyond the 32 international ones, at locations 0x100 on.
 EXTRA_LOCATION = 0x100
-EXTRA_CHARACTERS = ("á", "í", "ó", "ú")
-_A_ACUTE, _I_ACUTE, _O_ACUTE, _U_ACUTE = (EXTRA_LOCATION + i for i in range(4))
+EXTRA_CHARACTERS = ("á", "í", "ó", "ú", "´")
+_A_ACUTE, _I_ACUTE, _O_ACUTE, _U_ACUTE, _ACUTE_ACCENT = (EXTRA_LOCATION + i for i in range(5))
 
 #: The upper half of the IBM PC character set (code page 437), which ESC t 1
 #: puts at codes 128-255, at locations 0x200 on.
@@ -107,8 +108,25 @@ LX800_CHARACTER_SETS = FX_CHARACTER_SETS + (
 )  # fmt: skip
 
 
-def rom_location(code: int, character_set: CharacterSet) -> int:
-    """The ROM location a 7-bit *code* prints in *character_set*."""
+#: A printer's departures from the sets above: for a set, the ROM location
+#: a national code prints instead.
+NationalDifferences = dict[CharacterSet, dict[int, int]]
+
+#: The Star LC-10 prints an acute accent at 96 in Spain I and Spain II.
+LC10_NATIONAL_DIFFERENCES: NationalDifferences = {
+    CharacterSet.SPAIN: {96: _ACUTE_ACCENT},
+    CharacterSet.SPAIN_II: {96: _ACUTE_ACCENT},
+}
+
+
+def rom_location(
+    code: int, character_set: CharacterSet, differences: NationalDifferences | None = None
+) -> int:
+    """The ROM location a 7-bit *code* prints in *character_set*, on a
+    printer that departs from the set by *differences*."""
+    different = (differences or {}).get(character_set, {})
+    if code in different:
+        return different[code]
     return _LOCATIONS[character_set].get(code, code)
 
 
@@ -123,9 +141,11 @@ def character_at(location: int) -> str:
     return chr(location)
 
 
-def character_for(code: int, character_set: CharacterSet) -> str:
+def character_for(
+    code: int, character_set: CharacterSet, differences: NationalDifferences | None = None
+) -> str:
     """The character a 7-bit printable *code* prints in *character_set*."""
-    return character_at(rom_location(code, character_set))
+    return character_at(rom_location(code, character_set, differences))
 
 
 def parse_character_set(

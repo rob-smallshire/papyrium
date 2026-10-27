@@ -266,3 +266,13 @@ def test_nlq_is_fixed_pitch_unless_the_generator_spaces_it_proportionally():
     proportional = dots(data, generator=_ProportionalNlq(), **options)
     # A's dots begin at column 3; flush left, in a cell of five 1/240 inch columns.
     assert [x for x, _ in proportional][::2] == [LEFT, LEFT + 5 * 18]
+
+
+def test_a_printer_may_differ_from_a_national_set():
+    from papyrium.language.escp.charsets import LC10_NATIONAL_DIFFERENCES
+
+    assert character_for(0x60, CharacterSet.SPAIN) == "`"
+    assert character_for(0x60, CharacterSet.SPAIN, LC10_NATIONAL_DIFFERENCES) == "´"
+    assert character_for(0x60, CharacterSet.SPAIN_II, LC10_NATIONAL_DIFFERENCES) == "´"
+    assert character_for(0x60, CharacterSet.LATIN_AMERICA, LC10_NATIONAL_DIFFERENCES) == "ü"
+    assert character_for(0x7B, CharacterSet.SPAIN, LC10_NATIONAL_DIFFERENCES) == "¨"

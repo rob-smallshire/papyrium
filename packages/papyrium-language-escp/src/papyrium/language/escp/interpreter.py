@@ -313,7 +313,7 @@ class EscpInterpreter(Interpreter):
         if byte & 0x80 and self._graphics_table:
             return IBM_LOCATION + code
         if code >= 0x20:
-            code = rom_location(code, self._character_set)
+            code = rom_location(code, self._character_set, self._mechanism.national_differences)
         return code | (byte & 0x80)
 
     def _character(self, byte: int) -> None:

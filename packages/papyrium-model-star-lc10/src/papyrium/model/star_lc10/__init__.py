@@ -7,7 +7,7 @@ from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
 from papyrium.exception import ConfigurationError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
-from papyrium.language.escp.charsets import LX800_CHARACTER_SETS
+from papyrium.language.escp.charsets import LC10_NATIONAL_DIFFERENCES, LX800_CHARACTER_SETS
 from papyrium.model.star_lc10 import demo
 from papyrium.model.star_lc10.generator import LC10CharacterGenerator
 
@@ -91,6 +91,7 @@ class StarLC10(PrinterModel):
             line_feed_returns=auto_carriage_return,
             character_set=options.character_set_option(character_set, LX800_CHARACTER_SETS),
             character_sets=LX800_CHARACTER_SETS,
+            national_differences=LC10_NATIONAL_DIFFERENCES,
             graphics_table=graphics_table,
             default_vertical_tabs=False,
             condensed_elite=True,

@@ -8,7 +8,11 @@ from fractions import Fraction
 from papyrium.core.dotfont import DotFont
 from papyrium.core.page import inches
 from papyrium.core.stationery import Stationery
-from papyrium.language.escp.charsets import FX_CHARACTER_SETS, CharacterSet
+from papyrium.language.escp.charsets import (
+    FX_CHARACTER_SETS,
+    CharacterSet,
+    NationalDifferences,
+)
 from papyrium.language.escp.generator import CharacterGenerator
 
 #: The codes the FX-80 always obeys as controls, even when ESC I makes the
@@ -83,6 +87,8 @@ class EscpMechanism:
     underline_row: int = 8
     #: The ESC R international sets the printer has, in its own numbering.
     character_sets: tuple[CharacterSet, ...] = FX_CHARACTER_SETS
+    #: Where the printer departs from the national sets.
+    national_differences: NationalDifferences | None = None
     #: Low codes obeyed as controls even when ESC I makes the others print.
     controls: frozenset[int] = FX_CONTROLS
     #: Power on with vertical tab stops every other line; otherwise VT is LF.
