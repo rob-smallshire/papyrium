@@ -237,7 +237,7 @@ class PrinterModelConformance:
 
     def test_dots_lie_on_the_page(self):
         for page in self._pages([self.sample_job()]):
-            for x, y in page.dots:
+            for x, y in page.all_dots():
                 assert 0 <= x < page.width and 0 <= y < page.height, (page.number, x, y)
 
 

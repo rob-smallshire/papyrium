@@ -155,3 +155,17 @@ def test_stationery_is_drawn_under_the_dots(tmp_path):
     content = PdfReader(filepath).pages[0].get_contents().get_data().decode("ascii")
     band = content.index("2160 2160 36720 2160 re")
     assert content.index(" rg", band - 40) < band < content.index("/D Do")
+
+
+def test_inked_dots_are_filled_in_their_ink_and_multiplied(tmp_path):
+    from papyrium.core.page import Ink, InkDots
+
+    page = Page(
+        number=1, width=inches(8), height=inches(11), dot_diameter=60,
+        ink_dots=(InkDots(Ink.MAGENTA, ((60, 60),)),),
+    )  # fmt: skip
+    (filepath,) = _write(tmp_path, [page])
+    pdf_page = PdfReader(filepath).pages[0]
+    content = pdf_page.get_contents().get_data().decode("ascii")
+    assert "/M gs" in content and " rg" in content and content.count("/D Do") == 1
+    assert pdf_page["/Resources"]["/ExtGState"]["/M"]["/BM"] == "/Multiply"

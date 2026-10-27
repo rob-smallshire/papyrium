@@ -65,3 +65,16 @@ def test_text_marks_describe_content_without_making_a_page_printed():
     )
     assert page.is_blank
     assert page.text[0].character == " "
+
+
+def test_dots_struck_through_a_coloured_band_mark_a_page():
+    from papyrium.core.page import Ink, InkDots
+
+    page = Page(number=1, width=432, height=432, dot_diameter=60)
+    assert page.is_blank
+    inked = Page(
+        number=1, width=432, height=432, dot_diameter=60,
+        ink_dots=(InkDots(Ink.CYAN, ((60, 60),)),),
+    )  # fmt: skip
+    assert not inked.is_blank
+    assert inked.all_dots() == ((60, 60),)

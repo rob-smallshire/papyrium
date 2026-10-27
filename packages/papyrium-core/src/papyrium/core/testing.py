@@ -131,6 +131,9 @@ class _JsonDocument(Document):
                 "width": page.width,
                 "height": page.height,
                 "dots": [list(dot) for dot in page.dots],
+                "ink_dots": {
+                    inked.ink.value: [list(dot) for dot in inked.dots] for inked in page.ink_dots
+                },
             }
             for page in self._pages
         ]

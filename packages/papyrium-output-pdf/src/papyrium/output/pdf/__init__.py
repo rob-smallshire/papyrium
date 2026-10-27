@@ -7,7 +7,7 @@ from fractions import Fraction
 from pathlib import Path
 
 from papyrium.core.output import Document, Output
-from papyrium.core.page import UNITS_PER_INCH, Page, TextMark
+from papyrium.core.page import INK_COLOURS, UNITS_PER_INCH, Dot, Page, TextMark
 from papyrium.core.stationery import Circle
 
 __version__ = "0.1.0"
@@ -132,21 +132,34 @@ class _PdfDocument(Document):
             *_stationery_content(page),
             f"{_number(Fraction(self._ink))} g",
         ]
-        # Each dot places the form /D, a filled circle. Some renderers drop
-        # zero-length strokes at small scales, so dots are not drawn as round
-        # caps. One row of dots at a time: translate to the row's first dot,
-        # then from dot to dot. Rows of text repeat, so this compresses far
-        # better than absolute coordinates.
+        lines += self._dot_content(page.dots)
+        # Each ink fills its dots multiplied onto what is beneath, so inks
+        # struck over each other mix as inks do.
+        for inked in page.ink_dots:
+            colour = " ".join(_number(Fraction(c, 255)) for c in INK_COLOURS[inked.ink])
+            lines += ["q", "/M gs", f"{colour} rg", *self._dot_content(inked.dots), "Q"]
+        lines.extend(["Q", ""])
+        return "\n".join(lines).encode("ascii")
+
+    @staticmethod
+    def _dot_content(dots: tuple[Dot, ...]) -> list[str]:
+        """Place the form /D, a filled circle, at each of *dots*.
+
+        Some renderers drop zero-length strokes at small scales, so dots are
+        not drawn as round caps. One row of dots at a time: translate to the
+        row's first dot, then from dot to dot. Rows of text repeat, so this
+        compresses far better than absolute coordinates.
+        """
+        lines = []
         rows: dict[int, list[int]] = {}
-        for x, y in sorted(set(page.dots), key=lambda dot: (dot[1], dot[0])):
+        for x, y in sorted(set(dots), key=lambda dot: (dot[1], dot[0])):
             rows.setdefault(y, []).append(x)
         for y, xs in rows.items():
             lines += ["q", f"1 0 0 1 {xs[0]} {y} cm", "/D Do"]
             for previous, x in zip(xs, xs[1:]):
                 lines += [f"1 0 0 1 {x - previous} 0 cm", "/D Do"]
             lines.append("Q")
-        lines.extend(["Q", ""])
-        return "\n".join(lines).encode("ascii")
+        return lines
 
     def _text_content(self, page: Page, height_points: Fraction) -> list[str]:
         """Invisible text (render mode 3) in each cell, so the page can be searched."""
@@ -231,7 +244,9 @@ class _PdfDocument(Document):
                     f"<< /Type /Page /Parent {pages_number} 0 R /MediaBox [{media_box}] "
                     f"/Contents {contents_number} 0 R "
                     f"/Resources << /Font << /F1 {font_number} 0 R >> "
-                    f"/XObject << /D {dot_numbers[page.dot_diameter]} 0 R >> >> >>".encode("ascii")
+                    f"/XObject << /D {dot_numbers[page.dot_diameter]} 0 R >>"
+                    f"{' /ExtGState << /M << /BM /Multiply >> >>' if page.ink_dots else ''}"
+                    " >> >>".encode("ascii")
                 )
             )
         kids = " ".join(f"{number} 0 R" for number in page_numbers)

@@ -167,3 +167,34 @@ def test_a_feed_hole_has_a_soft_edge(tmp_path):
         colours = {colour for _, colour in image.crop((0, 0, 36, 36)).getcolors()}
         assert HOLE_COLOUR in colours and (255, 255, 255) in colours
         assert len(colours) > 3
+
+
+def _inked(*ink_dots):
+    from papyrium.core.page import InkDots
+
+    page = _page(())
+    return Page(
+        number=1, width=page.width, height=page.height, dot_diameter=60,
+        ink_dots=tuple(InkDots(ink, dots) for ink, dots in ink_dots),
+    )  # fmt: skip
+
+
+def test_a_dot_struck_through_a_coloured_band_is_in_its_ink(tmp_path):
+    from papyrium.core.page import INK_COLOURS, Ink
+
+    centre = (inches(1), inches(1) // 2)
+    with Image.open(_render(tmp_path, _inked((Ink.CYAN, (centre,))))) as image:
+        assert image.mode == "RGB"
+        assert image.getpixel((360, 180)) == INK_COLOURS[Ink.CYAN]
+        assert image.getpixel((360 + 4, 180)) == (255, 255, 255)
+
+
+def test_inks_struck_over_each_other_mix_as_inks_do(tmp_path):
+    from papyrium.core.page import Ink
+
+    centre = (inches(1), inches(1) // 2)
+    page = _inked((Ink.YELLOW, (centre,)), (Ink.CYAN, (centre,)))
+    with Image.open(_render(tmp_path, page)) as image:
+        red, green, blue = image.getpixel((360, 180))
+        # Yellow takes the blue, cyan the red: green is left.
+        assert green > 100 and red < 60 and blue < 60

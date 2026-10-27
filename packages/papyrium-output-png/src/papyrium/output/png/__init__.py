@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw
 
 from papyrium.core.output import Document, Output
-from papyrium.core.page import UNITS_PER_INCH, Page
+from papyrium.core.page import INK_COLOURS, UNITS_PER_INCH, Page
 from papyrium.core.stationery import Circle
 
 __version__ = "0.1.0"
@@ -117,11 +117,12 @@ class PngOutput(Output):
         return _PngDocument(self, dirpath)
 
     def render(self, page: Page) -> Image.Image:
-        """Draw *page*, in greyscale unless its stationery has features."""
+        """Draw *page*, in greyscale unless its stationery has features or
+        coloured inks were struck on it."""
         scale = self._dpi / UNITS_PER_INCH
         size = (round(page.width * scale), round(page.height * scale))
         features = page.stationery.features(page.width, page.height) if page.stationery else ()
-        if features:
+        if features or page.ink_dots:
             image = Image.new("RGB", size, (self._paper,) * 3)
             ink: int | tuple[int, int, int] = (self._ink,) * 3
         else:
@@ -143,4 +144,11 @@ class PngOutput(Output):
         diameter = page.dot_diameter * scale
         for x, y in dict.fromkeys(page.dots):
             _paste_disc(image, ink, x * scale, y * scale, diameter)
+        # Each ink is a layer multiplied onto the page, so inks struck over
+        # each other mix as inks do: yellow and cyan make green.
+        for inked in page.ink_dots:
+            layer = Image.new("RGB", size, (255, 255, 255))
+            for x, y in dict.fromkeys(inked.dots):
+                _paste_disc(layer, INK_COLOURS[inked.ink], x * scale, y * scale, diameter)
+            image = ImageChops.multiply(image, layer)
         return image
