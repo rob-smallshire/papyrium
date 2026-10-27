@@ -143,3 +143,21 @@ of their own. `papyrium-model-star-lc10` prints Standard mode with the
 LC-10's fonts by pitch, its generator (`LC10CharacterGenerator`) and its
 12-dot block graphics. Still to come: NLQ proportional spacing, the
 Star commands, character sizes, IBM mode, and colour (step 6).
+
+Since then the LC-10 has gained, each as a mechanism or generator rule
+the other printers leave at their defaults: proportional NLQ
+(`nlq_proportional_cell`), Star's ESC/P additions (`ESC $`, `ESC \`,
+`ESC X`, `ESC SP`, `ESC ~`, `ESC LF`, `ESC FF`, `ESC +`, `ESC f 0` as a
+column move), character sizes (`ESC h`, `ESC w`, `ESC [ @`, with the
+generator's `enlarged_dots`), overline and the top margin, switch 1-2
+(`line_feed_returns`), its national-set departures
+(`national_differences`), proportional elite without forced emphasis,
+and download characters by quality.
+
+Step 6 is done. A page holds dots struck through coloured ribbon bands
+(`Page.ink_dots`, by `Ink`), which the PNG and PDF outputs multiply onto
+the paper so that overprinted inks mix; `ESC r` and the embedded
+commands (`embedded_commands`) choose colours on a mechanism with a
+`colour_ribbon`; and `star-lc10-colour` is the LC-10 Colour.
+
+IBM mode remains.
