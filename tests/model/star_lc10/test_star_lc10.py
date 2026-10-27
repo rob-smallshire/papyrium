@@ -114,3 +114,9 @@ def test_switch_2_1_lets_the_ram_hold_download_characters():
     mechanism = _mechanism(download_characters=True)
     assert mechanism.user_defined_characters
     assert mechanism.user_set_arguments == 1 and mechanism.user_characters_by_quality
+
+
+def test_fs_and_the_byte_after_it_are_ignored_in_standard_mode():
+    interpreter = StarLC10(name="star-lc10").create_interpreter()
+    (page,) = interpreter.feed(b"\x1c4AB\r\n\x0c") + interpreter.finish()
+    assert [mark.character for mark in page.text] == ["A", "B"]

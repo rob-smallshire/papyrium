@@ -109,6 +109,7 @@ class StarLC10(PrinterModel):
             user_set_arguments=1,
             user_characters_by_quality=True,
             proportional_emphasized=False,
+            fs_prefix=True,
             commands=_COMMANDS,
         )
 
