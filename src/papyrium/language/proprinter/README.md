@@ -25,8 +25,10 @@ horizontal tabs numbered from 1, margins; bit-image graphics (`ESC K`,
 and shading; switches 1, 3, 5 and 6. The Star LC-10's `FS` commands of its
 IBM mode are there for a mechanism that asks for them (`fs_prefix`).
 
-Not yet: NLQ II download characters, which are skipped; the width table
-of proportional spacing, which comes from the characters' dots instead;
-double height.
+Proportional spacing takes each character's width and offset from IBM's
+table (`PROPORTIONAL_WIDTHS`), in draft and, on its finer grid, in NLQ;
+download characters take theirs from their attribute byte.
+
+Not yet: NLQ II download characters, which are skipped; double height.
 
 Registered as `proprinter` on the `papyrium.language` axis.

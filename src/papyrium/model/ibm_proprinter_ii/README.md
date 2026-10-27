@@ -40,8 +40,7 @@ options model the printer's switches and paper:
 | `fastfont` | `lc10-draft-elite` | The Fastfont characters, `ESC I 1`, in a ten-column cell: a 9-row dot font's name or file |
 | `nlq-ii-font` | `lc10-nlq-courier` | The NLQ II characters, `ESC I 3`: an 18 x 24 dot font's name or file |
 
-Not modelled yet: the proportional widths of IBM's table, which come from
-the characters' dots instead; NLQ II download characters; double height;
+Not modelled yet: NLQ II download characters; double height;
 the switch 2 choice between NLQ and NLQ II on the operator panel, which
 has no panel here.
 

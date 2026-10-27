@@ -32,6 +32,7 @@ from papyrium.language.escp.interpreter import (
 )
 from papyrium.language.proprinter.mechanism import ProprinterMechanism
 from papyrium.language.proprinter.nlq import NLQ_SCALE, nlq_from_draft
+from papyrium.language.proprinter.widths import FULL_CELL, PROPORTIONAL_WIDTHS
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,24 @@ class ProprinterInterpreter(EscpInterpreter):
         if location in self._shading_downloads and self._glyph_source(location)[0] == "ram":
             return True
         return location - IBM_LOCATION + 0x80 in SHADING
+
+    def _proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int]:
+        """The character's width and offset from IBM's table (Figure A-1)."""
+        width, offset = (
+            PROPORTIONAL_WIDTHS[code] if (code := _code(location)) is not None else FULL_CELL
+        )
+        return width, -offset
+
+    def _nlq_proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int]:
+        """The draft character's proportional columns, on NLQ's finer grid."""
+        if self._glyph_source(location)[0] == "ram":
+            character = self._ram[location]
+            columns, offset = self._generator.user_proportional_cell(
+                character.first_column, character.last_column
+            )
+        else:
+            columns, offset = self._proportional_cell(location, glyph)
+        return NLQ_SCALE * columns, NLQ_SCALE * offset
 
     def _nlq_columns(self) -> int:
         """NLQ's grid has twice the draft cell's columns."""
@@ -440,3 +459,15 @@ class ProprinterInterpreter(EscpInterpreter):
         self._ram[location] = UserCharacter(
             Glyph(frozenset(dots)), first_column=skip, last_column=skip + printed
         )
+
+
+def _code(location: int) -> int | None:
+    """The code page 437 character at a ROM *location*; None for the
+    national sets' characters, which the code page lacks."""
+    if location >= ADDITIONAL_LOCATION:
+        return location - ADDITIONAL_LOCATION
+    if location >= IBM_LOCATION:
+        return location - IBM_LOCATION + 0x80
+    if 0x20 <= location < 0x80:
+        return location
+    return None

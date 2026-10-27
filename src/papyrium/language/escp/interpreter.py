@@ -478,6 +478,16 @@ class EscpInterpreter(Interpreter):
         # The IBM PC table's characters are never italic.
         return location < IBM_LOCATION and (self._italic or (from_rom and bool(location & ITALIC)))
 
+    def _proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int]:
+        """The columns the ROM character at *location* takes in proportional
+        spacing, and how many its glyph moves right."""
+        return self._generator.proportional_cell(glyph)
+
+    def _nlq_proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int] | None:
+        """The NLQ columns the character at *location* takes in proportional
+        spacing, and how many its glyph moves right; None for its fixed cell."""
+        return self._generator.nlq_proportional_cell(glyph)
+
     def _nlq_columns(self) -> int:
         """The dot columns across an NLQ character's cell: its font's."""
         return self._nlq_font().columns
@@ -486,7 +496,7 @@ class EscpInterpreter(Interpreter):
         """Print an NLQ *glyph*, its *columns* spanning the cell."""
         cell = self._column_width() * (2 if self._is_double_width() else 1)
         width, offset = cell, 0
-        proportional = self._generator.nlq_proportional_cell(glyph)
+        proportional = self._nlq_proportional_cell(location, glyph)
         if self._is_proportional() and proportional is not None:
             proportional_columns, offset = proportional
             width = proportional_columns * (cell // columns)
@@ -622,7 +632,7 @@ class EscpInterpreter(Interpreter):
                     user_character.first_column, user_character.last_column
                 )
             else:
-                columns, offset = self._generator.proportional_cell(glyph)
+                columns, offset = self._proportional_cell(location, glyph)
             step = PROPORTIONAL_STEP * double
             return columns * step, step, offset, glyph_source
         pitch = self._column_width()

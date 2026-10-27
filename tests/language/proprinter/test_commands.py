@@ -1,6 +1,6 @@
 """The Proprinter's commands for spacing, forms, tabs and the line."""
 
-from proprinter_helpers import ESC, FS, LEFT, LINE, PICA, PIN, STEP, dots, run, text
+from proprinter_helpers import ESC, FS, LEFT, LINE, NLQ_STEP, PICA, PIN, STEP, dots, run, text
 
 
 def test_esc_a_waits_for_esc_2():
@@ -77,8 +77,17 @@ def test_one_line_double_width_ends_at_carriage_return():
     assert dots(b"\x0e\rAA")[1] == (LEFT + PICA + STEP, 0)
 
 
-def test_esc_p_1_spaces_proportionally():
-    assert dots(ESC + b"P\x01AA")[1] == (LEFT + 3 * STEP + STEP, 0)
+def test_esc_p_1_spaces_by_ibms_widths_and_offsets():
+    # ! is 5 columns wide, its first 4 skipped; A takes the whole cell.
+    assert dots(ESC + b"P\x01!A") == [(LEFT + STEP, 0), (LEFT + 5 * STEP + STEP, 0)]
+    assert dots(ESC + b"P\x01AA")[1] == (LEFT + PICA + STEP, 0)
+
+
+def test_proportional_nlq_takes_the_same_widths_on_its_finer_grid():
+    assert dots(ESC + b"P\x01" + ESC + b"I\x02!A") == [
+        (LEFT + 2 * NLQ_STEP, 0),
+        (LEFT + 10 * NLQ_STEP + 2 * NLQ_STEP, 0),
+    ]
 
 
 def test_esc_q_3_deselects_the_printer_until_dc1():

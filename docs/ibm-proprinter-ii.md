@@ -127,7 +127,11 @@ Figure A-1 gives the Proprinter II's proportional spacing for code page
 437: for each of the 256 characters a width in dots and an offset in dot
 spaces, the columns to skip before the character's printed columns.
 Characters 0-32 are 12 dots with no offset, `!` 5 dots from column 4,
-`"` 8 from 2, `'`, `(` and `)` 6 from 3, and so on.
+`"` 8 from 2, `'`, `(` and `)` 6 from 3, and so on. Most characters take
+the whole cell: only punctuation, a few narrow letters (I, X, i, j, k, l,
+t, x, z) and the round ones a column short (b, c, d, g, o, p, q, r) are
+narrower. The OCR of the figure misreads 4, 13 and 44 and drops 80, 111
+and 149; the page images give 10/1, 12/0, 6/3, 12/0, 11/0 and 11/0.
 
 ## Command summary (TR 3-1 to 3-10)
 
@@ -307,9 +311,12 @@ The manuals leave some combinations open; the `proprinter` language
 - Fastfont masks condensed, as 12 cpi does, and ignores `ESC G`.
 - `ESC X` counts its columns as the Star LC-10's manual shows for its IBM
   mode: `ESC X 12 92` leaves twelve elite columns, an inch, to the left.
-- NLQ II download characters are skipped, their bytes counted; the
-  Figure A-1 widths are not yet used, proportional characters taking
-  their width from their dots; double height prints at single height.
+- NLQ II download characters are skipped, their bytes counted; double
+  height prints at single height.
+- Proportional spacing uses the Figure A-1 widths and offsets
+  (`papyrium.language.proprinter.widths`) in every face, NLQ and NLQ II
+  doubling them on their finer grid. The figure has nothing that says
+  otherwise for the NLQ faces.
 
 ## Open questions
 
