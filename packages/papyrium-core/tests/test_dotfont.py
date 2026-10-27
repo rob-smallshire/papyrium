@@ -49,6 +49,13 @@ def test_a_glyph_may_give_its_span_before_any_comment():
     assert glyph.extent == (1, 3)
 
 
+def test_a_glyph_may_say_it_prints_a_pin_lower():
+    text = "rows 2\ncolumns 3\nU+0067 lowered span 0 2 SMALL G\n...\n.#.\nU+0061 a\n.#.\n...\n"
+    font = parse_dot_font(text)
+    assert font.glyphs["g"].lowered and font.glyphs["g"].span == (0, 2)
+    assert not font.glyphs["a"].lowered
+
+
 def test_a_glyphs_extent_is_its_dots_without_a_span():
     glyph = parse_dot_font(_FONT_TEXT).glyphs[POUND_SIGN]
     assert glyph.span is None
@@ -74,6 +81,7 @@ def test_glyph_reports_horizontally_adjacent_dots():
         ("rows 1\ncolumns 3\nU+0041 span 1\n...\n", "span"),
         ("rows 1\ncolumns 3\nU+0041 span 2 1\n...\n", "span"),
         ("rows 1\ncolumns 3\nU+0041 span 0 3\n...\n", "span"),
+        ("rows 1\ncolumns 3\nU+0041 lowered lowered\n...\n", "lowered"),
     ],
 )
 def test_malformed_fonts_are_data_errors(text, message):
@@ -127,3 +135,9 @@ def test_a_derived_font_makes_each_glyph_from_its_sources():
     assert font.characters() == frozenset({"A", POUND_SIGN})
     assert font.glyph("A").dots == frozenset({(4, 0), (2, 1), (6, 1), (0, 2), (8, 2)})
     assert font.glyph("Z") is None
+
+
+def test_transforms_keep_a_glyphs_attributes():
+    glyph = Glyph(frozenset({(2, 1)}), span=(2, 5), lowered=True)
+    assert pass_rows(glyph, 1) == Glyph(frozenset({(2, 0)}), span=(2, 5), lowered=True)
+    assert half_width(glyph) == Glyph(frozenset({(1, 1)}), span=(1, 2), lowered=True)

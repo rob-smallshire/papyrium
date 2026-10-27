@@ -12,10 +12,11 @@ A dot font is a text file::
 
 Each glyph starts with its Unicode code point and continues with exactly
 ``rows`` lines of ``columns`` characters, ``#`` for a dot and ``.`` for
-none. Row 0 is the top pin. After the code point the line may give the
-glyph's span, ``span FIRST LAST``, the columns it occupies for
-proportional spacing, where the printer's ROM says so; anything after
-that is a comment. Comment and blank lines may appear between glyphs, not
+none. Row 0 is the top pin. After the code point the line may give, in
+either order, the glyph's span, ``span FIRST LAST``, the columns it
+occupies for proportional spacing, and ``lowered``, that the printer
+prints it a pin lower, on pins 2-9, where the printer's ROM says so;
+anything after them is a comment. Comment and blank lines may appear between glyphs, not
 within one.
 
 A variant of a character is named by a sequence of code points, the
@@ -27,14 +28,14 @@ from __future__ import annotations
 import importlib.resources
 import re
 from abc import abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from papyrium.exception import DataError
 from papyrium.extension import Extension, create_extension, namespace_for
 
 _CODE_POINTS_PATTERN = re.compile(r"^U\+[0-9A-Fa-f]{4,6}(?:\s+U\+[0-9A-Fa-f]{4,6})*\b")
-_SPAN_PATTERN = re.compile(r"\s+span\b(?:\s+(\d+)\s+(\d+)\b)?")
+_ATTRIBUTE_PATTERN = re.compile(r"\s+(span|lowered)\b(?:\s+(\d+)\s+(\d+)\b)?")
 
 
 def code_points(character: str) -> str:
@@ -48,11 +49,13 @@ class Glyph:
 
     *span* is the first and last column the character occupies for
     proportional spacing, where the font gives it; otherwise its dots'
-    columns serve.
+    columns serve. *lowered* says the printer prints the character a pin
+    lower than its ROM's column bytes would by themselves, on pins 2-9.
     """
 
     dots: frozenset[tuple[int, int]]
     span: tuple[int, int] | None = None
+    lowered: bool = False
 
     @property
     def leftmost(self) -> int | None:
@@ -119,7 +122,7 @@ def parse_dot_font(text: str) -> DotFontData:
         if character in glyphs:
             raise DataError(f"line {number}: {code_points(character)} is defined twice")
         rows, columns = settings["rows"], settings["columns"]
-        span = _span(line[match.end() :], columns, number)
+        span, lowered = _attributes(line[match.end() :], columns, number)
         bitmap = [line.rstrip() for line in lines[index : index + rows]]
         if len(bitmap) != rows:
             raise DataError(f"line {number}: {code_points(character)} needs {rows} rows")
@@ -134,27 +137,38 @@ def parse_dot_font(text: str) -> DotFontData:
                 elif cell != ".":
                     raise DataError(f"line {bitmap_number}: unexpected {cell!r}")
         index += rows
-        glyphs[character] = Glyph(frozenset(dots), span)
+        glyphs[character] = Glyph(frozenset(dots), span, lowered)
     if "rows" not in settings or "columns" not in settings:
         raise DataError("a dot font must set rows and columns")
     return DotFontData(rows=settings["rows"], columns=settings["columns"], glyphs=glyphs)
 
 
-def _span(rest: str, columns: int, number: int) -> tuple[int, int] | None:
-    """The span given after a glyph's code points, if any.
+def _attributes(rest: str, columns: int, number: int) -> tuple[tuple[int, int] | None, bool]:
+    """The span and lowered attributes given after a glyph's code points.
 
     Raises:
-        DataError: The span is malformed or lies outside the matrix.
+        DataError: An attribute is malformed or repeated, or the span lies
+            outside the matrix.
     """
-    match = _SPAN_PATTERN.match(rest)
-    if match is None:
-        return None
-    if match.group(1) is None:
-        raise DataError(f"line {number}: span needs a first and a last column")
-    first, last = int(match.group(1)), int(match.group(2))
-    if not first <= last < columns:
-        raise DataError(f"line {number}: span {first} {last} is not within {columns} columns")
-    return first, last
+    span, lowered, seen = None, False, set()
+    while (match := _ATTRIBUTE_PATTERN.match(rest)) is not None:
+        name = match.group(1)
+        if name in seen:
+            raise DataError(f"line {number}: {name} is given twice")
+        seen.add(name)
+        rest = rest[match.end() :]
+        if name == "lowered":
+            if match.group(2) is not None:
+                raise DataError(f"line {number}: lowered takes no columns")
+            lowered = True
+            continue
+        if match.group(2) is None:
+            raise DataError(f"line {number}: span needs a first and a last column")
+        first, last = int(match.group(2)), int(match.group(3))
+        if not first <= last < columns:
+            raise DataError(f"line {number}: span {first} {last} is not within {columns} columns")
+        span = (first, last)
+    return span, lowered
 
 
 class DotFont(Extension):
@@ -284,13 +298,13 @@ def pass_rows(glyph: Glyph, pass_: int) -> Glyph:
     """One pass of a two-pass glyph as a glyph of its own: rows *pass_*,
     *pass_* + 2, ... of *glyph* become rows 0, 1, ..."""
     dots = frozenset((column, row // 2) for column, row in glyph.dots if row % 2 == pass_)
-    return Glyph(dots)
+    return replace(glyph, dots=dots)
 
 
 def half_width(glyph: Glyph) -> Glyph:
     """*glyph* at half width: each pair of columns ORed into one, less any
     dot the column before printed, so that no pin fires in two successive
-    columns."""
+    columns. Its span is halved with it."""
     halved: dict[int, set[int]] = {}
     for column, row in glyph.dots:
         halved.setdefault(column // 2, set()).add(row)
@@ -300,4 +314,5 @@ def half_width(glyph: Glyph) -> Glyph:
         rows = halved.get(column, set()) - previous
         dots.update((column, row) for row in rows)
         previous = rows
-    return Glyph(frozenset(dots))
+    span = None if glyph.span is None else (glyph.span[0] // 2, glyph.span[1] // 2)
+    return replace(glyph, dots=frozenset(dots), span=span)

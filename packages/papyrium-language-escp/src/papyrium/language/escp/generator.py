@@ -13,7 +13,7 @@ Lengths are in page units (1/4320 inch).
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from papyrium.core.dotfont import Glyph
 from papyrium.core.page import inches
@@ -139,4 +139,4 @@ def printable_once(glyph: Glyph) -> Glyph:
     for column, row in sorted(glyph.dots):
         if (column - 1, row) not in printed:
             printed.add((column, row))
-    return Glyph(frozenset(printed), glyph.span)
+    return replace(glyph, dots=frozenset(printed))
