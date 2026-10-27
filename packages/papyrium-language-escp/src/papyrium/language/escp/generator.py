@@ -24,10 +24,6 @@ SCRIPT_ROW_PITCH = inches(1) // 144
 #: The baseline row of the character matrix, about which italics lean.
 BASELINE_ROW = 6
 
-#: Columns of an NLQ character on the FX-80's descendants: 1/240 inch apart
-#: across the pica cell.
-NLQ_COLUMNS = 24
-
 #: Width of a proportional space, in proportional columns.
 PROPORTIONAL_SPACE_COLUMNS = 10
 
@@ -64,14 +60,12 @@ class CharacterGenerator:
     the ROM stores characters with such dots, and the printer prints them
     once. *nlq_emphasized*: near letter quality prints emphasized, rather
     than masking it. *nlq_pass_offset*: how far below the first NLQ pass
-    the second prints. *nlq_columns*: the columns of an NLQ font's pica
-    cell.
+    the second prints.
     """
 
     prints_adjacent_dots_once: bool = False
     nlq_emphasized: bool = False
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
-    nlq_columns: int = NLQ_COLUMNS
 
     def proportional_cell(self, glyph: Glyph) -> tuple[int, int]:
         """The columns a character takes in proportional spacing, and how
@@ -111,12 +105,12 @@ class CharacterGenerator:
             yield from passes
 
     def nlq_dots(
-        self, glyph: Glyph, width: int, style: CharacterStyle, pin_pitch: int
+        self, glyph: Glyph, columns: int, width: int, style: CharacterStyle, pin_pitch: int
     ) -> list[Dot]:
-        """The dots of an NLQ character *width* wide: the pins of the first
-        pass on even rows, of the second, *nlq_pass_offset* lower, on odd
-        rows, on *nlq_columns* columns to the cell."""
-        step = width // self.nlq_columns
+        """The dots of an NLQ character from a font of *columns* columns,
+        which span its cell, *width* wide: the pins of the first pass on
+        even rows, of the second, *nlq_pass_offset* lower, on odd rows."""
+        step = width // columns
         result = []
         for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
             dx = column * step

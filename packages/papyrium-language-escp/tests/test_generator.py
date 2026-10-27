@@ -40,7 +40,7 @@ def test_double_strike_repeats_each_dot_1_216_inch_lower():
 
 def test_nlq_passes_fall_on_alternate_rows_1_216_inch_apart():
     glyph = Glyph(frozenset({(0, 0), (0, 1), (0, 2)}))
-    dots = GENERATOR.nlq_dots(glyph, inches(1) // 10, CharacterStyle(step=0), PIN)
+    dots = GENERATOR.nlq_dots(glyph, 24, inches(1) // 10, CharacterStyle(step=0), PIN)
     assert dots == [(0, 0), (0, DOUBLE_STRIKE_OFFSET), (0, PIN)]
 
 
@@ -58,8 +58,14 @@ def test_a_blank_proportional_cell_is_ten_columns():
     assert GENERATOR.proportional_cell(Glyph(frozenset())) == (10, 0)
 
 
-def test_a_printer_may_space_its_nlq_passes_and_columns_otherwise():
-    generator = CharacterGenerator(nlq_pass_offset=inches(1) // 144, nlq_columns=12)
+def test_a_printer_may_space_its_nlq_passes_otherwise():
+    generator = CharacterGenerator(nlq_pass_offset=inches(1) // 144)
     glyph = Glyph(frozenset({(1, 1)}))
-    dots = generator.nlq_dots(glyph, inches(1) // 10, CharacterStyle(step=0), PIN)
-    assert dots == [(inches(1) // 120, inches(1) // 144)]
+    dots = generator.nlq_dots(glyph, 24, inches(1) // 10, CharacterStyle(step=0), PIN)
+    assert dots == [(inches(1) // 240, inches(1) // 144)]
+
+
+def test_an_nlq_fonts_columns_span_its_cell():
+    glyph = Glyph(frozenset({(1, 0)}))
+    dots = GENERATOR.nlq_dots(glyph, 20, inches(1) // 12, CharacterStyle(step=0), PIN)
+    assert dots == [(inches(1) // 240, 0)]

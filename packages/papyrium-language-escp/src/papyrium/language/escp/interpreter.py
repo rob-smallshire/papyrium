@@ -409,7 +409,8 @@ class EscpInterpreter(Interpreter):
             emphasized=self._emphasized,
             double_width=self._is_double_width(),
         )
-        return self._generator.nlq_dots(glyph, width, style, self._mechanism.pin_pitch)
+        columns = self._nlq_font().columns
+        return self._generator.nlq_dots(glyph, columns, width, style, self._mechanism.pin_pitch)
 
     def _report_missing(self, character: str, instead: str) -> None:
         if character not in self._missing_characters:
