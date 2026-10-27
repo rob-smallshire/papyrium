@@ -126,6 +126,11 @@ class EscpMechanism:
     #: Power on with codes 128-255 from the IBM PC table rather than the
     #: italic one (ESC t 1).
     graphics_table: bool = False
+    #: Elite text may be proportionally spaced, rather than elite masking
+    #: proportional spacing.
+    proportional_elite: bool = False
+    #: Proportional characters always print emphasized.
+    proportional_emphasized: bool = True
     #: ESC f 0 n moves to column n from the left margin rather than
     #: printing n spaces.
     skip_moves_to_column: bool = False

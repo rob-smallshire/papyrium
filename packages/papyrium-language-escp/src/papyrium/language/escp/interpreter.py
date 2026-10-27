@@ -467,9 +467,11 @@ class EscpInterpreter(Interpreter):
         return font.glyph(character)
 
     def _draft_font(self) -> DotFont:
-        """The draft font for the pitch: the elite font in elite, where there is one."""
+        """The draft font for the pitch: the elite font in elite at fixed
+        pitch, where there is one."""
         elite_font = self._mechanism.elite_font
-        if elite_font is not None and self._column_width() == ELITE_WIDTH:
+        fixed_elite = self._column_width() == ELITE_WIDTH and not self._is_proportional()
+        if elite_font is not None and fixed_elite:
             return elite_font
         return self._mechanism.font
 
@@ -556,11 +558,15 @@ class EscpInterpreter(Interpreter):
     # one without cancelling it: elite, proportional, emphasized, condensed.
 
     def _is_proportional(self) -> bool:
-        return self._proportional and not self._elite
+        """Proportional spacing; elite masks it unless the printer spaces elite
+        proportionally."""
+        return self._proportional and (not self._elite or self._mechanism.proportional_elite)
 
     def _is_emphasized(self) -> bool:
-        """Proportional characters always print emphasized; NLQ masks it."""
-        return not self._nlq and not self._elite and (self._emphasized or self._proportional)
+        """Emphasized, which on some printers proportional characters always
+        print; NLQ and elite mask it."""
+        proportional = self._proportional and self._mechanism.proportional_emphasized
+        return not self._nlq and not self._elite and (self._emphasized or proportional)
 
     def _is_double_strike(self) -> bool:
         """Super- and subscript always print double-strike, and so does NLQ.

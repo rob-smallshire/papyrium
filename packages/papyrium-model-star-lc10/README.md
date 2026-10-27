@@ -49,8 +49,7 @@ Character sizes print as the LC-10 prints them, always in near letter
 quality: double and quadruple size and their halves (`ESC h`), double
 height on the base line (`ESC w`), and `ESC [ @`.
 
-Not modelled yet: IBM mode (switch 1-6), proportional spacing in elite,
-download characters as the LC-10 defines them, and the LC-10 Colour.
+Not modelled yet: IBM mode (switch 1-6), download characters as the LC-10 defines them, and the LC-10 Colour.
 
 ## Licence
 

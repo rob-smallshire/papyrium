@@ -276,3 +276,39 @@ def test_a_printer_may_differ_from_a_national_set():
     assert character_for(0x60, CharacterSet.SPAIN_II, LC10_NATIONAL_DIFFERENCES) == "´"
     assert character_for(0x60, CharacterSet.LATIN_AMERICA, LC10_NATIONAL_DIFFERENCES) == "ü"
     assert character_for(0x7B, CharacterSet.SPAIN, LC10_NATIONAL_DIFFERENCES) == "¨"
+
+
+def test_a_printer_may_space_elite_proportionally():
+    data = ESC + b"M" + ESC + b"p\x01AA"
+    # Elite masks proportional on the FX-80: elite columns, 30 units apart.
+    assert [x for x, _ in dots(data)] == [LEFT + 30, LEFT + 360 + 30]
+    spaced = dots(data, proportional_elite=True, proportional_emphasized=False)
+    # A's dot in column 1: one column wide and two of spacing, 1/120 inch.
+    assert [x for x, _ in spaced] == [LEFT + 36, LEFT + 3 * 36 + 36]
+
+
+def test_proportional_elite_draft_keeps_the_pica_draft_font():
+    options = {**ELITE_DRAFT, "proportional_elite": True, "proportional_emphasized": False}
+    assert dots(ESC + b"M" + ESC + b"p\x01A", **options) == [(LEFT + 36, 0)]
+
+
+def test_proportional_need_not_print_emphasized():
+    assert len(dots(ESC + b"p\x01A")) == 2
+    assert len(dots(ESC + b"p\x01A", proportional_emphasized=False)) == 1
+
+
+def test_proportional_elite_nlq_prints_from_the_elite_font():
+    class Proportional(CharacterGenerator):
+        def nlq_proportional_cell(self, glyph):
+            return 5, -glyph.extent[0]
+
+    options = {
+        "nlq": True,
+        "nlq_elite": True,
+        "proportional_elite": True,
+        "nlq_fonts": (_nlq_font(0),),
+        "nlq_elite_fonts": (_font_with_a_at(2, rows=18, columns=20),),
+        "generator": Proportional(),
+    }
+    data = ESC + b"x\x01" + ESC + b"M" + ESC + b"p\x01AA"
+    assert dots(data, **options) == [(LEFT, 0), (LEFT + 5 * 18, 0)]

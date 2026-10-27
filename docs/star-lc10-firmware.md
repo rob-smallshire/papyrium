@@ -197,6 +197,12 @@ and the column builders (`$FB88`) choose by pitch:
 | Condensed elite | As condensed pica: 12 columns at 1/240 inch | As condensed pica: 12 columns at 1/240 inch |
 | Proportional | Sanserif's second pass at half width, its width + 2 columns at 1/120 inch | The pica table, its width + 4 columns at 1/240 inch |
 
+Proportional spacing works in elite too, unlike the FX-80's, where
+elite masks it: draft is the same in either pitch, and NLQ takes the
+typeface's elite table. Nor does proportional spacing force emphasized
+printing, as the FX-80's does: the column builders test emphasized
+(`$5C` bit 7) alone.
+
 Proportional draft does not use the draft table's first and last
 columns for ROM characters: like pica, it is made from Sanserif at half
 width, its advance half Sanserif's width plus 2 columns (`$FAD7`). The
