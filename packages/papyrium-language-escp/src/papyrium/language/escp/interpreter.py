@@ -246,16 +246,82 @@ class EscpInterpreter(Interpreter):
     # -- The state machine ------------------------------------------------
 
     def _run(self) -> Generator[None, int, None]:
+        # Bytes read ahead for an embedded command that did not complete.
+        pending: list[int] = []
         while True:
-            byte = yield
+            byte = pending.pop(0) if pending else (yield)
             if not self._selected:
                 if byte & 0x7F == DC1:
                     self._selected = True
                 continue
+            if byte == ord("(") and self._mechanism.embedded_commands:
+                unmatched = yield from self._embedded_command(pending)
+                if unmatched is None:
+                    continue
+                # The parenthesis prints; the bytes read after it are taken
+                # again, the last of them perhaps a control or ESC.
+                pending[:0] = unmatched
             if self._is_printable(byte):
                 self._character(byte)
             else:
                 yield from self._control(byte & 0x7F)
+
+    #: Embedded commands that take no digit: the sheet feeder's.
+    _EMBEDDED_WITHOUT_DIGIT = frozenset("04R")
+
+    #: The digits each embedded command accepts.
+    _EMBEDDED_DIGITS = {
+        "F": "01239",
+        "S": "0123",
+        "C": "0123456",
+        "B": "01",
+        "I": "01",
+        "T": "0123456789",
+    }
+
+    def _embedded_command(self, pending: list[int]) -> Generator[None, int, list[int] | None]:
+        """After an opening parenthesis, read and obey ((X))n, as the Star
+        LC-10 Colour does, taking any *pending* bytes first. Returns the
+        bytes read if they are not one."""
+        read: list[int] = []
+        expected = [ord("("), None, ord(")"), ord(")")]
+        letter = ""
+        for want in expected:
+            byte = pending.pop(0) if pending else (yield)
+            read.append(byte)
+            if want is None:
+                letter = chr(byte)
+                if letter not in self._mechanism.embedded_commands:
+                    return read
+            elif byte != want:
+                return read
+        if letter in self._EMBEDDED_WITHOUT_DIGIT:
+            return None
+        byte = pending.pop(0) if pending else (yield)
+        read.append(byte)
+        if chr(byte) not in self._EMBEDDED_DIGITS.get(letter, ""):
+            return read
+        self._obey_embedded(letter, byte - ord("0"))
+        return None
+
+    def _obey_embedded(self, letter: str, n: int) -> None:
+        if letter == "F":
+            self._nlq = n != 9
+            if self._nlq:
+                self._typeface = n
+        elif letter == "S":
+            self._height_scale = 2 if n in (2, 3) else 1
+            self._width_scale, self._half, self._spacing_scale = 1, None, 1
+            self._base_line_kept = self._height_scale == 2
+            self._double_width = n in (1, 3)
+        elif letter == "C":
+            if self._mechanism.colour_ribbon:
+                self._inks = self._COLOURS[n]
+        elif letter == "B":
+            self._double_strike = bool(n)
+        elif letter == "I":
+            self._italic = bool(n)
+        # ((T))n sets the sheet feeder's top margin, which is not modelled.
 
     def _is_printable(self, byte: int) -> bool:
         """Whether *byte* prints a character; the high codes mirror the controls."""
