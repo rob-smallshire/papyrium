@@ -289,16 +289,11 @@ class EscpInterpreter(Interpreter):
 
     def _character(self, byte: int) -> None:
         location = self._location(byte)
+        italic = self._is_italic(location)
         nlq_glyph = self._nlq_glyph(location)
         if nlq_glyph is not None:
-            self._nlq_character(location, nlq_glyph)
+            self._nlq_character(location, nlq_glyph, italic)
             return
-        # The ROM keeps italic characters at 128-255; the RAM has its own there.
-        from_rom = self._glyph_source(location)[0] == "rom"
-        # The IBM PC table's characters are never italic.
-        italic = location < IBM_LOCATION and (
-            self._italic or (from_rom and bool(location & ITALIC))
-        )
         width, step, offset, glyph_key = self._character_layout(location)
         if self._x + width > self._right_limit(text=True):
             # A full line prints and the carriage returns, as for CR LF.
@@ -314,11 +309,18 @@ class EscpInterpreter(Interpreter):
         if self._immediate:
             self._print_line()
 
-    def _nlq_character(self, location: int, glyph: Glyph) -> None:
+    def _is_italic(self, location: int) -> bool:
+        """Whether the character at *location* prints italic."""
+        # The ROM keeps italic characters at 128-255; the RAM has its own there.
+        from_rom = self._glyph_source(location)[0] == "rom"
+        # The IBM PC table's characters are never italic.
+        return location < IBM_LOCATION and (self._italic or (from_rom and bool(location & ITALIC)))
+
+    def _nlq_character(self, location: int, glyph: Glyph, italic: bool) -> None:
         width = self._column_width() * (2 if self._is_double_width() else 1)
         if self._x + width > self._right_limit(text=True):
             self._wrap()
-        dots = self._nlq_dots(glyph, width)
+        dots = self._nlq_dots(glyph, width, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
         if self._underline:
@@ -414,9 +416,10 @@ class EscpInterpreter(Interpreter):
             logger.warning("no font for NLQ typeface %d; printing the first", self._typeface)
         return fonts[0]
 
-    def _nlq_dots(self, glyph: Glyph, width: int) -> list[tuple[int, int]]:
+    def _nlq_dots(self, glyph: Glyph, width: int, italic: bool) -> list[tuple[int, int]]:
         style = CharacterStyle(
             step=0,
+            italic=italic,
             emphasized=self._emphasized,
             double_width=self._is_double_width(),
         )
