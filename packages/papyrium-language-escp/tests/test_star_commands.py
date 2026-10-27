@@ -69,3 +69,9 @@ def test_a_macro_keeps_sixteen_bytes():
 def test_a_command_ending_a_macro_takes_its_arguments_from_what_follows():
     macro = ESC + b"+" + ESC + b"$" + b"\x1e"
     assert dots(macro + ESC + b"+\x01" + b"\x0a\x00A") == [(LEFT + 10 * UNIT_60 + 36, 0)]
+
+
+def test_esc_f_0_prints_spaces_unless_the_printer_moves_to_the_column():
+    data = b"AA" + ESC + b"f\x00\x01A"
+    assert dots(data)[2] == (LEFT + 3 * PICA + 36, 0)
+    assert dots(data, skip_moves_to_column=True)[2] == (LEFT + PICA + 36, 0)

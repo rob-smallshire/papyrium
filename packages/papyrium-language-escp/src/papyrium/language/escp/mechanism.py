@@ -118,6 +118,9 @@ class EscpMechanism:
     #: Power on with codes 128-255 from the IBM PC table rather than the
     #: italic one (ESC t 1).
     graphics_table: bool = False
+    #: ESC f 0 n moves to column n from the left margin rather than
+    #: printing n spaces.
+    skip_moves_to_column: bool = False
     #: ESC a justifies only near letter quality lines.
     justify_nlq_only: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.

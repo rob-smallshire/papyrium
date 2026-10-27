@@ -1124,10 +1124,14 @@ class EscpInterpreter(Interpreter):
             self._vertical_tabs = stops
 
     def _esc_skip(self) -> ArgumentReader:
-        """Print *s* spaces (0), or feed *s* lines without a carriage return (1)."""
+        """Print *s* spaces (0), or move to column *s* from the left margin
+        where the printer does that instead, or feed *s* lines without a
+        carriage return (1)."""
         kind = (yield) & 0x7F
         s = yield
-        if kind in (0, ord("0")):
+        if kind in (0, ord("0")) and self._mechanism.skip_moves_to_column:
+            self._move_to(self._left_margin + min(s, 127) * self._tab_unit())
+        elif kind in (0, ord("0")):
             for _ in range(min(s, 127)):
                 self._character(0x20)
         elif kind in (1, ord("1")):

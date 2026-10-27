@@ -95,6 +95,7 @@ class StarLC10(PrinterModel):
             nlq_elite=True,
             nlq_elite_fonts=tuple(_font(f"lc10-nlq-{t}-elite") for t in _NLQ_TYPEFACES),
             master_select_italic_underline=True,
+            skip_moves_to_column=True,
             commands=_COMMANDS,
         )
 
