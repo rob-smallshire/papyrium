@@ -482,6 +482,10 @@ class EscpInterpreter(Interpreter):
             dots = [(dx, dy) for dx, dy in dots if dy < half]
         elif self._half == "lower":
             dots = [(dx, dy - half) for dx, dy in dots if dy >= half]
+        if self._double_strike:
+            # Each band prints again, as far below as double-strike's second pass.
+            offset = self._generator.double_strike_offset
+            dots = dots + [(dx, dy + offset) for dx, dy in dots]
         raise_by = half if self._base_line_kept else 0
         entry = _Entry(self._x, [(self._x + dx, self._y + dy - raise_by) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))

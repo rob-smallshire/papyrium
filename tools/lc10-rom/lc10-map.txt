@@ -159,6 +159,13 @@ $9472  code  ibm_dc2                   DC2 in IBM mode: pica, from elite or cond
 
 # -- Characters ------------------------------------------------------------
 
+$CB65  code  double_size_struck        Double size under double-strike: each band twice, 3 steps apart, bands 48 steps apart
+$CBD7  code  double_size_passes        Double size: two bands, one pass each, 48 steps apart
+$CC7A  code  quadruple_size_struck     Quadruple size under double-strike: each band twice, 3 steps apart
+$CD1D  code  quadruple_size_passes     Quadruple size: four bands, one pass each, 48 steps apart
+$CEA9  code  feed_3_then_pass          Feed 3 steps (1/144 inch), then print a pass; $CEAD 48, $CEB1 42, $CEB5 39, $CEB9 45 steps
+$CF28  code  print_pass                Print one pass of the line
+$D22A  code  choose_line_direction     A line in passes (NLQ, double-strike, scripts, enlarged, ESC w) sets $9A bit 7: its passes go one way
 $D55F  code  print_quadruple_line      Print a line of quadruple-size characters
 $D871  code  emit_double_size          An enlarged character's columns, one blank-separated pair each (double size)
 $D8E2  code  emit_quadruple_size       An enlarged character's columns, two blank-separated pairs each (quadruple size)
@@ -168,6 +175,9 @@ $E010  code  enlarged_column           The next column of an enlarged character,
 $E06C  code  enlarged_head_byte        Build the head byte of an enlarged character from its two passes' bytes
 $E09F  code  double_size_byte          Four rows of each pass interleaved, one pin each, the half chosen by $01 bits 1-2
 $E104  code  quadruple_size_byte       Two rows of each pass, two pins each, the band chosen by $01 bits 1-2
+$E2F8  code  column_out                Send a draft or NLQ column to the head, 1/240 inch apart in NLQ
+$E423  code  enlarged_column_out       Send an enlarged character's column, as column_out does
+$E478  code  send_column               The head output both column routines end in
 $E4E6  code  block_graphics_record     Find a block graphics record: the base $A29E plus 11 times the record
 $E718  code  enlarged_setup            An enlarged character's columns, from its NLQ table by pitch
 $F79F  code  script_column             Superscript or subscript: every other row of a column, by pass
@@ -199,6 +209,7 @@ $41    ram  pitch            Bit 0 pica, bit 1 elite, bit 2 condensed, bit 4 pri
 $42    ram  print_attributes Bit 0 double width, bit 1 italic, bit 2 underline, bit 3 the download set, bit 5 proportional, bit 7 overline
 $5C    ram  print_mode       Bit 1 double-strike, bit 2 NLQ printing, bit 3 ESC W's double width, bit 4 NLQ asked for, bit 5 subscript, bit 6 superscript, bit 7 emphasized
 $5D    ram  character_size   One bit for each ESC h size
+$9A    ram  line_direction   Bit 7: the line prints in passes, all one way; bit 6 the direction
 $A1    ram  nlq_typeface     Bits 4-5 the ESC k typeface
 $0112  ram  ibm_spacing      IBM mode's ESC A spacing, in 1/432 inch steps, for ESC 2; 72 at ESC @
 $0121  ram  chart_count      Bytes left to print from the All Characters Chart (IBM ESC \ and ^), to $0122

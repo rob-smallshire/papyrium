@@ -466,11 +466,25 @@ byte is built from the two passes' bytes (`$E06C`):
 
 Columns go to the head in pairs, the column then a blank (`$DF01`). The
 double size line (`$D871`) sends one pair for each column of the
-character, the quadruple line (`$D55F`, `$D8E2`) two. Taking the output
-columns as 1/240 inch apart, which makes the characters two and four
-times as wide, a column's dots print 0 and 2 columns on in double size
-and 0, 2, 4 and 6 in quadruple, its own place and, through the OR, the
-next column's. Papyrium prints them so. A line holding enlarged
+character, the quadruple line (`$D55F`, `$D8E2`) two. The head takes
+each through `$E423`, which ends in the same column output as NLQ's
+`$E2F8` (`$E478`, with the same timing in `$AD`), and the carriage is
+driven alike for both: a line that prints in passes, NLQ, double-strike,
+the scripts or an enlarged size, sets `$9A` bit 7 (`$D22A`), which keeps
+its passes in one direction rather than changing the speed. So the
+columns are 1/240 inch apart, as NLQ's are, the characters two and four
+times as wide, and a column's dots print 0 and 2 columns on in double
+size and 0, 2, 4 and 6 in quadruple: its own place and, through the OR,
+the next column's. Papyrium prints them so.
+
+The sequencer prints the bands with the paper moved between them by
+`$CEA9` (3 steps of 1/432 inch), `$CEAD` (48) or `$CEB9` (45), each then
+printing a pass (`$CF28`). Without double-strike, double size (`$CBD7`)
+and quadruple size (`$CD1D`) print their two or four bands once each, 48
+steps, 8 pins, apart. With it (`$CB65`, `$CC7A`), each band prints
+twice, the second 3 steps (1/144 inch) lower, the bands still 45 + 3 =
+48 steps apart; Papyrium strikes enlarged characters so under
+double-strike. A line holding enlarged
 characters feeds as far as the largest asks, even after normal size
 returns, as the sequencer's deferred feed does.
 
@@ -526,6 +540,6 @@ technical manual, worked by the carriage at the home position.
 
 ## Not yet decoded
 
-- The feeds between the enlarged sizes' passes (`$CB65` on), and the
-  carriage speeds each size chooses (`$D376` on), which would confirm
-  the output column pitch taken above.
+- The extra pass enlarged lines make when `$3E` bit 5 is set, with `$5D`
+  bit 0 (`$CBDF`, `$CD31`), which looks like the block graphics'
+  extension or the underline's pass.

@@ -99,3 +99,17 @@ def test_esc_bracket_at_sets_height_spacing_and_width():
 def test_a_line_holding_enlarged_characters_feeds_further_after_normal_size_returns():
     assert dots(ESC + b"h\x01A" + ESC + b"h\x00\nA", **NLQ)[4][1] == 2 * LINE
     assert dots(ESC + b"h\x01A" + ESC + b"h\x00\nA\nA", **NLQ)[5][1] == 3 * LINE
+
+
+def test_double_strike_prints_each_enlarged_band_twice_half_a_dot_apart():
+    # The LC-10's sequencer prints each band a second time 3 steps (1/144
+    # inch) lower when double-strike is on ($CB65, $CC7A).
+    from helpers import mechanism
+
+    from papyrium.model.star_lc10.generator import LC10CharacterGenerator
+
+    options = {"generator": LC10CharacterGenerator()}
+    single = _sorted(ESC + b"h\x01A", **options)
+    struck = _sorted(ESC + b"G" + ESC + b"h\x01A", **options)
+    offset = mechanism(**NLQ, **options).generator.double_strike_offset
+    assert struck == sorted(single + [(x, y + offset) for x, y in single])
