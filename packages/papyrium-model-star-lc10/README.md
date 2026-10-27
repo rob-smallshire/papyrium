@@ -41,14 +41,13 @@ the printer's DIP switches and paper:
 
 Star's additions to ESC/P are obeyed: absolute and relative positioning
 (`ESC $`, `ESC \`), both margins at once (`ESC X`), extra space between
-characters (`ESC SP`), moving to a column (`ESC f 0`), the slashed zero (`ESC ~`), reverse line feed and
-top of page (`ESC LF`, `ESC FF`) and the macro (`ESC +`). Character
+characters (`ESC SP`), moving to a column (`ESC f 0`), the slashed zero (`ESC ~`), overline (`ESC _`),
+the top margin (`ESC c`), reverse line feed and top of page (`ESC LF`, `ESC FF`) and the macro (`ESC +`). Character
 sizes print as the LC-10 prints them, always in near letter quality:
 double and quadruple size and their halves (`ESC h`), double height on
 the base line (`ESC w`), and `ESC [ @`.
 
-Not modelled yet: IBM mode (switch 1-6), overline (`ESC _`), the top
-margin (`ESC c`), proportional spacing in elite, LF without a carriage return (switch
+Not modelled yet: IBM mode (switch 1-6), proportional spacing in elite, LF without a carriage return (switch
 1-2), download characters as the LC-10 defines them, and the LC-10
 Colour.
 

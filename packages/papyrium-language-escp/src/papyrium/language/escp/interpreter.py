@@ -187,6 +187,7 @@ class EscpInterpreter(Interpreter):
         self._one_line_double_width = False
         self._italic = False
         self._underline = False
+        self._overline = False
         self._extra_space = 0
         self._slashed_zero = mechanism.slashed_zero
         # Character size: height and width scales, the half printed, whether
@@ -225,6 +226,7 @@ class EscpInterpreter(Interpreter):
         self._vertical_tab_channel = 0
         self._vertical_tabs = self._vertical_tab_channels[0]
         self._skip_perforation = mechanism.skip_perforation_lines * self._line_spacing
+        self._top_margin = 0
         self._graphics_modes = {"K": 0, "L": 1, "Y": 2, "Z": 3}
         # The user RAM: 256 locations, empty until defined or copied from the ROM.
         self._ram: dict[int, _UserCharacter] = {}
@@ -334,8 +336,7 @@ class EscpInterpreter(Interpreter):
         dots = self._character_dots(location, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        if self._underline:
-            entry.dots.extend(self._underline_dots(width))
+        entry.dots.extend(self._line_dots(width))
         self._line.append(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -371,8 +372,7 @@ class EscpInterpreter(Interpreter):
         raise_by = half if self._base_line_kept else 0
         entry = _Entry(self._x, [(self._x + dx, self._y + dy - raise_by) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        if self._underline:
-            entry.dots.extend(self._underline_dots(width))
+        entry.dots.extend(self._line_dots(width))
         self._line.append(entry)
         self._x += width + self._extra_space
         self._line_feed_scale = max(self._line_feed_scale, self._spacing_scale)
@@ -398,8 +398,7 @@ class EscpInterpreter(Interpreter):
         dots = self._nlq_dots(glyph, cell, italic, offset)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        if self._underline:
-            entry.dots.extend(self._underline_dots(width))
+        entry.dots.extend(self._line_dots(width))
         self._line.append(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -574,6 +573,15 @@ class EscpInterpreter(Interpreter):
     def _is_double_width(self) -> bool:
         return self._double_width or self._one_line_double_width
 
+    def _line_dots(self, width: int) -> list[tuple[int, int]]:
+        """The underline and overline across a character *width* wide."""
+        dots = []
+        if self._overline:
+            dots.extend((self._x + x, self._y) for x in range(0, width, PROPORTIONAL_STEP))
+        if self._underline:
+            dots.extend(self._underline_dots(width))
+        return dots
+
     def _underline_dots(self, width: int) -> list[tuple[int, int]]:
         y = self._y + self._mechanism.underline_row * self._mechanism.pin_pitch
         return [(self._x + x, y) for x in range(0, width, PROPORTIONAL_STEP)]
@@ -717,7 +725,7 @@ class EscpInterpreter(Interpreter):
         if self._skip_perforation:
             form_bottom = self._form_top + self._form_length
             if form_bottom - self._skip_perforation <= self._y < form_bottom:
-                self._advance(form_bottom - self._y)
+                self._advance(form_bottom - self._y + self._top_margin)
 
     def _advance(self, distance: int) -> None:
         self._y += distance
@@ -730,7 +738,7 @@ class EscpInterpreter(Interpreter):
         self._end_line()
         self._x = self._left_margin
         self._one_line_double_width = False
-        self._advance(self._form_top + self._form_length - self._y)
+        self._advance(self._form_top + self._form_length - self._y + self._top_margin)
 
     def _vertical_tab(self) -> None:
         position = self._y - self._form_top
@@ -847,7 +855,7 @@ class EscpInterpreter(Interpreter):
             "M": setter("_elite", True),
             "P": setter("_elite", False),
             "N": self._esc_skip_perforation,
-            "O": setter("_skip_perforation", 0),
+            "O": self._esc_cancel_margins,
             "Q": self._esc_right_margin,
             "l": self._esc_left_margin,
             "R": self._esc_character_set,
@@ -873,6 +881,8 @@ class EscpInterpreter(Interpreter):
             "\n": self._esc_reverse_line_feed,
             "\x0c": self._esc_top_of_page,
             "+": self._esc_macro,
+            "_": self._esc_overline,
+            "c": self._esc_top_margin,
             "h": self._esc_size,
             "w": self._esc_double_height,
             "[": self._esc_bracket,
@@ -1237,6 +1247,23 @@ class EscpInterpreter(Interpreter):
     def _esc_extra_space(self) -> ArgumentReader:
         """Leave n/240 inch after each character."""
         self._extra_space = ((yield) & 0x7F) * (inches(1) // 240)
+
+    def _esc_cancel_margins(self) -> None:
+        """Cancel the bottom margin, and the top margin where there is one."""
+        self._skip_perforation = 0
+        self._top_margin = 0
+
+    def _esc_top_margin(self) -> ArgumentReader:
+        """Start printing on each form at line n, 1-255."""
+        n = yield
+        if n:
+            self._top_margin = (n - 1) * self._line_spacing
+        else:
+            logger.debug("ignoring a top margin at line 0")
+
+    def _esc_overline(self) -> ArgumentReader:
+        """Overline along the top pin, on (1) or off (0)."""
+        self._overline = self._flag((yield))
 
     def _esc_slashed_zero(self) -> ArgumentReader:
         self._slashed_zero = self._flag((yield))

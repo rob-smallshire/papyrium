@@ -237,6 +237,14 @@ in pica (23 + 1). In proportional spacing the left and right spaces are
 dropped and the gap is 4 columns: the advance is the glyph's width plus
 4/240 inch.
 
+## Underline and overline
+
+The column builder (`$F818`-`$F853`) adds the lines after a lowered
+character's byte has been shifted down a pin. Overline sets the byte's
+top bit, so it is always pin 1, and in NLQ prints in the first pass
+only. Underline fires the ninth pin, and in NLQ prints in the second
+pass only, half a dot lower than draft's.
+
 ## Character sizes
 
 `ESC h n` sets one bit of `$5D` (`$9A92`): 1 double (0x08), 2 quadruple

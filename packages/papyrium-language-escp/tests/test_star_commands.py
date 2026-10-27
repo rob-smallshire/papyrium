@@ -1,7 +1,7 @@
 """Commands Star added to ESC/P, as the LC-10 has them: positioning, margins,
 spacing, the slashed zero, reverse feeds and the macro."""
 
-from helpers import ESC, LEFT, LINE, PICA, dots
+from helpers import ESC, LEFT, LINE, PICA, dots, run
 
 UNIT_60 = 72  # 1/60 inch
 UNIT_120 = 36  # 1/120 inch
@@ -75,3 +75,34 @@ def test_esc_f_0_prints_spaces_unless_the_printer_moves_to_the_column():
     data = b"AA" + ESC + b"f\x00\x01A"
     assert dots(data)[2] == (LEFT + 3 * PICA + 36, 0)
     assert dots(data, skip_moves_to_column=True)[2] == (LEFT + PICA + 36, 0)
+
+
+def test_esc_underscore_overlines_along_the_top_pin_for_the_whole_cell():
+    overline = [(LEFT + x, 0) for x in range(0, PICA, 36)]
+    assert dots(ESC + b"_\x01A" + ESC + b"_\x00A") == [
+        (LEFT + 36, 0),
+        *overline,
+        (LEFT + PICA + 36, 0),
+    ]
+
+
+def test_overline_and_underline_together():
+    printed = dots(ESC + b"_\x01" + ESC + b"-\x01A")
+    assert {y for _, y in printed} == {0, 480}
+
+
+def test_esc_c_starts_each_form_on_line_n():
+    first, second = run(ESC + b"c\x03A\x0cA")
+    assert first.dots == ((LEFT + 36, 0),)
+    assert second.dots == ((LEFT + 36, 2 * LINE),)
+
+
+def test_the_top_margin_follows_a_skip_over_the_perforation():
+    # A two-line bottom margin on a six-line form: line 4 skips to the next form.
+    data = ESC + b"C\x06" + ESC + b"N\x02" + ESC + b"c\x02" + b"A\n\n\n\nA"
+    assert dots(data) == [(LEFT + 36, 0), (LEFT + 36, 7 * LINE)]
+
+
+def test_esc_o_cancels_the_top_margin_too():
+    first, second = run(ESC + b"c\x03" + ESC + b"OA\x0cA")
+    assert second.dots == ((LEFT + 36, 0),)
