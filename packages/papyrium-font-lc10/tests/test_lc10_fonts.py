@@ -227,3 +227,37 @@ def test_horizontal_lines_join_the_next_cell():
     # Dots every other column to the last, the cell's twelfth column blank.
     columns = {c for c, _ in LC10BlockGraphicsFont(name="g").glyph("─").dots}
     assert columns == {0, 2, 4, 6, 8, 10}
+
+
+@pytest.mark.parametrize("cls", [LC10DraftFont, LC10DraftEliteFont, *NLQ_FONTS.values()])
+def test_characters_reaching_the_ninth_pin_are_marked_lowered(cls):
+    font = cls(name="font")
+    ninth_pin = font.rows - (1 if font.rows == 9 else 2)
+    for character in font.characters():
+        glyph = font.glyph(character)
+        if any(row >= ninth_pin for _, row in glyph.dots):
+            assert glyph.lowered, character
+    assert not font.glyph("H").lowered
+
+
+def test_orators_short_descenders_are_lowered_though_their_dots_do_not_show_it():
+    font = LC10NlqOratorFont(name="orator")
+    for character in "gpqy":
+        glyph = font.glyph(character)
+        assert glyph.lowered and max(row for _, row in glyph.dots) < 17, character
+
+
+@pytest.mark.parametrize("cls", NLQ_FONTS.values())
+def test_nlq_spans_and_spaces_fill_the_cell(cls):
+    font = cls(name="nlq")
+    cell = font.columns - 1
+    for character in font.characters():
+        first, last = font.glyph(character).span
+        assert first <= last < cell, character
+
+
+def test_pica_draft_spans_are_half_sanserifs():
+    draft, sanserif = LC10DraftFont(name="d"), LC10NlqSanserifFont(name="s")
+    for character in "AHil.":
+        first, last = sanserif.glyph(character).span
+        assert draft.glyph(character).span == (first // 2, last // 2), character

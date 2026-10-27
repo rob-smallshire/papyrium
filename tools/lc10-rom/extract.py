@@ -134,7 +134,22 @@ def check_duplicates(name: str, glyph_at) -> None:
             raise SystemExit(f"{name}: location {location:#x} differs from {same:#x}")
 
 
-def glyphs(glyph_at) -> dict[str, set]:
+def draft_attributes(rom: bytes, location: int) -> str:
+    """The dot font attributes of the draft character at *location*."""
+    return "" if rom[DRAFT_TABLE + location * DRAFT_RECORD] & 0x80 else "lowered"
+
+
+def nlq_attributes(rom: bytes, table: int, location: int) -> str:
+    """The dot font attributes of an NLQ character: its span, from its left
+    space and width, and whether it is lowered."""
+    at = (table * NLQ_TABLE_ENTRIES + location) * NLQ_ENTRY
+    header, width = rom[at], rom[at + 1]
+    left = (header >> 4) & 0x07
+    attributes = f"span {left} {left + width - 1}"
+    return attributes if header & 0x80 else f"{attributes} lowered"
+
+
+def glyphs(glyph_at) -> dict:
     result = {}
     for location, character in enumerate(LOCATIONS):
         if location not in DUPLICATE_LOCATIONS:
@@ -142,11 +157,19 @@ def glyphs(glyph_at) -> dict[str, set]:
     return result
 
 
-def font_text(header: list[str], rows: int, columns: int, glyphs: dict[str, set]) -> str:
+def font_text(
+    header: list[str],
+    rows: int,
+    columns: int,
+    glyphs: dict[str, set],
+    attributes: dict[str, str] | None = None,
+) -> str:
     lines = [f"# {line}" if line else "#" for line in header]
     lines += [f"rows {rows}", f"columns {columns}", ""]
     for character in sorted(glyphs, key=lambda c: [ord(x) for x in c]):
-        lines.append(" ".join(f"U+{ord(x):04X}" for x in character))
+        code_points = " ".join(f"U+{ord(x):04X}" for x in character)
+        extra = (attributes or {}).get(character, "")
+        lines.append(f"{code_points} {extra}" if extra else code_points)
         dots = glyphs[character]
         for row in range(rows):
             cells = ("#" if (column, row) in dots else "." for column in range(columns))
@@ -171,8 +194,10 @@ def main(rom_filepath: Path) -> None:
         font_text(
             ["lc10-draft-elite: the Star LC-10's elite draft characters.", *PROVENANCE,
              "Columns are 1/120 inch apart; the cell is 10 columns, the last always",
-             "blank. A character with a descender sits a pin lower."],
+             "blank. A character with a descender sits a pin lower and is marked",
+             "lowered."],
             DRAFT_ROWS, DRAFT_COLUMNS, glyphs(lambda location: draft_glyph(rom, location)),
+            glyphs(lambda location: draft_attributes(rom, location)),
         ),
         encoding="ascii",
     )  # fmt: skip
@@ -204,9 +229,12 @@ def main(rom_filepath: Path) -> None:
                     [f"lc10-nlq-{name}: the Star LC-10's NLQ {typeface.replace('-', ' ')},",
                      f"{pitch}.", *PROVENANCE,
                      "Even rows are the pins of the first pass, odd rows of the second,",
-                     "half a dot lower; a character with a descender sits two rows lower.",
+                     "half a dot lower; a character with a descender sits two rows lower",
+                     "and is marked lowered. A span is the character's columns, from its",
+                     "left space to its width.",
                      f"Columns are 1/240 inch apart, {columns} to the {pitch} cell."],
                     NLQ_ROWS, columns, glyphs(glyph_at),
+                    glyphs(lambda location, table=table: nlq_attributes(rom, table, location)),
                 ),
                 encoding="ascii",
             )  # fmt: skip
