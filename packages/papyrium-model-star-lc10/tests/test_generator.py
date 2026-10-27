@@ -58,3 +58,9 @@ def test_nlq_italic_slants_a_lowered_character_about_its_own_pass():
 
 def test_a_proportional_draft_character_is_its_span_flush_left_and_two_columns():
     assert GENERATOR.proportional_cell(Glyph(frozenset({(3, 0)}), span=(1, 7))) == (9, -1)
+
+
+def test_double_strike_repeats_each_dot_half_a_dot_lower():
+    glyph = Glyph(frozenset({(0, 0)}))
+    dots = GENERATOR.draft_dots(glyph, CharacterStyle(step=DRAFT_STEP, double_strike=True), PIN)
+    assert dots == [(0, 0), (0, inches(1) // 144)]

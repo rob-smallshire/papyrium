@@ -62,12 +62,14 @@ class CharacterGenerator:
     the same row is not printed, since the head cannot fire a pin so soon:
     the ROM stores characters with such dots, and the printer prints them
     once. *nlq_emphasized*: near letter quality prints emphasized, rather
-    than masking it. *nlq_pass_offset*: how far below the first NLQ pass
-    the second prints.
+    than masking it. *double_strike_offset*: how far below the first pass
+    of double-strike the second prints. *nlq_pass_offset*: how far below
+    the first NLQ pass the second prints.
     """
 
     prints_adjacent_dots_once: bool = False
     nlq_emphasized: bool = False
+    double_strike_offset: int = DOUBLE_STRIKE_OFFSET
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
 
     def cell_columns(self, pitch: int) -> int:
@@ -119,7 +121,7 @@ class CharacterGenerator:
             if style.emphasized:
                 passes.extend([(x + step // 2, y) for x, y in passes])
             if style.double_strike:
-                passes.extend([(x, y + DOUBLE_STRIKE_OFFSET) for x, y in passes])
+                passes.extend([(x, y + self.double_strike_offset) for x, y in passes])
             yield from passes
 
     def nlq_dots(

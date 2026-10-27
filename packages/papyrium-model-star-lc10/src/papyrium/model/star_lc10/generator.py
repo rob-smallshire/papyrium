@@ -29,12 +29,14 @@ _PROPORTIONAL_GAP = 2
 class LC10CharacterGenerator(CharacterGenerator):
     """The Star LC-10's character generator.
 
-    NLQ's second pass prints half a dot, 1/144 inch, below the first.
+    The second pass of NLQ and of double-strike prints half a dot, 1/144
+    inch, below the first.
     Italic shears each column byte: the two lowest pins stay and each pair
     above moves one more column right in draft, each pin one more column in
     NLQ, so a lowered character slants about its own byte.
     """
 
+    double_strike_offset: int = inches(1) // 144
     nlq_pass_offset: int = inches(1) // 144
 
     def cell_columns(self, pitch: int) -> int:

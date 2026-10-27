@@ -50,8 +50,8 @@ CONDENSED_WIDTH = 252  # 7/120 inch, about 17.1 characters per inch
 #: Column step for proportional characters: 1/120 inch.
 PROPORTIONAL_STEP = inches(1) // 120
 
-#: The second pass of double-strike printing is this far below the first: 1/216 inch.
-DOUBLE_STRIKE_OFFSET = inches(1) // 216
+#: The unit of ESC 3, ESC J and ESC j: 1/216 inch.
+FEED_STEP = inches(1) // 216
 
 #: Horizontal dot spacing of each bit-image density (ESC * m), in units.
 GRAPHICS_STEP = {
@@ -871,7 +871,7 @@ class EscpInterpreter(Interpreter):
         yield
 
     def _esc_line_spacing_216(self) -> ArgumentReader:
-        self._line_spacing = (yield) * DOUBLE_STRIKE_OFFSET
+        self._line_spacing = (yield) * FEED_STEP
 
     def _esc_line_spacing_72(self) -> ArgumentReader:
         n = yield
@@ -883,7 +883,7 @@ class EscpInterpreter(Interpreter):
     def _esc_immediate_feed(self) -> ArgumentReader:
         n = yield
         self._print_line()
-        self._advance(n * DOUBLE_STRIKE_OFFSET)
+        self._advance(n * FEED_STEP)
 
     def _esc_low_codes_printable(self) -> ArgumentReader:
         self._low_codes_printable = self._flag((yield))
@@ -901,7 +901,7 @@ class EscpInterpreter(Interpreter):
         """Feed back up the paper, but never past the top of the sheet in the printer."""
         n = yield
         self._print_line()
-        self._y = max(self._sheet_top, self._y - n * DOUBLE_STRIKE_OFFSET)
+        self._y = max(self._sheet_top, self._y - n * FEED_STEP)
         while self._y < self._form_top:
             self._form_top -= self._form_length
 
