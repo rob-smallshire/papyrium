@@ -131,3 +131,15 @@ Steps 1 to 4 are done:
 The block graphics stay a file, `lc10-block-graphics`, with their 12-dot
 extension written out as rows 8-11: the ROM keeps no 8-dot block font
 that another could be derived from, only the table the extractor reads.
+
+Step 5 is under way. Two further refactorings came first: a draft
+cell's columns at each pitch became a generator rule (`cell_columns`),
+and a glyph says whether it prints a pin lower (`lowered`), which the
+LC-10's italic needs because it slants about the column byte. The
+generator gained `italic_offset`, `nlq_italic_offset` and
+`double_strike_offset`, the interpreter's 1/216 inch feed unit was
+renamed `FEED_STEP`, and a mechanism may keep block graphics in a font
+of their own. `papyrium-model-star-lc10` prints Standard mode with the
+LC-10's fonts by pitch, its generator (`LC10CharacterGenerator`) and its
+12-dot block graphics. Still to come: NLQ proportional spacing, the
+Star commands, character sizes, IBM mode, and colour (step 6).
