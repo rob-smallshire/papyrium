@@ -188,3 +188,42 @@ def test_dots_in_successive_columns_can_print_once():
     generator = CharacterGenerator(prints_adjacent_dots_once=True)
     printed = dots(b"A", font=font, generator=generator)
     assert [x for x, _ in printed] == [LEFT, LEFT + 72, LEFT + 144]
+
+
+def _font_with_a_at(column, *, rows, columns):
+    from papyrium.core.testing import MemoryDotFont
+
+    lines = ["." * columns for _ in range(rows)]
+    lines[0] = "." * column + "#" + lines[0][column + 1 :]
+    text = f"rows {rows}\ncolumns {columns}\nU+0041\n" + "\n".join(lines) + "\n"
+    return MemoryDotFont(name=f"a-at-{column}-{columns}", text=text)
+
+
+ELITE_DRAFT = {"elite_font": _font_with_a_at(5, rows=9, columns=11)}
+
+
+def test_a_printer_may_have_its_own_draft_font_for_elite():
+    # Elite columns are 30 units apart.
+    assert dots(ESC + b"MA", **ELITE_DRAFT) == [(LEFT + 5 * 30, 0)]
+
+
+def test_the_elite_draft_font_is_only_for_elite():
+    assert dots(b"A", **ELITE_DRAFT) == [(LEFT + 36, 0)]
+
+
+def test_nlq_masks_elite_unless_the_printer_prints_nlq_elite():
+    data = ESC + b"x\x01" + ESC + b"MAA"
+    options = {"nlq": True, "nlq_fonts": (_nlq_font(0),)}
+    assert [x for x, _ in dots(data, **options)][::2] == [LEFT, LEFT + 432]
+    assert [x for x, _ in dots(data, nlq_elite=True, **options)][::2] == [LEFT, LEFT + 360]
+
+
+def test_nlq_elite_prints_from_the_typefaces_elite_font():
+    options = {
+        "nlq": True,
+        "nlq_elite": True,
+        "nlq_fonts": (_nlq_font(0),),
+        "nlq_elite_fonts": (_font_with_a_at(2, rows=18, columns=20),),
+    }
+    # The elite font's 20 columns span the 1/12 inch cell: 18 units apart.
+    assert dots(ESC + b"x\x01" + ESC + b"MA", **options) == [(LEFT + 36, 0)]

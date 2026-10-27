@@ -31,6 +31,9 @@ class EscpMechanism:
 
     #: The character ROM.
     font: DotFont
+    #: The draft font for elite at fixed pitch, where the printer has its own;
+    #: otherwise *font* serves every pitch.
+    elite_font: DotFont | None = None
     #: How the printer turns glyphs into dots.
     generator: CharacterGenerator = CharacterGenerator()
     #: Width of the paper.
@@ -98,6 +101,11 @@ class EscpMechanism:
     #: prints in the first; with no typefaces, NLQ prints as draft struck
     #: twice.
     nlq_fonts: tuple[DotFont | None, ...] = ()
+    #: Near letter quality prints in elite rather than masking it.
+    nlq_elite: bool = False
+    #: The NLQ typefaces' elite fonts, in ESC k order, where the printer has
+    #: them; a typeface without one prints elite from its pica font.
+    nlq_elite_fonts: tuple[DotFont | None, ...] = ()
     #: ESC ! bits 6 and 7 set italic and underline.
     master_select_italic_underline: bool = False
     #: A carriage return ends SO's one-line enlarged mode.

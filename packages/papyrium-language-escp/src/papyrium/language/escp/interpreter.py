@@ -121,7 +121,6 @@ class EscpInterpreter(Interpreter):
 
     def __init__(self, mechanism: EscpMechanism) -> None:
         self._mechanism = mechanism
-        self._font = mechanism.font
         self._generator = mechanism.generator
         self._completed: list[Page] = []
         self._page_number = 0
@@ -319,7 +318,7 @@ class EscpInterpreter(Interpreter):
             self._print_line()
 
     def _nlq_character(self, location: int, glyph: Glyph) -> None:
-        width = PICA_WIDTH * (2 if self._is_double_width() else 1)
+        width = self._column_width() * (2 if self._is_double_width() else 1)
         if self._x + width > self._right_limit(text=True):
             self._wrap()
         dots = self._nlq_dots(glyph, width)
@@ -342,10 +341,10 @@ class EscpInterpreter(Interpreter):
         # A user-defined character is recorded as the ROM character it replaces.
         blank = self._glyph_source(location) == _BLANK
         character = " " if blank else self._rom_character(location)
-        height = self._font.rows * self._mechanism.pin_pitch
+        height = self._draft_font().rows * self._mechanism.pin_pitch
         y = self._y
         if self._script is not None:
-            height = self._font.rows * SCRIPT_ROW_PITCH
+            height = self._draft_font().rows * SCRIPT_ROW_PITCH
             if self._script == "subscript":
                 y += 4 * self._mechanism.pin_pitch
         return TextMark(x=self._x, y=y, width=width, height=height, character=character)
@@ -366,11 +365,11 @@ class EscpInterpreter(Interpreter):
             return Glyph(frozenset())
         character = self._rom_character(location)
         if character == "0" and self._mechanism.slashed_zero:
-            glyph = self._font.glyph(SLASHED_ZERO)
+            glyph = self._draft_font().glyph(SLASHED_ZERO)
             if glyph is not None:
                 return glyph
             self._report_missing(SLASHED_ZERO, "printing a plain zero")
-        glyph = self._font.glyph(character)
+        glyph = self._draft_font().glyph(character)
         if glyph is None:
             self._report_missing(character, "printing nothing")
             return Glyph(frozenset())
@@ -391,11 +390,26 @@ class EscpInterpreter(Interpreter):
             character = SLASHED_ZERO
         return font.glyph(character)
 
+    def _draft_font(self) -> DotFont:
+        """The draft font for the pitch: the elite font in elite, where there is one."""
+        elite_font = self._mechanism.elite_font
+        if elite_font is not None and self._column_width() == ELITE_WIDTH:
+            return elite_font
+        return self._mechanism.font
+
     def _nlq_font(self) -> DotFont | None:
-        """The font of the selected NLQ typeface, or the first's if there is none for it."""
+        """The font of the selected NLQ typeface for the pitch, or the first
+        typeface's if there is none for it."""
         fonts = self._mechanism.nlq_fonts
         if not fonts:
             return None
+        elite_fonts = self._mechanism.nlq_elite_fonts
+        if (
+            self._column_width() == ELITE_WIDTH
+            and self._typeface < len(elite_fonts)
+            and elite_fonts[self._typeface] is not None
+        ):
+            return elite_fonts[self._typeface]
         if self._typeface < len(fonts) and fonts[self._typeface] is not None:
             return fonts[self._typeface]
         if self._typeface not in self._missing_typefaces:
@@ -448,7 +462,7 @@ class EscpInterpreter(Interpreter):
             double_strike=self._is_double_strike(),
             double_width=self._is_double_width(),
         )
-        key = (glyph_source, style)
+        key = (glyph_source, self._draft_font(), style)
         dots = self._glyph_cache.get(key)
         if dots is None:
             glyph = self._glyph(location)
@@ -959,7 +973,9 @@ class EscpInterpreter(Interpreter):
     def _column_width(self) -> int:
         """The fixed pitch, pica for proportional text."""
         if self._nlq:
-            return PICA_WIDTH  # Near letter quality masks elite and condensed.
+            # Near letter quality masks condensed, and elite unless the
+            # printer has NLQ elite.
+            return ELITE_WIDTH if self._elite and self._mechanism.nlq_elite else PICA_WIDTH
         if self._elite:
             if self._condensed and self._mechanism.condensed_elite:
                 return CONDENSED_ELITE_WIDTH
