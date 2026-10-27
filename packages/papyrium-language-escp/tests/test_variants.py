@@ -227,3 +227,28 @@ def test_nlq_elite_prints_from_the_typefaces_elite_font():
     }
     # The elite font's 20 columns span the 1/12 inch cell: 18 units apart.
     assert dots(ESC + b"x\x01" + ESC + b"MA", **options) == [(LEFT + 36, 0)]
+
+
+def _block_font():
+    from papyrium.core.testing import MemoryDotFont
+
+    rows = ["..........." for _ in range(12)]
+    rows[11] = "#.........."
+    return MemoryDotFont(
+        name="blocks", text="rows 12\ncolumns 11\nU+2500\n" + "\n".join(rows) + "\n"
+    )
+
+
+def test_block_graphics_may_come_from_a_font_of_their_own():
+    # IBM code 0xC4 is a horizontal line; this font's has one dot on row 11.
+    data = ESC + b"t\x01\xc4"
+    assert dots(data, block_graphics_font=_block_font()) == [(LEFT, 11 * 60)]
+
+
+def test_the_draft_fonts_glyph_comes_before_the_block_graphics_font():
+    from papyrium.core.testing import MemoryDotFont
+
+    text = "rows 9\ncolumns 11\nU+2500\n#..........\n" + "\n".join(["..........."] * 8) + "\n"
+    font = MemoryDotFont(name="with-line", text=text)
+    data = ESC + b"t\x01\xc4"
+    assert dots(data, font=font, block_graphics_font=_block_font()) == [(LEFT, 0)]

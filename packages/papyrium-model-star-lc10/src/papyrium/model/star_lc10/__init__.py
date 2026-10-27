@@ -27,8 +27,7 @@ _COMMANDS = frozenset(
 _NLQ_TYPEFACES = ("courier", "sanserif", "orator-small-capitals", "orator")
 
 
-def _elite_nlq_font(typeface: str) -> DotFont:
-    name = f"lc10-nlq-{typeface}-elite"
+def _font(name: str) -> DotFont:
     font = create_extension("font", namespace_for("font"), name)
     if not isinstance(font, DotFont):
         raise ConfigurationError(f"{name!r} is not a dot font")
@@ -41,7 +40,8 @@ class StarLC10(PrinterModel):
     Standard mode, in which the LC-10 follows the Epson LX-800, with the
     LC-10's own characters and character generator, from its firmware:
     draft and four NLQ typefaces (Courier, Sanserif, and Orator with small
-    capitals or with lower case), each in pica and elite.
+    capitals or with lower case), each in pica and elite, and the IBM block
+    graphics, twelve dots high so that boxes join.
 
     Options model its DIP switches, at their factory settings by default,
     and its paper: form-length in inches (11, switch 1-1; 12 with it off),
@@ -74,6 +74,7 @@ class StarLC10(PrinterModel):
         self._mechanism = EscpMechanism(
             font=options.nine_row_font(font),
             elite_font=options.nine_row_font(elite_font),
+            block_graphics_font=_font("lc10-block-graphics"),
             generator=LC10CharacterGenerator(),
             **options.paper_options(
                 paper_width=paper_width,
@@ -92,7 +93,7 @@ class StarLC10(PrinterModel):
             nlq=True,
             nlq_fonts=tuple(options.nlq_font(f"lc10-nlq-{t}") for t in _NLQ_TYPEFACES),
             nlq_elite=True,
-            nlq_elite_fonts=tuple(_elite_nlq_font(t) for t in _NLQ_TYPEFACES),
+            nlq_elite_fonts=tuple(_font(f"lc10-nlq-{t}-elite") for t in _NLQ_TYPEFACES),
             master_select_italic_underline=True,
             commands=_COMMANDS,
         )

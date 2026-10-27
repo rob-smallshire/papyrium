@@ -369,6 +369,9 @@ class EscpInterpreter(Interpreter):
                 return glyph
             self._report_missing(SLASHED_ZERO, "printing a plain zero")
         glyph = self._draft_font().glyph(character)
+        block_graphics_font = self._mechanism.block_graphics_font
+        if glyph is None and block_graphics_font is not None:
+            glyph = block_graphics_font.glyph(character)
         if glyph is None:
             self._report_missing(character, "printing nothing")
             return Glyph(frozenset())

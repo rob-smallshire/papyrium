@@ -34,6 +34,9 @@ class EscpMechanism:
     #: The draft font for elite at fixed pitch, where the printer has its own;
     #: otherwise *font* serves every pitch.
     elite_font: DotFont | None = None
+    #: The block and box drawing characters, where the printer keeps them
+    #: apart from its draft characters: for any the draft font lacks.
+    block_graphics_font: DotFont | None = None
     #: How the printer turns glyphs into dots.
     generator: CharacterGenerator = CharacterGenerator()
     #: Width of the paper.

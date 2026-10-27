@@ -86,3 +86,13 @@ def test_obeys_the_standard_mode_commands(command):
 
 def test_ignores_the_commands_it_lacks():
     assert "I" not in _mechanism().commands
+
+
+def test_block_graphics_are_twelve_dots_high_so_lines_join():
+    model = StarLC10(name="star-lc10")
+    interpreter = model.create_interpreter()
+    # IBM code 0xB3 is a vertical line.
+    (page,) = interpreter.feed(b"\x1bt\x01\xb3\r\n\x0c") + interpreter.finish()
+    rows = sorted({y for _, y in page.dots})
+    pin = 4320 // 72
+    assert rows == [rows[0] + n * pin for n in range(12)]
