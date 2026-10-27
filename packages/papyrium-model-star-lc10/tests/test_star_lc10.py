@@ -1,0 +1,88 @@
+"""StarLC10: the LC-10's switches, paper, fonts and character generator."""
+
+import pytest
+
+from papyrium.core.conformance import PrinterModelConformance
+from papyrium.extension import create_extension, namespace_for
+from papyrium.language.escp import CharacterSet
+from papyrium.model.star_lc10 import StarLC10
+from papyrium.model.star_lc10.generator import LC10CharacterGenerator
+
+SAMPLE_JOB = b"\x1b@Star LC-10\r\n\x1bx\x01Near letter quality\x1bx\x00\r\n\x0cSecond page\r\n\x0c"
+
+
+class TestStarLC10Conformance(PrinterModelConformance):
+    def make_model(self):
+        return StarLC10(name="star-lc10")
+
+    def sample_job(self):
+        return SAMPLE_JOB
+
+
+def _mechanism(**options):
+    return StarLC10(name="star-lc10", **options).mechanism
+
+
+def test_is_registered_on_the_model_axis():
+    assert isinstance(create_extension("model", namespace_for("model"), "star-lc10"), StarLC10)
+
+
+def test_identity_and_language():
+    model = StarLC10(name="star-lc10")
+    assert model.identity().display_name == "Star LC-10"
+    assert model.languages() == ("escp",)
+
+
+def test_defaults_match_the_factory_switch_settings():
+    mechanism = _mechanism()
+    assert mechanism.sheet_length == 11 * 4320
+    assert mechanism.character_set == CharacterSet.USA
+    assert not mechanism.auto_line_feed
+    assert not mechanism.graphics_table
+    assert not mechanism.default_vertical_tabs
+
+
+def test_the_switches_set_page_length_line_feed_graphics_and_character_set():
+    mechanism = _mechanism(
+        form_length="12", auto_line_feed=True, graphics_table=True, character_set="germany"
+    )
+    assert mechanism.sheet_length == 12 * 4320
+    assert mechanism.auto_line_feed and mechanism.graphics_table
+    assert mechanism.character_set == CharacterSet.GERMANY
+
+
+def test_an_eight_inch_line_of_80_pica_or_137_condensed_columns():
+    mechanism = _mechanism()
+    assert (mechanism.columns, mechanism.condensed_columns) == (80, 137)
+
+
+def test_fonts_by_pitch():
+    mechanism = _mechanism()
+    assert mechanism.font.name == "lc10-draft"
+    assert mechanism.elite_font.name == "lc10-draft-elite"
+    assert [font.name for font in mechanism.nlq_fonts] == [
+        "lc10-nlq-courier",
+        "lc10-nlq-sanserif",
+        "lc10-nlq-orator-small-capitals",
+        "lc10-nlq-orator",
+    ]
+    assert [font.name for font in mechanism.nlq_elite_fonts] == [
+        "lc10-nlq-courier-elite",
+        "lc10-nlq-sanserif-elite",
+        "lc10-nlq-orator-small-capitals-elite",
+        "lc10-nlq-orator-elite",
+    ]
+    assert mechanism.nlq and mechanism.nlq_elite and mechanism.condensed_elite
+
+
+def test_prints_with_the_lc10s_character_generator():
+    assert isinstance(_mechanism().generator, LC10CharacterGenerator)
+
+
+@pytest.mark.parametrize("command", ["p", "4", "5", "k", "x", "a", "t", "-", "!", "j"])
+def test_obeys_the_standard_mode_commands(command):
+    assert command in _mechanism().commands
+
+
+def test_ignores_the_commands_it_lacks():
+    assert "I" not in _mechanism().commands

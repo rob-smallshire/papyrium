@@ -24,7 +24,7 @@ writes the pages as PNG images and PDF documents, dot for dot.
 </p>
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
-and LX-800 and the Brother M-1109, speaking Epson's ESC/P. The first client is
+and LX-800, the Brother M-1109 and the Star LC-10, speaking Epson's ESC/P. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
@@ -102,8 +102,9 @@ The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
 strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
 `music-ruled`. A font stands in for each printer's character ROM:
 `draft-9`, the FX-80's, is an original design; the M-1109's are
-reconstructed from its printed output; and the LX-800's are extracted from
-its firmware. Any font can be replaced by a dot font file, with
+reconstructed from its printed output; and the LX-800's and LC-10's are
+extracted from their firmware, the LC-10 making some of its typefaces from
+others as the printer does. Any font can be replaced by a dot font file, with
 `-M font=PATH`.
 
 ## Printing from a BBC Micro in Beebium

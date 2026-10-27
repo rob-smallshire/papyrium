@@ -86,6 +86,7 @@ PACKAGE_ORDER = (
     "papyrium-model-epson-fx80",
     "papyrium-model-brother-m1109",
     "papyrium-model-epson-lx800",
+    "papyrium-model-star-lc10",
     "papyrium-font-draft-9",
     "papyrium-font-m1109-draft",
     "papyrium-font-m1109-nlq",
