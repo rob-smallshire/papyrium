@@ -2,7 +2,7 @@
 
 from papyrium.core.conformance import DotFontConformance
 from papyrium.extension import create_extension, namespace_for
-from papyrium.font.lx800_draft import LX800DraftFont
+from papyrium.font.lx800 import LX800DraftFont
 from papyrium.language.escp.charsets import INTERNATIONAL_CHARACTERS
 
 

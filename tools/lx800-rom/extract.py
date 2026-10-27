@@ -24,8 +24,8 @@ ROM_FILEPATH = REPO_DIRPATH / "docs" / "local" / "epson-lx800" / "lx800.ic3c"
 #: The dump MAME lists as lx800.ic3c (CRC32 da06c45b).
 ROM_SHA1 = "9618c940dd10d5b43cd1edd5763b90e6447de667"
 
-DRAFT_FILEPATH = REPO_DIRPATH / "src/papyrium/font/lx800_draft/glyphs.txt"
-NLQ_FILEPATH = REPO_DIRPATH / "src/papyrium/font/lx800_nlq_roman/glyphs.txt"
+DRAFT_FILEPATH = REPO_DIRPATH / "src/papyrium/font/lx800/draft.txt"
+NLQ_FILEPATH = REPO_DIRPATH / "src/papyrium/font/lx800/nlq-roman.txt"
 
 #: The characters at ROM locations 0-31, as papyrium.language.escp.charsets
 #: has them; the ROM keeps them in this order in both qualities.

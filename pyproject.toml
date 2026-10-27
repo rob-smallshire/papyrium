@@ -67,10 +67,10 @@ lc10-nlq-orator-small-capitals = "papyrium.font.lc10:LC10NlqOratorSmallCapitalsF
 lc10-nlq-orator-small-capitals-elite = "papyrium.font.lc10:LC10NlqOratorSmallCapitalsEliteFont"
 lc10-nlq-sanserif = "papyrium.font.lc10:LC10NlqSanserifFont"
 lc10-nlq-sanserif-elite = "papyrium.font.lc10:LC10NlqSanserifEliteFont"
-lx800-draft = "papyrium.font.lx800_draft:LX800DraftFont"
-lx800-nlq-roman = "papyrium.font.lx800_nlq_roman:LX800NlqRomanFont"
-m1109-draft = "papyrium.font.m1109_draft:M1109DraftFont"
-m1109-nlq = "papyrium.font.m1109_nlq:M1109NlqFont"
+lx800-draft = "papyrium.font.lx800:LX800DraftFont"
+lx800-nlq-roman = "papyrium.font.lx800:LX800NlqRomanFont"
+m1109-draft = "papyrium.font.m1109:M1109DraftFont"
+m1109-nlq = "papyrium.font.m1109:M1109NlqFont"
 
 [project.entry-points."papyrium.language"]
 escp = "papyrium.language.escp:EscpLanguage"
@@ -155,10 +155,8 @@ testpaths = [
     "tests/cli",
     "tests/output/png",
     "tests/font/draft_9",
-    "tests/font/m1109_draft",
-    "tests/font/m1109_nlq",
-    "tests/font/lx800_draft",
-    "tests/font/lx800_nlq_roman",
+    "tests/font/m1109",
+    "tests/font/lx800",
     "tests/font/lc10",
     "tests/language/escp",
     "tests/model/epson_fx80",

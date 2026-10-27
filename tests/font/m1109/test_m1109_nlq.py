@@ -1,7 +1,7 @@
 """m1109-nlq covers printable ASCII on the NLQ grid."""
 
 from papyrium.extension import create_extension, namespace_for
-from papyrium.font.m1109_nlq import M1109NlqFont
+from papyrium.font.m1109 import M1109NlqFont
 
 PRINTABLE_ASCII = frozenset(chr(c) for c in range(0x20, 0x7F))
 

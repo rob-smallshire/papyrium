@@ -267,10 +267,10 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `lc10-nlq-orator-small-capitals-elite` | The Star LC-10's NLQ Orator with small capitals in elite, from its firmware ROM | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
 |  | `lc10-nlq-sanserif` | The Star LC-10's NLQ Sanserif in pica, extracted from its firmware ROM | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
 |  | `lc10-nlq-sanserif-elite` | The Star LC-10's NLQ Sanserif in elite, extracted from its firmware ROM | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
-|  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium.font.lx800_draft`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800_draft/) |
-|  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium.font.lx800_nlq_roman`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800_nlq_roman/) |
-|  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium.font.m1109_draft`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109_draft/) |
-|  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium.font.m1109_nlq`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109_nlq/) |
+|  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium.font.lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800/) |
+|  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium.font.lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800/) |
+|  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) |
+|  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) |
 | Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium.output.pdf`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/pdf/) |
 |  | `png` | PNG images, one per page, with each struck dot drawn as a dot | [`papyrium.output.png`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/png/) |
 | Advertisers announce printers | `mdns` | Announces printers with multicast DNS, as Bonjour and Avahi do | [`papyrium.advertiser.mdns`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/advertiser/mdns/) |
@@ -291,10 +291,8 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers |
 | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) | draft-9: a 9-pin dot-matrix font designed for Papyrium |
 | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) | The Star LC-10's draft and near letter quality fonts, from its firmware |
-| [`papyrium.font.lx800_draft`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800_draft/) | lx800-draft: the Epson LX-800's draft characters, from its firmware |
-| [`papyrium.font.lx800_nlq_roman`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800_nlq_roman/) | lx800-nlq-roman: the Epson LX-800's near letter quality Roman, from its firmware |
-| [`papyrium.font.m1109_draft`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109_draft/) | m1109-draft: the Brother M-1109's draft characters, reconstructed for Papyrium |
-| [`papyrium.font.m1109_nlq`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109_nlq/) | m1109-nlq: the Brother M-1109's near letter quality characters, reconstructed |
+| [`papyrium.font.lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800/) | The Epson LX-800's draft and near letter quality Roman fonts, from its firmware |
+| [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) | The Brother M-1109's draft and NLQ fonts, reconstructed from its printed output |
 | [`papyrium.output.pdf`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/pdf/) | PDF output: each job as one document, each dot as a vector dot |
 | [`papyrium.output.png`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/png/) | PNG output: one greyscale raster image per page |
 | [`papyrium.advertiser.mdns`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/advertiser/mdns/) | Announcing Papyrium printers on the local network with multicast DNS |

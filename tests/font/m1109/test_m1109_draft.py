@@ -2,7 +2,7 @@
 
 from papyrium.core.conformance import DotFontConformance
 from papyrium.extension import create_extension, namespace_for
-from papyrium.font.m1109_draft import M1109DraftFont
+from papyrium.font.m1109 import M1109DraftFont
 from papyrium.language.escp.charsets import INTERNATIONAL_CHARACTERS
 
 
