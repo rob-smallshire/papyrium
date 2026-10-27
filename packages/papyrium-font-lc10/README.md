@@ -7,15 +7,18 @@ characters are Star's; the ROM itself is not distributed.
 | Font | Typeface |
 |---|---|
 | `lc10-draft`, `lc10-draft-elite` | Draft |
+| `lc10-block-graphics` | IBM block graphics |
 | `lc10-nlq-courier`, `lc10-nlq-courier-elite` | Courier |
 | `lc10-nlq-sanserif`, `lc10-nlq-sanserif-elite` | Sanserif |
 | `lc10-nlq-orator`, `lc10-nlq-orator-elite` | Orator with lower case |
 | `lc10-nlq-orator-small-capitals`, `lc10-nlq-orator-small-capitals-elite` | Orator with small capitals |
 
-Each covers ASCII, the national characters, the slashed zero, the IBM PC's
-low symbols and the upper half of its character set, less the block and
-box drawing characters and the integral halves, which the printer draws
-differently.
+The draft and NLQ fonts cover ASCII, the national characters, the
+slashed zero, the IBM PC's low symbols and the upper half of its
+character set, less the block and box drawing characters and the
+integral halves, which are `lc10-block-graphics`: 12 rows by 11 columns,
+1/72 by 1/120 inch, the printer repeating each column's two lowest dots
+below the line so that lines at 1/6 inch spacing join.
 
 Draft glyphs are 9 rows by 11 columns 1/120 inch apart; a character with
 a descender sits a pin lower. The ROM's draft table is used only for

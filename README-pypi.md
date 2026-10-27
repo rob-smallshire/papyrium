@@ -101,6 +101,8 @@ $ papyrium list-fonts
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ draft-9                              │ An original 9-pin draft font in the   │
 │                                      │ style of 1980s dot-matrix printers.   │
+│ lc10-block-graphics                  │ The Star LC-10's IBM block graphics,  │
+│                                      │ extracted from its firmware ROM.      │
 │ lc10-draft                           │ The Star LC-10's pica draft font,     │
 │                                      │ made from its firmware ROM.           │
 │ lc10-draft-elite                     │ The Star LC-10's elite draft font,    │
@@ -247,6 +249,7 @@ package can add to it:
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-fx80`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium-font-draft-9`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-draft-9/) |
+|  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium-font-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lc10/) |
 |  | `lc10-draft` | The Star LC-10's pica draft font, made from its firmware ROM | [`papyrium-font-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lc10/) |
 |  | `lc10-draft-elite` | The Star LC-10's elite draft font, extracted from its firmware ROM | [`papyrium-font-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lc10/) |
 |  | `lc10-nlq-courier` | The Star LC-10's NLQ Courier in pica, extracted from its firmware ROM | [`papyrium-font-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lc10/) |

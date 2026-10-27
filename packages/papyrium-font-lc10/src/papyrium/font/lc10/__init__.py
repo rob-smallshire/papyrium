@@ -7,6 +7,7 @@ from papyrium.core.dotfont import DataDotFont
 __version__ = "0.1.0"
 
 __all__ = [
+    "LC10BlockGraphicsFont",
     "LC10DraftEliteFont",
     "LC10DraftFont",
     "LC10NlqCourierEliteFont",
@@ -45,6 +46,19 @@ class LC10DraftEliteFont(DataDotFont):
     """
 
     font_filename = "draft-elite.txt"
+
+
+class LC10BlockGraphicsFont(DataDotFont):
+    """The Star LC-10's IBM block graphics, extracted from its firmware ROM.
+
+    The box drawing, shade and block characters (IBM codes 0xB0-0xDF) and
+    the integral halves, 12 rows by 11 columns: columns 1/120 inch apart,
+    so that a pica cell joins the next; rows 1/72 inch apart, the printer
+    printing rows 8-11 in a second pass four dots lower, repeating rows 6
+    and 7, so that lines at 1/6 inch spacing join.
+    """
+
+    font_filename = "block-graphics.txt"
 
 
 class _LC10NlqFont(DataDotFont):

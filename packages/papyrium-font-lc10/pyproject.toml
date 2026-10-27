@@ -18,6 +18,7 @@ dependencies = [
 [project.entry-points."papyrium.font"]
 lc10-draft = "papyrium.font.lc10:LC10DraftFont"
 lc10-draft-elite = "papyrium.font.lc10:LC10DraftEliteFont"
+lc10-block-graphics = "papyrium.font.lc10:LC10BlockGraphicsFont"
 lc10-nlq-courier = "papyrium.font.lc10:LC10NlqCourierFont"
 lc10-nlq-sanserif = "papyrium.font.lc10:LC10NlqSanserifFont"
 lc10-nlq-orator = "papyrium.font.lc10:LC10NlqOratorFont"

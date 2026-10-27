@@ -5,6 +5,7 @@ import pytest
 from papyrium.core.conformance import DotFontConformance
 from papyrium.extension import create_extension, namespace_for
 from papyrium.font.lc10 import (
+    LC10BlockGraphicsFont,
     LC10DraftEliteFont,
     LC10DraftFont,
     LC10NlqCourierEliteFont,
@@ -167,3 +168,46 @@ def test_elite_narrows_the_widest_characters():
     pica = LC10NlqCourierFont(name="pica")
     elite = LC10NlqCourierEliteFont(name="elite")
     assert max(c for c, _ in elite.glyph("M").dots) < max(c for c, _ in pica.glyph("M").dots)
+
+
+BLOCK_GRAPHICS = "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀⌠⌡"
+
+
+class TestLC10BlockGraphicsConformance(DotFontConformance):
+    def make_font(self):
+        return LC10BlockGraphicsFont(name="lc10-block-graphics")
+
+    def test_covers_printable_ascii(self):
+        # Block graphics only: the other characters come from the text fonts.
+        pass
+
+    def test_space_is_blank(self):
+        pass
+
+
+def test_block_graphics_are_twelve_dots_high():
+    font = LC10BlockGraphicsFont(name="lc10-block-graphics")
+    assert (font.rows, font.columns) == (12, 11)
+    assert font.characters() == frozenset(BLOCK_GRAPHICS)
+
+
+def test_vertical_lines_run_the_full_twelve_dots():
+    font = LC10BlockGraphicsFont(name="lc10-block-graphics")
+    for character in "│║┼⌠":
+        rows = {row for _, row in font.glyph(character).dots}
+        assert {8, 9, 10, 11} <= rows, character
+
+
+def test_extension_rows_repeat_the_last_two():
+    font = LC10BlockGraphicsFont(name="lc10-block-graphics")
+    for character in BLOCK_GRAPHICS:
+        dots = font.glyph(character).dots
+        for row in (8, 9, 10, 11):
+            source = 6 + row % 2
+            assert {c for c, r in dots if r == row} == {c for c, r in dots if r == source}
+
+
+def test_horizontal_lines_join_the_next_cell():
+    # Dots every other column to the last, the cell's twelfth column blank.
+    columns = {c for c, _ in LC10BlockGraphicsFont(name="g").glyph("─").dots}
+    assert columns == {0, 2, 4, 6, 8, 10}

@@ -55,9 +55,12 @@ last columns proportional spacing allows for: the columns of the dots,
 except that narrow characters (`` ! " ' ( ) , . : ; ` | ``, ¡, ´ and ∙) are
 widened.
 
-**Box drawing records** are 11 columns of 8 dots, no header, joining the
-neighbouring cells. The printer's cell for them is 12 dots high; how it
-extends them below the eighth dot is in the program, not yet read.
+**Block graphics records** are 11 columns of 8 dots, no header. IBM
+codes 0xB0-0xDF are records 0-0x2F, and the integral halves 0xF4 and 0xF5
+are records 0x30 and 0x31, so they print full height from here rather
+than from their locations (`$8475`, `$8569`); records 0x32-0x34, three
+shade patterns, are not reached from that mapping. The 11 columns fill
+a pica cell but its last column, so lines join the next cell.
 
 **NLQ index entries** are a header, a width and the big-endian CPU
 address of the first pass's columns (subtract 0x8000 for the file
@@ -178,8 +181,7 @@ after the columns are sent, the output backs up over the overhang
 each step 1/432 inch: `ESC 0`, `ESC 1` and `ESC 2` set 54, 42 and 72
 steps, and `ESC 3 n` sets 2n. An NLQ line is printed (`$CA94`) as the
 first pass, a feed of 3 steps (1/144 inch, `$CEA9`), and the second
-pass. A line with descenders then feeds 21 steps and 3 more to print the
-ninth pin's two rows with a higher pin, so they fall at 48 and 51
+pass. The ninth pin prints in both passes, so its rows fall at 48 and 51
 steps: every NLQ row is 1/144 inch below the last, as the user manual
 says. The technical manual's 1/216 inch is only the finest feed a
 command can ask for.
@@ -203,6 +205,25 @@ halved pica cell is always exactly 12 columns: the Sanserif table is laid
 out for this. The draft table, which `ESC :` also copies into RAM for
 download characters, serves only elite at fixed pitch.
 
+**The block graphics' 12-dot cell.** The input code marks a block
+graphics character in its attribute byte (bit 4), and a line holding one
+(`$3D` bit 7) is printed with an extra pass. After the line's pass or
+passes the paper is fed so that the head's pins 5-8 fall on rows 8-11 of
+the cell, 24 steps (1/18 inch) after the first pass, and only the block
+graphics print, each column's two lowest dots (bits 1 and 0) repeated
+twice (`$FC50`). Rows 8-11 thus repeat rows 6 and 7, and a cell is 12
+dots, 1/6 inch, high: at 1/6 inch line spacing vertical lines join. In
+NLQ both passes print the block graphics, the second 1/144 inch lower,
+and the extension pass is repeated 1/144 inch lower too. The movement is
+taken off the next line feed (`$8D1D`). Elite prints 9 of the 11
+columns, in a 10-column cell.
+
+**The line sequencer** (`$C9A7`) prints a line by its mode: plain draft
+in one pass (`$CA37`); draft double-strike, superscript and subscript as
+two passes 3 steps (1/144 inch) apart (`$CA94`); NLQ (`$CADD`) as its
+first pass, 3 steps, its second pass. The other branches, for double
+height (`$5D`) and the like, are not yet traced.
+
 **NLQ spacing** (`$F971`, `$FBFF`). A character's columns are its left
 space as blanks, its glyph, then its right space and a further gap as
 blanks. In fixed pitch the gap is one column, so the cell is 24 columns
@@ -212,7 +233,8 @@ dropped and the gap is 4 columns: the advance is the glyph's width plus
 
 ## Not yet decoded
 
-- The block graphics' 12-dot cell.
+- The sequencer's branches for double height and quadruple size
+  (`$CB19`-`$CCEE`), and the three shade records 0x32-0x34.
 - Colour: the order of the ribbon bands and the passes for the mixed
   colours (`ESC r` is at `$9828`; it keeps the colour in bits 0-3 of
   `$A1`).

@@ -50,6 +50,15 @@ DRAFT_TABLE = 0x1A60
 DRAFT_RECORD = 10
 DRAFT_ROWS, DRAFT_COLUMNS = 9, 11
 
+# Block graphics: 11 columns of 8 dots, no header, for IBM codes 0xB0-0xDF
+# and, at indices 0x30 and 0x31, the integral halves 0xF4 and 0xF5. The
+# printer's cell is 12 dots high: after the line it feeds four dots and
+# prints the column's two lowest dots twice more beneath it.
+BLOCK_TABLE = 0x229E
+BLOCK_RECORD = 11
+BLOCK_CHARACTERS = "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀⌠⌡"
+BLOCK_ROWS = 12
+
 # NLQ: eight tables of 211 four-byte entries from 0: header, width and a
 # big-endian address of the first pass's columns; the second pass's are a
 # fixed distance on. The header is bit 7 as for draft, then the left space
@@ -88,6 +97,19 @@ def draft_glyph(rom: bytes, location: int) -> set[tuple[int, int]]:
         for row in range(8)
         if byte & (0x80 >> row)
     }
+
+
+def block_glyph(rom: bytes, index: int) -> set[tuple[int, int]]:
+    """The dots (column, row) of the block graphics character at *index*."""
+    at = BLOCK_TABLE + index * BLOCK_RECORD
+    dots = set()
+    for column, byte in enumerate(rom[at : at + BLOCK_RECORD]):
+        for row in range(BLOCK_ROWS):
+            # Rows 8-11 repeat the two lowest dots, bits 1 and 0.
+            bit = row if row < 8 else 6 + row % 2
+            if byte & (0x80 >> bit):
+                dots.add((column, row))
+    return dots
 
 
 def pica_draft_glyph(rom: bytes, location: int) -> set[tuple[int, int]]:
@@ -189,6 +211,18 @@ def main(rom_filepath: Path) -> None:
         encoding="ascii",
     )  # fmt: skip
 
+    (FONT_DIRPATH / "block-graphics.txt").write_text(
+        font_text(
+            ["lc10-block-graphics: the Star LC-10's IBM block graphics.", *PROVENANCE,
+             "Columns are 1/120 inch apart, joining the next pica cell; rows are",
+             "1/72 inch apart, rows 8-11 repeating rows 6 and 7, so that lines at",
+             "1/6 inch spacing join."],
+            BLOCK_ROWS, BLOCK_RECORD,
+            {c: block_glyph(rom, index) for index, c in enumerate(BLOCK_CHARACTERS)},
+        ),
+        encoding="ascii",
+    )  # fmt: skip
+
     for pitch, columns in NLQ_COLUMNS.items():
         for typeface, table in NLQ_TABLES.items():
             if pitch == "elite":
@@ -210,7 +244,8 @@ def main(rom_filepath: Path) -> None:
                 ),
                 encoding="ascii",
             )  # fmt: skip
-    print(f"2 draft and {2 * len(NLQ_TABLES)} NLQ fonts of {len(LOCATIONS) - 1} characters written")
+    fonts = 2 * len(NLQ_TABLES) + 3
+    print(f"{fonts} fonts written, the text fonts of {len(LOCATIONS) - 1} characters")
 
 
 if __name__ == "__main__":
