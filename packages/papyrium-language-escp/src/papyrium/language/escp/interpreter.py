@@ -47,9 +47,6 @@ PICA_WIDTH = inches(1) // 10
 ELITE_WIDTH = inches(1) // 12
 CONDENSED_WIDTH = 252  # 7/120 inch, about 17.1 characters per inch
 
-#: Dot columns in a character cell at fixed pitch.
-CELL_COLUMNS = 12
-
 #: Column step for proportional characters: 1/120 inch.
 PROPORTIONAL_STEP = inches(1) // 120
 
@@ -446,8 +443,9 @@ class EscpInterpreter(Interpreter):
                 columns, offset = self._generator.proportional_cell(glyph)
             step = PROPORTIONAL_STEP * double
             return columns * step, step, offset, glyph_source
-        width = self._column_width() * double
-        return width, width // CELL_COLUMNS, 0, glyph_source
+        pitch = self._column_width()
+        width = pitch * double
+        return width, width // self._generator.cell_columns(pitch), 0, glyph_source
 
     def _character_dots(
         self, location: int, glyph_source: tuple, step: int, offset: int, italic: bool

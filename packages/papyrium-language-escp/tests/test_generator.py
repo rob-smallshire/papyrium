@@ -69,3 +69,7 @@ def test_an_nlq_fonts_columns_span_its_cell():
     glyph = Glyph(frozenset({(1, 0)}))
     dots = GENERATOR.nlq_dots(glyph, 20, inches(1) // 12, CharacterStyle(step=0), PIN)
     assert dots == [(inches(1) // 240, 0)]
+
+
+def test_a_draft_cell_is_twelve_columns_at_every_pitch():
+    assert {GENERATOR.cell_columns(inches(1) // n) for n in (10, 12, 20)} == {12}

@@ -24,6 +24,9 @@ SCRIPT_ROW_PITCH = inches(1) // 144
 #: The baseline row of the character matrix, about which italics lean.
 BASELINE_ROW = 6
 
+#: Dot columns in a draft character's cell at fixed pitch.
+CELL_COLUMNS = 12
+
 #: Width of a proportional space, in proportional columns.
 PROPORTIONAL_SPACE_COLUMNS = 10
 
@@ -66,6 +69,11 @@ class CharacterGenerator:
     prints_adjacent_dots_once: bool = False
     nlq_emphasized: bool = False
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
+
+    def cell_columns(self, pitch: int) -> int:
+        """The dot columns of a draft character's cell at fixed *pitch*, the
+        cell's width: twelve, whatever the pitch."""
+        return CELL_COLUMNS
 
     def proportional_cell(self, glyph: Glyph) -> tuple[int, int]:
         """The columns a character takes in proportional spacing, and how
