@@ -16,11 +16,19 @@ def line(*parts: bytes | str) -> bytes:
     )
 
 
-def picture(width: int, rows: int, ink: Callable[[int, int], bool], *, mode: int = 1) -> bytes:
+def picture(
+    width: int,
+    rows: int,
+    ink: Callable[[int, int], bool],
+    *,
+    mode: int = 1,
+    command: bytes | None = None,
+) -> bytes:
     """A picture *width* columns by *rows* dots, as bands of eight pins.
 
     *ink* says whether the dot at (column, row) is inked, row 0 the top.
-    Each band is printed in the ``ESC *`` bit-image mode *mode* and the
+    Each band is printed in the ``ESC *`` bit-image mode *mode*, or with
+    the bit-image *command*, such as ``b"L"``, where one is given, and the
     paper fed 8/72 inch between bands, so they meet; the line spacing is
     then 1/6 inch again.
     """
@@ -30,5 +38,6 @@ def picture(width: int, rows: int, ink: Callable[[int, int], bool], *, mode: int
             sum(0x80 >> pin for pin in range(8) if top + pin < rows and ink(x, top + pin))
             for x in range(width)
         )
-        out += ESC + b"*" + bytes([mode, width % 256, width // 256]) + columns + CR_LF
+        graphics = ESC + (command if command is not None else b"*" + bytes([mode]))
+        out += graphics + bytes([width % 256, width // 256]) + columns + CR_LF
     return bytes(out + ESC + b"2")

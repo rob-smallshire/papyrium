@@ -40,6 +40,9 @@ logger = logging.getLogger(__name__)
 DRAFT, FASTFONT, NLQ, NLQ_II = 0, 1, 2, 3
 DOWNLOAD = 4
 
+#: Fastfont's cell: ten columns of 1/120 inch, 12 characters to the inch.
+FASTFONT_CELL_COLUMNS = 10
+
 #: The low codes character set 2 prints: the card suits and the section sign.
 SET_2_LOW_CODES = frozenset({3, 4, 5, 6, 21})
 
@@ -186,7 +189,7 @@ class ProprinterInterpreter(EscpInterpreter):
 
     def _cell_columns(self, pitch: int) -> int:
         if self._print_face() == FASTFONT:
-            return self._mechanism.fastfont.columns
+            return FASTFONT_CELL_COLUMNS
         return super()._cell_columns(pitch)
 
     def _is_emphasized(self) -> bool:

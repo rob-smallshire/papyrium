@@ -16,8 +16,11 @@ def heading(text: str) -> bytes:
     return line() + line(ESC + b"E" + ESC + b"-\x01", text, ESC + b"-\x00" + ESC + b"F")
 
 
-def waves(*, mode: int = 1, width: int = 480, rows: int = 32) -> bytes:
-    """Two crossing sine waves over a ruled baseline, as a bit image."""
+def waves(
+    *, mode: int = 1, command: bytes | None = None, width: int = 480, rows: int = 32
+) -> bytes:
+    """Two crossing sine waves over a ruled baseline, as a bit image in
+    ``ESC *`` mode *mode* or with the bit-image *command* (see :func:`picture`)."""
 
     def ink(x: int, y: int) -> bool:
         phase = 4 * math.pi * x / width
@@ -26,4 +29,4 @@ def waves(*, mode: int = 1, width: int = 480, rows: int = 32) -> bytes:
         on_curve = abs(y - first) < 1.2 or abs(y - second) < 1.2
         return on_curve or y == rows - 1 or (y >= rows - 4 and x % (width // 8) == 0)
 
-    return picture(width, rows, ink, mode=mode)
+    return picture(width, rows, ink, mode=mode, command=command)

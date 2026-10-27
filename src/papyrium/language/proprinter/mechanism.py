@@ -30,8 +30,8 @@ class ProprinterMechanism(EscpMechanism):
     draft characters, and NLQ II has a field of its own.
     """
 
-    #: Fastfont, the Proprinter II's 12 cpi draft face, ten columns wide;
-    #: None for a printer without it, on which ESC I 1 prints draft.
+    #: Fastfont, the Proprinter II's 12 cpi draft face, its cell ten columns
+    #: wide; None for a printer without it, on which ESC I 1 prints draft.
     fastfont: DotFont | None = None
     #: NLQ II, the Proprinter II's second NLQ face, 24 columns by 18 rows in
     #: two passes; None for a printer without it, on which ESC I 3 prints NLQ.

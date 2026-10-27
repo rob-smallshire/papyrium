@@ -17,7 +17,8 @@ writes the pages as PNG images and PDF documents, dot for dot.
 </p>
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
-and LX-800, the Brother M-1109 and the Star LC-10, speaking Epson's ESC/P. The first client is
+and LX-800, the Brother M-1109 and the Star LC-10, speaking Epson's ESC/P, and
+the IBM Proprinter II, speaking IBM's Proprinter language. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
@@ -29,11 +30,12 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
-<td width="20%" valign="top"><a href="src/papyrium/model/brother_m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
-<td width="20%" valign="top"><a href="src/papyrium/model/epson_fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="20%" valign="top"><a href="src/papyrium/model/epson_lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="20%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
-<td width="20%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
+<td width="17%" valign="top"><a href="src/papyrium/model/brother_m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="17%" valign="top"><a href="src/papyrium/model/epson_fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="17%" valign="top"><a href="src/papyrium/model/epson_lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="17%" valign="top"><a href="src/papyrium/model/ibm_proprinter_ii/"><img src="docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
+<td width="17%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="17%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
 </tr>
 </table>
 
@@ -84,19 +86,21 @@ connection open for its whole life.
 ```
 $ papyrium list-models
                                      Models                                     
-┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name             ┃ Description                                               ┃
-┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ brother-m1109    │ Brother M-1109: an 80-column, 9-pin dot-matrix printer in │
-│                  │ its Mode I.                                               │
-│ epson-fx80       │ Epson FX-80: an 80-column, 9-pin dot-matrix printer       │
-│                  │ speaking ESC/P.                                           │
-│ epson-lx800      │ Epson LX-800: an 80-column, 9-pin dot-matrix printer      │
-│                  │ speaking ESC/P.                                           │
-│ star-lc10        │ Star LC-10: an 80-column, 9-pin dot-matrix printer        │
-│                  │ speaking ESC/P.                                           │
-│ star-lc10-colour │ Star LC-10 Colour: the LC-10 with a four-colour ribbon.   │
-└──────────────────┴───────────────────────────────────────────────────────────┘
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name              ┃ Description                                              ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ brother-m1109     │ Brother M-1109: an 80-column, 9-pin dot-matrix printer   │
+│                   │ in its Mode I.                                           │
+│ epson-fx80        │ Epson FX-80: an 80-column, 9-pin dot-matrix printer      │
+│                   │ speaking ESC/P.                                          │
+│ epson-lx800       │ Epson LX-800: an 80-column, 9-pin dot-matrix printer     │
+│                   │ speaking ESC/P.                                          │
+│ ibm-proprinter-ii │ IBM Proprinter II: an 80-column, 9-wire dot-matrix       │
+│                   │ printer speaking                                         │
+│ star-lc10         │ Star LC-10: an 80-column, 9-pin dot-matrix printer       │
+│                   │ speaking ESC/P.                                          │
+│ star-lc10-colour  │ Star LC-10 Colour: the LC-10 with a four-colour ribbon.  │
+└───────────────────┴──────────────────────────────────────────────────────────┘
 
 $ papyrium list-fonts
                                      Fonts                                      
@@ -160,7 +164,8 @@ strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
 `draft-9`, the FX-80's, is an original design; the M-1109's are
 reconstructed from its printed output; and the LX-800's and LC-10's are
 extracted from their firmware, the LC-10 making some of its typefaces from
-others as the printer does. Any font can be replaced by a dot font file, with
+others as the printer does. The Proprinter II borrows the LC-10's until
+its own are to hand. Any font can be replaced by a dot font file, with
 `-M font=PATH`.
 
 ## Printing from a BBC Micro in Beebium
@@ -254,6 +259,7 @@ to it, its modules joining the `papyrium` namespace beside these:
 | Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) |
+|  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) |
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) |
@@ -290,6 +296,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) | The Brother M-1109 9-pin dot-matrix printer |
 | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
 | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |
+| [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) | The IBM Proprinter II 9-wire dot-matrix printer |
 | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers |
 | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) | draft-9: a 9-pin dot-matrix font designed for Papyrium |
 | [`papyrium.font.lc10`](src/papyrium/font/lc10/) | The Star LC-10's draft and near letter quality fonts, from its firmware |

@@ -80,6 +80,7 @@ proprinter = "papyrium.language.proprinter:ProprinterLanguage"
 brother-m1109 = "papyrium.model.brother_m1109:BrotherM1109"
 epson-fx80 = "papyrium.model.epson_fx80:EpsonFx80"
 epson-lx800 = "papyrium.model.epson_lx800:EpsonLX800"
+ibm-proprinter-ii = "papyrium.model.ibm_proprinter_ii:IBMProprinterII"
 star-lc10 = "papyrium.model.star_lc10:StarLC10"
 star-lc10-colour = "papyrium.model.star_lc10:StarLC10Colour"
 
@@ -165,6 +166,7 @@ testpaths = [
     "tests/model/brother_m1109",
     "tests/model/epson_lx800",
     "tests/model/star_lc10",
+    "tests/model/ibm_proprinter_ii",
     "tests/output/pdf",
     "tests/advertiser/mdns",
 ]
