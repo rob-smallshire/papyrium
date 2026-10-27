@@ -31,14 +31,22 @@ from dataclasses import dataclass, field, replace
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Ink, InkDots, Page, TextMark, inches
-from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
+from papyrium.language.escp.charsets import (
+    ADDITIONAL_LOCATION,
+    IBM_LOCATION,
+    character_at,
+    rom_location,
+)
 from papyrium.language.escp.generator import SCRIPT_ROW_PITCH, CharacterStyle
 from papyrium.language.escp.mechanism import EscpMechanism
 
 logger = logging.getLogger(__name__)
 
 NUL, BEL, BS, HT, LF, VT, FF, CR, SO, SI = 0, 7, 8, 9, 10, 11, 12, 13, 14, 15
-DC1, DC2, DC3, DC4, CAN, ESC, RS, DEL = 17, 18, 19, 20, 24, 27, 30, 127
+DC1, DC2, DC3, DC4, CAN, ESC, FS, RS, DEL = 17, 18, 19, 20, 24, 27, 28, 30, 127
+
+#: The low codes IBM mode prints as the card suits and the section sign.
+IBM_PRINTED_LOW_CODES = frozenset({3, 4, 5, 6, 21})
 
 #: Codes below 32 that stay controls even when ESC I makes the others printable.
 
@@ -136,6 +144,7 @@ class EscpInterpreter(Interpreter):
         self._missing_typefaces: set[int] = set()
         self._glyph_cache: dict[tuple, tuple[tuple[int, int], ...]] = {}
         self._escapes = self._escape_table()
+        self._fs_commands = self._fs_table()
         self._power_on()
         self._machine = self._run()
         next(self._machine)
@@ -196,6 +205,9 @@ class EscpInterpreter(Interpreter):
         self._underline = False
         self._overline = False
         self._extra_space = 0
+        self._auto_line_feed = mechanism.auto_line_feed
+        self._ibm_set = mechanism.ibm_set
+        self._stored_line_spacing: int | None = None
         self._inks: tuple[Ink | None, ...] = (None,)
         self._slashed_zero = mechanism.slashed_zero
         # Character size: height and width scales, the half printed, whether
@@ -326,16 +338,40 @@ class EscpInterpreter(Interpreter):
     def _is_printable(self, byte: int) -> bool:
         """Whether *byte* prints a character; the high codes mirror the controls."""
         code = byte & 0x7F
+        if self._mechanism.ibm_mode:
+            if byte & 0x80:
+                return self._ibm_set == 2 or byte >= 0xA0
+            return (code >= 0x20 and code != DEL) or code in IBM_PRINTED_LOW_CODES
         if code >= 0x20 and code != DEL:
+            if byte & 0x80 and self._graphics_table and self._mechanism.ibm_character_sets:
+                return self._ibm_set == 2 or byte >= 0xA0
             return True
         if byte & 0x80:
             return self._high_codes_printable
         return code != DEL and self._low_codes_printable and code not in self._mechanism.controls
 
     def _control(self, code: int) -> ArgumentReader:
+        ibm = self._mechanism.ibm_mode
         if code == ESC:
             command = yield
             yield from self._escape(command & 0x7F)
+        elif code == FS and self._mechanism.fs_prefix:
+            command = yield
+            handler = self._fs_commands.get(chr(command & 0x7F)) if ibm else None
+            if handler is None:
+                logger.debug("ignoring FS %r", chr(command & 0x7F))
+            else:
+                result = handler()
+                if result is not None:
+                    yield from result
+        elif code == SI and ibm:
+            # IBM mode's condensed is always 17 characters to the inch.
+            self._print_line()
+            self._condensed, self._elite = True, False
+        elif code == DC2 and ibm:
+            self._condensed, self._elite = False, False
+        elif code == DC3 and ibm:
+            pass
         elif code == CR:
             self._carriage_return()
         elif code == LF:
@@ -384,14 +420,18 @@ class EscpInterpreter(Interpreter):
     def _location(self, byte: int) -> int:
         """The character location *byte* prints: the national sets redirect some codes."""
         code = byte & 0x7F
-        if byte & 0x80 and self._graphics_table:
+        if byte & 0x80 and (self._graphics_table or self._mechanism.ibm_mode):
             return IBM_LOCATION + code
+        if self._mechanism.ibm_mode and byte < 0x20:
+            return ADDITIONAL_LOCATION + byte
         if code >= 0x20:
             code = rom_location(code, self._character_set, self._mechanism.national_differences)
         return code | (byte & 0x80)
 
     def _character(self, byte: int) -> None:
-        location = self._location(byte)
+        self._print_location(self._location(byte))
+
+    def _print_location(self, location: int) -> None:
         italic = self._is_italic(location)
         source = self._glyph_source(location)
         if source[0] == "ram" and self._ram[location].nlq:
@@ -800,7 +840,7 @@ class EscpInterpreter(Interpreter):
         self._x = self._left_margin
         if self._mechanism.carriage_return_ends_one_line_enlarged:
             self._one_line_double_width = False
-        if self._mechanism.auto_line_feed:
+        if self._auto_line_feed:
             self._advance_line()
 
     def _line_feed(self) -> None:
@@ -994,7 +1034,98 @@ class EscpInterpreter(Interpreter):
         if self._mechanism.nlq:
             table["x"] = self._esc_nlq
             table["k"] = self._esc_typeface
+        if self._mechanism.ibm_character_sets:
+            table["6"] = setter("_ibm_set", 2)
+            table["7"] = setter("_ibm_set", 1)
+        if self._mechanism.ibm_mode:
+            for letter in (" ", "t", "I", "="):
+                table.pop(letter, None)
+            table.update(
+                {
+                    "2": self._esc_stored_line_spacing,
+                    "3": self._esc_line_spacing_216_ibm,
+                    "4": self._set_top_of_form,
+                    "5": self._esc_auto_line_feed,
+                    ":": setter("_elite", True),
+                    "A": self._esc_store_line_spacing,
+                    "M": self._esc_elite_ibm,
+                    "P": self._esc_proportional,
+                    "Q": self._esc_off_line,
+                    "R": self._esc_reset_tabs,
+                    "\\": self._esc_print_codes,
+                    "^": self._esc_print_code,
+                }
+            )
         return table
+
+    def _fs_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
+        """IBM mode's commands after FS: Standard mode's after ESC."""
+        return {
+            "4": self._esc_italic,
+            "5": lambda: setattr(self, "_italic", False),
+            ":": self._esc_copy_rom,
+            "=": lambda: setattr(self, "_msb", 0),
+            "Q": self._esc_right_margin,
+            "R": self._esc_character_set,
+            "\\": self._esc_relative_position,
+        }
+
+    # -- IBM mode's own escape commands -----------------------------------
+
+    def _esc_store_line_spacing(self) -> ArgumentReader:
+        """Keep n/72 inch for ESC 2 to bring into force; 0 is ignored."""
+        n = yield
+        if 0 < n <= 85:
+            self._stored_line_spacing = n * self._mechanism.pin_pitch
+        else:
+            logger.debug("ignoring line spacing of %d/72 inch", n)
+
+    def _esc_stored_line_spacing(self) -> None:
+        """The spacing ESC A kept, or 1/6 inch if none."""
+        self._line_spacing = self._stored_line_spacing or inches(1) // 6
+
+    def _esc_line_spacing_216_ibm(self) -> ArgumentReader:
+        n = yield
+        if n:
+            self._line_spacing = n * FEED_STEP
+        else:
+            logger.debug("ignoring zero line spacing")
+
+    def _esc_auto_line_feed(self) -> ArgumentReader:
+        """Carriage return also feeds a line (1) or not (0)."""
+        self._auto_line_feed = self._flag((yield))
+
+    def _esc_elite_ibm(self) -> None:
+        self._elite, self._condensed = True, False
+
+    def _esc_off_line(self) -> ArgumentReader:
+        """ESC Q 3: off line until DC1."""
+        if (yield) == 3:
+            self._print_line()
+            self._selected = False
+
+    def _esc_reset_tabs(self) -> None:
+        """Horizontal tabs every eight columns again, and no vertical tabs."""
+        self._tabs = self._default_tabs()
+        self._vertical_tab_channels[self._vertical_tab_channel] = []
+        self._vertical_tabs = self._vertical_tab_channels[self._vertical_tab_channel]
+
+    def _esc_print_codes(self) -> ArgumentReader:
+        """Print the next n1 + 256 n2 bytes as characters, controls included."""
+        low = yield
+        high = yield
+        for _ in range(low + 256 * high):
+            yield from self._print_any_code()
+
+    def _esc_print_code(self) -> ArgumentReader:
+        yield from self._print_any_code()
+
+    def _print_any_code(self) -> ArgumentReader:
+        byte = yield
+        if byte < 0x20:
+            self._print_location(ADDITIONAL_LOCATION + byte)
+        else:
+            self._print_location(self._location(byte))
 
     @staticmethod
     def _flag(value: int) -> bool:

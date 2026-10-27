@@ -41,6 +41,11 @@ _A_ACUTE, _I_ACUTE, _O_ACUTE, _U_ACUTE, _ACUTE_ACCENT = (EXTRA_LOCATION + i for 
 #: puts at codes 128-255, at locations 0x200 on.
 IBM_LOCATION = 0x200
 
+#: The IBM PC's symbols at codes 0-31, the additional set of IBM mode, at
+#: locations 0x300 on; code 0 is a slashed zero.
+ADDITIONAL_LOCATION = 0x300
+ADDITIONAL_CHARACTERS = ("0\u0338", *"☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
+
 
 class CharacterSet(enum.IntEnum):
     """The international character sets.
@@ -132,7 +137,11 @@ def rom_location(
 
 def character_at(location: int) -> str:
     """The character at an upright ROM *location*."""
+    if location >= ADDITIONAL_LOCATION:
+        return ADDITIONAL_CHARACTERS[location - ADDITIONAL_LOCATION]
     if location >= IBM_LOCATION:
+        if location - IBM_LOCATION == 0x7F:
+            return " "  # IBM code 255 prints blank.
         return bytes([0x80 + location - IBM_LOCATION]).decode("cp437")
     if location >= EXTRA_LOCATION:
         return EXTRA_CHARACTERS[location - EXTRA_LOCATION]
