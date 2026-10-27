@@ -25,13 +25,18 @@ current line. They start aligned with the sheets but need not stay so.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Callable, Generator
 from dataclasses import dataclass, field, replace
 
 from papyrium.core.dotfont import DotFont, Glyph, code_points
 from papyrium.core.model import Interpreter
 from papyrium.core.page import Page, TextMark, inches
 from papyrium.language.escp.charsets import IBM_LOCATION, character_at, rom_location
+from papyrium.language.escp.generator import (
+    SCRIPT_ROW_PITCH,
+    CharacterStyle,
+    printable_once,
+)
 from papyrium.language.escp.mechanism import EscpMechanism
 
 logger = logging.getLogger(__name__)
@@ -58,9 +63,6 @@ PROPORTIONAL_SPACE_COLUMNS = 10
 #: The second pass of double-strike printing is this far below the first: 1/216 inch.
 DOUBLE_STRIKE_OFFSET = inches(1) // 216
 
-#: Superscript and subscript rows are half the normal pin pitch apart.
-SCRIPT_ROW_PITCH = inches(1) // 144
-
 #: Horizontal dot spacing of each bit-image density (ESC * m), in units.
 GRAPHICS_STEP = {
     0: inches(1) // 60,
@@ -76,9 +78,6 @@ GRAPHICS_STEP = {
 #: Densities that move the head too fast to fire a pin in two adjacent columns.
 HIGH_SPEED_MODES = frozenset({2, 3, 7})
 
-#: Columns of an NLQ character: 1/240 inch apart across the pica cell.
-NLQ_COLUMNS = 24
-
 #: Condensed elite, on printers that have it: 20 characters an inch.
 CONDENSED_ELITE_WIDTH = inches(1) // 20
 
@@ -87,9 +86,6 @@ SLASHED_ZERO = "0\u0338"
 
 #: The bit of a character location that selects the ROM's italic form.
 ITALIC = 0x80
-
-#: The baseline row of the character matrix, about which italics lean.
-BASELINE_ROW = 6
 
 ArgumentReader = Generator[None, int, None]
 
@@ -127,21 +123,13 @@ def _shift(entry: _Entry, dx: int, dy: int = 0) -> None:
     entry.text = [replace(mark, x=mark.x + dx, y=mark.y + dy) for mark in entry.text]
 
 
-def _printable_once(glyph: Glyph) -> Glyph:
-    """*glyph* without any dot that follows a printed dot in the same row."""
-    printed: set[tuple[int, int]] = set()
-    for column, row in sorted(glyph.dots):
-        if (column - 1, row) not in printed:
-            printed.add((column, row))
-    return Glyph(frozenset(printed))
-
-
 class EscpInterpreter(Interpreter):
     """Interprets ESC/P for a 9-pin printer described by an :class:`EscpMechanism`."""
 
     def __init__(self, mechanism: EscpMechanism) -> None:
         self._mechanism = mechanism
         self._font = mechanism.font
+        self._generator = mechanism.generator
         self._completed: list[Page] = []
         self._page_number = 0
         self._paper_dots: list[tuple[int, int]] = []
@@ -423,21 +411,12 @@ class EscpInterpreter(Interpreter):
         return fonts[0]
 
     def _nlq_dots(self, glyph: Glyph, width: int) -> list[tuple[int, int]]:
-        """NLQ dots: two passes 1/216 inch apart, on 24 columns to the cell."""
-        step = width // NLQ_COLUMNS
-        pin_pitch = self._mechanism.pin_pitch
-        result = []
-        for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
-            dx = column * step
-            dy = (row // 2) * pin_pitch + (row % 2) * DOUBLE_STRIKE_OFFSET
-            passes = [(dx, dy)]
-            if self._is_double_width():
-                # Enlarged characters strike every dot twice, side by side.
-                passes.append((dx + step // 2, dy))
-            if self._emphasized and self._mechanism.nlq_emphasized:
-                passes.extend([(x + step, y) for x, y in passes])
-            result.extend(passes)
-        return result
+        style = CharacterStyle(
+            step=0,
+            emphasized=self._emphasized and self._mechanism.nlq_emphasized,
+            double_width=self._is_double_width(),
+        )
+        return self._generator.nlq_dots(glyph, width, style, self._mechanism.pin_pitch)
 
     def _report_missing(self, character: str, instead: str) -> None:
         if character not in self._missing_characters:
@@ -470,48 +449,25 @@ class EscpInterpreter(Interpreter):
         self, location: int, glyph_source: tuple, step: int, offset: int, italic: bool
     ) -> tuple[tuple[int, int], ...]:
         """The dots of a character relative to the head, cached by style."""
-        key = (
-            glyph_source,
-            step,
-            offset,
-            italic,
-            self._script,
-            self._is_emphasized(),
-            self._is_double_strike(),
+        style = CharacterStyle(
+            step=step,
+            offset=offset,
+            italic=italic,
+            script=self._script,
+            emphasized=self._is_emphasized(),
+            double_strike=self._is_double_strike(),
+            double_width=self._is_double_width(),
         )
+        key = (glyph_source, style)
         dots = self._glyph_cache.get(key)
         if dots is None:
             glyph = self._glyph(location)
             if self._mechanism.prints_adjacent_dots_once:
-                glyph = _printable_once(glyph)
-            dots = tuple(self._style_dots(glyph, step, offset, italic))
+                glyph = printable_once(glyph)
+            dots = tuple(self._generator.draft_dots(glyph, style, self._mechanism.pin_pitch))
             if glyph_source[0] != "ram":
                 self._glyph_cache[key] = dots
         return dots
-
-    def _style_dots(
-        self, glyph: Glyph, step: int, offset: int, italic: bool
-    ) -> Iterable[tuple[int, int]]:
-        pin_pitch = self._mechanism.pin_pitch
-        for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
-            dx = (column + offset) * step
-            if italic:
-                dx += (BASELINE_ROW - row) * step // 2
-            if self._script == "superscript":
-                dy = row * SCRIPT_ROW_PITCH
-            elif self._script == "subscript":
-                dy = 4 * pin_pitch + row * SCRIPT_ROW_PITCH
-            else:
-                dy = row * pin_pitch
-            passes = [(dx, dy)]
-            if self._is_double_width():
-                # Enlarged characters strike every dot twice, side by side.
-                passes.append((dx + step // 2, dy))
-            if self._is_emphasized():
-                passes.extend([(x + step // 2, y) for x, y in passes])
-            if self._is_double_strike():
-                passes.extend([(x, y + DOUBLE_STRIKE_OFFSET) for x, y in passes])
-            yield from passes
 
     # Each mode has its own switch; a mode of higher priority masks a lower
     # one without cancelling it: elite, proportional, emphasized, condensed.

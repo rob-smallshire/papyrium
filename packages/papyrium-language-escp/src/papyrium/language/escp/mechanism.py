@@ -9,6 +9,7 @@ from papyrium.core.dotfont import DotFont
 from papyrium.core.page import inches
 from papyrium.core.stationery import Stationery
 from papyrium.language.escp.charsets import FX_CHARACTER_SETS, CharacterSet
+from papyrium.language.escp.generator import CharacterGenerator
 
 #: The codes the FX-80 always obeys as controls, even when ESC I makes the
 #: other low codes print: BEL, BS, HT, LF, VT, FF, CR, SO, SI, DC1-DC4, CAN, ESC.
@@ -30,6 +31,8 @@ class EscpMechanism:
 
     #: The character ROM.
     font: DotFont
+    #: How the printer turns glyphs into dots.
+    generator: CharacterGenerator = CharacterGenerator()
     #: Width of the paper.
     paper_width: int = inches(Fraction(17, 2))
     #: Length of each fanfold sheet, perforation to perforation, which is also
