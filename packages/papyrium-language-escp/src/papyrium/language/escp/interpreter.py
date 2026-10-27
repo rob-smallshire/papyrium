@@ -455,11 +455,12 @@ class EscpInterpreter(Interpreter):
                 user_character = self._ram[location]
                 columns = user_character.last_column - user_character.first_column + 1
                 offset = -user_character.first_column
-            elif glyph.leftmost is None:
+            elif glyph.extent is None:
                 columns, offset = PROPORTIONAL_SPACE_COLUMNS, 0
             else:
-                columns = glyph.rightmost - glyph.leftmost + 3
-                offset = 1 - glyph.leftmost
+                first, last = glyph.extent
+                columns = last - first + 3
+                offset = 1 - first
             step = PROPORTIONAL_STEP * double
             return columns * step, step, offset, glyph_source
         width = self._column_width() * double

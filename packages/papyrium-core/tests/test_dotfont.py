@@ -42,6 +42,20 @@ def test_glyph_extent():
     assert Glyph(frozenset()).leftmost is None
 
 
+def test_a_glyph_may_give_its_span_before_any_comment():
+    font = parse_dot_font("rows 1\ncolumns 5\nU+0021 span 1 3 EXCLAMATION MARK\n..#..\n")
+    glyph = font.glyphs["!"]
+    assert glyph.span == (1, 3)
+    assert glyph.extent == (1, 3)
+
+
+def test_a_glyphs_extent_is_its_dots_without_a_span():
+    glyph = parse_dot_font(_FONT_TEXT).glyphs[POUND_SIGN]
+    assert glyph.span is None
+    assert glyph.extent == (0, 4)
+    assert Glyph(frozenset()).extent is None
+
+
 def test_glyph_reports_horizontally_adjacent_dots():
     assert Glyph(frozenset({(0, 0), (1, 0)})).has_adjacent_dots
     assert not Glyph(frozenset({(0, 0), (1, 1)})).has_adjacent_dots
@@ -57,6 +71,9 @@ def test_glyph_reports_horizontally_adjacent_dots():
         ("rows 1\ncolumns 3\nU+0030 U+0338\n...\nU+0030 U+0338\n...\n", "U\\+0030 U\\+0338"),
         ("columns 3\nU+0041\n...\n", "rows"),
         ("rows 1\ncolumns 3\nfoo\n", "foo"),
+        ("rows 1\ncolumns 3\nU+0041 span 1\n...\n", "span"),
+        ("rows 1\ncolumns 3\nU+0041 span 2 1\n...\n", "span"),
+        ("rows 1\ncolumns 3\nU+0041 span 0 3\n...\n", "span"),
     ],
 )
 def test_malformed_fonts_are_data_errors(text, message):

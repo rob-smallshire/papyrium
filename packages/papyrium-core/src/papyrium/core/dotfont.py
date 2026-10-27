@@ -10,10 +10,13 @@ A dot font is a text file::
     .....#.....
     ...
 
-Each glyph starts with its Unicode code point (anything after it on the line
-is a comment) and continues with exactly ``rows`` lines of ``columns``
-characters, ``#`` for a dot and ``.`` for none. Row 0 is the top pin.
-Comment and blank lines may appear between glyphs, not within one.
+Each glyph starts with its Unicode code point and continues with exactly
+``rows`` lines of ``columns`` characters, ``#`` for a dot and ``.`` for
+none. Row 0 is the top pin. After the code point the line may give the
+glyph's span, ``span FIRST LAST``, the columns it occupies for
+proportional spacing, where the printer's ROM says so; anything after
+that is a comment. Comment and blank lines may appear between glyphs, not
+within one.
 
 A variant of a character is named by a sequence of code points, the
 character and a combining mark: ``U+0030 U+0338`` is a slashed zero.
@@ -31,6 +34,7 @@ from papyrium.exception import DataError
 from papyrium.extension import Extension
 
 _CODE_POINTS_PATTERN = re.compile(r"^U\+[0-9A-Fa-f]{4,6}(?:\s+U\+[0-9A-Fa-f]{4,6})*\b")
+_SPAN_PATTERN = re.compile(r"\s+span\b(?:\s+(\d+)\s+(\d+)\b)?")
 
 
 def code_points(character: str) -> str:
@@ -40,9 +44,15 @@ def code_points(character: str) -> str:
 
 @dataclass(frozen=True)
 class Glyph:
-    """A character's dots as (column, row) pairs."""
+    """A character's dots as (column, row) pairs.
+
+    *span* is the first and last column the character occupies for
+    proportional spacing, where the font gives it; otherwise its dots'
+    columns serve.
+    """
 
     dots: frozenset[tuple[int, int]]
+    span: tuple[int, int] | None = None
 
     @property
     def leftmost(self) -> int | None:
@@ -51,6 +61,16 @@ class Glyph:
     @property
     def rightmost(self) -> int | None:
         return max((column for column, _ in self.dots), default=None)
+
+    @property
+    def extent(self) -> tuple[int, int] | None:
+        """The first and last column the character occupies: its span, or
+        its dots' columns; None for a glyph with neither."""
+        if self.span is not None:
+            return self.span
+        if not self.dots:
+            return None
+        return self.leftmost, self.rightmost
 
     @property
     def has_adjacent_dots(self) -> bool:
@@ -99,6 +119,7 @@ def parse_dot_font(text: str) -> DotFontData:
         if character in glyphs:
             raise DataError(f"line {number}: {code_points(character)} is defined twice")
         rows, columns = settings["rows"], settings["columns"]
+        span = _span(line[match.end() :], columns, number)
         bitmap = [line.rstrip() for line in lines[index : index + rows]]
         if len(bitmap) != rows:
             raise DataError(f"line {number}: {code_points(character)} needs {rows} rows")
@@ -113,10 +134,27 @@ def parse_dot_font(text: str) -> DotFontData:
                 elif cell != ".":
                     raise DataError(f"line {bitmap_number}: unexpected {cell!r}")
         index += rows
-        glyphs[character] = Glyph(frozenset(dots))
+        glyphs[character] = Glyph(frozenset(dots), span)
     if "rows" not in settings or "columns" not in settings:
         raise DataError("a dot font must set rows and columns")
     return DotFontData(rows=settings["rows"], columns=settings["columns"], glyphs=glyphs)
+
+
+def _span(rest: str, columns: int, number: int) -> tuple[int, int] | None:
+    """The span given after a glyph's code points, if any.
+
+    Raises:
+        DataError: The span is malformed or lies outside the matrix.
+    """
+    match = _SPAN_PATTERN.match(rest)
+    if match is None:
+        return None
+    if match.group(1) is None:
+        raise DataError(f"line {number}: span needs a first and a last column")
+    first, last = int(match.group(1)), int(match.group(2))
+    if not first <= last < columns:
+        raise DataError(f"line {number}: span {first} {last} is not within {columns} columns")
+    return first, last
 
 
 class DotFont(Extension):

@@ -101,6 +101,11 @@ def test_proportional_width_follows_the_glyph():
     assert dots(ESC + b"p\x01AA")[::2] == [(LEFT + 36, 0), (LEFT + 3 * 36 + 36, 0)]
 
 
+def test_proportional_width_follows_the_glyphs_span_where_it_has_one():
+    # C's span is columns 0 to 4: five columns wide plus two of spacing.
+    assert dots(ESC + b"p\x01CA")[::2] == [(LEFT + 72, 0), (LEFT + 7 * 36 + 36, 0)]
+
+
 def test_master_select_sets_every_style_at_once():
     # Bit 3 emphasized, bit 5 double width.
     assert dots(ESC + b"!\x28A") == [
