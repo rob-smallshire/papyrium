@@ -64,13 +64,16 @@ class CharacterGenerator:
     once. *nlq_emphasized*: near letter quality prints emphasized, rather
     than masking it. *double_strike_offset*: how far below the first pass
     of double-strike the second prints. *nlq_pass_offset*: how far below
-    the first NLQ pass the second prints.
+    the first NLQ pass the second prints. *nlq_underline_second_pass*: NLQ
+    underlines in its second pass, *nlq_pass_offset* below draft's
+    underline, rather than in its first.
     """
 
     prints_adjacent_dots_once: bool = False
     nlq_emphasized: bool = False
     double_strike_offset: int = DOUBLE_STRIKE_OFFSET
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
+    nlq_underline_second_pass: bool = False
 
     def user_proportional_cell(self, first: int, last: int) -> tuple[int, int]:
         """The columns a download character takes in proportional spacing,

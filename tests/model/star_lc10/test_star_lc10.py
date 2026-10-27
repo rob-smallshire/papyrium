@@ -161,3 +161,19 @@ def test_block_graphics_are_never_underlined_or_overlined(ibm_mode, code):
     lined = b"\x1b-\x01\x1b_\x01"
     assert _dots(table + lined + code, ibm_mode=ibm_mode) == _dots(table + code, ibm_mode=ibm_mode)
     assert _dots(table + lined + b"A", ibm_mode=ibm_mode) != _dots(table + b"A", ibm_mode=ibm_mode)
+
+
+@pytest.mark.parametrize("ibm_mode", [False, True])
+def test_255_is_ignored_as_nul(ibm_mode):
+    # The input code turns 0xFF into 0 before anything else ($83FA, $843F).
+    assert _dots(b"AB\xffC", ibm_mode=ibm_mode) == _dots(b"ABC", ibm_mode=ibm_mode)
+    assert _dots(b"\x1bt\x01AB\xffC") == _dots(b"ABC")
+
+
+def test_nlq_underlines_in_the_second_pass_half_a_dot_lower():
+    # The column builder fires the ninth pin in NLQ's second pass only ($F818).
+    pin, half_dot = 4320 // 72, 4320 // 144
+    draft = {y for page in _dots(b"\x1b-\x01 ") for _, y in page}
+    nlq = {y for page in _dots(b"\x1bx\x01\x1b-\x01 ") for _, y in page}
+    assert nlq == {y + half_dot for y in draft}
+    assert len(draft) == 1 and min(draft) % pin == 0

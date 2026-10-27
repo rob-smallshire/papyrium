@@ -271,7 +271,7 @@ class EscpInterpreter(Interpreter):
             if self._is_printable(byte):
                 self._character(byte)
             else:
-                yield from self._control(byte & 0x7F)
+                yield from self._control(self._control_code(byte))
 
     #: Embedded commands that take no digit: the sheet feeder's.
     _EMBEDDED_WITHOUT_DIGIT = frozenset("04R")
@@ -343,6 +343,11 @@ class EscpInterpreter(Interpreter):
         if byte in SET_2_LOW_CODES and self._in_ibm_set_2():
             return True
         return code != DEL and self._low_codes_printable and code not in self._mechanism.controls
+
+    def _control_code(self, byte: int) -> int:
+        """The control code a byte that does not print acts as: the high codes
+        mirror the controls."""
+        return byte & 0x7F
 
     def _in_ibm_set_2(self) -> bool:
         """Whether codes print from IBM character set #2, as the Star LC-10's
@@ -521,7 +526,7 @@ class EscpInterpreter(Interpreter):
         dots = self._nlq_dots(glyph, cell, italic, offset, columns)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(location, width))
+        entry.dots.extend(self._line_dots(location, width, nlq=True))
         self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -706,24 +711,26 @@ class EscpInterpreter(Interpreter):
     def _is_double_width(self) -> bool:
         return self._double_width or self._one_line_double_width
 
-    def _line_dots(self, location: int, width: int) -> list[tuple[int, int]]:
+    def _line_dots(self, location: int, width: int, *, nlq: bool = False) -> list[tuple[int, int]]:
         """The underline and overline across the character at *location*,
-        *width* wide."""
+        *width* wide, printed in draft or *nlq*."""
         dots: list[tuple[int, int]] = []
         if not self._is_lined(location):
             return dots
         if self._overline:
             dots.extend((self._x + x, self._y) for x in range(0, width, PROPORTIONAL_STEP))
         if self._underline:
-            dots.extend(self._underline_dots(width))
+            dots.extend(self._underline_dots(width, nlq=nlq))
         return dots
 
     def _is_lined(self, location: int) -> bool:
         """Whether underline and overline mark the character at *location*."""
         return True
 
-    def _underline_dots(self, width: int) -> list[tuple[int, int]]:
+    def _underline_dots(self, width: int, *, nlq: bool = False) -> list[tuple[int, int]]:
         y = self._y + self._mechanism.underline_row * self._mechanism.pin_pitch
+        if nlq and self._generator.nlq_underline_second_pass:
+            y += self._generator.nlq_pass_offset
         return [(self._x + x, y) for x in range(0, width, PROPORTIONAL_STEP)]
 
     # -- Bit-image graphics -----------------------------------------------

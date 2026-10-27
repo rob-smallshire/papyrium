@@ -32,7 +32,7 @@ class LC10CharacterGenerator(CharacterGenerator):
     """The Star LC-10's character generator.
 
     The second pass of NLQ and of double-strike prints half a dot, 1/144
-    inch, below the first.
+    inch, below the first, and NLQ's underline is in its second pass.
     Italic shears each column byte: the two lowest pins stay and each pair
     above moves one more column right in draft, each pin one more column in
     NLQ, so a lowered character slants about its own byte.
@@ -40,6 +40,7 @@ class LC10CharacterGenerator(CharacterGenerator):
 
     double_strike_offset: int = inches(1) // 144
     nlq_pass_offset: int = inches(1) // 144
+    nlq_underline_second_pass: bool = True
 
     def cell_columns(self, pitch: int) -> int:
         return _CELL_COLUMNS.get(pitch, super().cell_columns(pitch))

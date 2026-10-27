@@ -161,11 +161,6 @@ class LC10Interpreter(ProprinterInterpreter):
 
     # -- What the mode changes ---------------------------------------------------
 
-    def _is_printable(self, byte: int) -> bool:
-        if self._ibm:
-            return super()._is_printable(byte)
-        return EscpInterpreter._is_printable(self, byte)
-
     def _location(self, byte: int) -> int:
         if self._ibm:
             return super()._location(byte)
@@ -175,6 +170,18 @@ class LC10Interpreter(ProprinterInterpreter):
         """Underline and overline pass over all but the block graphics, in
         either mode."""
         return location - IBM_LOCATION + 0x80 not in _BLOCK_GRAPHICS
+
+    def _is_printable(self, byte: int) -> bool:
+        if byte == 0xFF:
+            return False
+        if self._ibm:
+            return super()._is_printable(byte)
+        return EscpInterpreter._is_printable(self, byte)
+
+    def _control_code(self, byte: int) -> int:
+        """0xFF is NUL in either mode, the input code turning it into 0
+        before anything else ($83FA, $843F)."""
+        return 0 if byte == 0xFF else byte & 0x7F
 
     def _control(self, code: int) -> ArgumentReader:
         if not self._ibm:

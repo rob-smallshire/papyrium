@@ -59,7 +59,9 @@ widened.
 codes 0xB0-0xDF are records 0-0x2F, and the integral halves 0xF4 and 0xF5
 are records 0x30 and 0x31, so they print full height from here rather
 than from their locations (`$8475`, `$8569`); records 0x32-0x34, three
-shade patterns, are not reached from that mapping. The 11 columns fill
+shade patterns, are never reached: the only code that reads the table
+(`$E4E6`) takes its record from that mapping, which gives 0x00-0x31.
+They look like the shades' other phases, left over. The 11 columns fill
 a pica cell but its last column, so lines join the next cell.
 
 **NLQ index entries** are a header, a width and the big-endian CPU
@@ -403,6 +405,9 @@ It does what they do not mention:
   `ESC P` choosing pica first; **`ESC !`** in IBM mode never gives
   condensed elite, and in either mode sets emphasized only at pica
   (Pitch).
+- **Code 0xFF** is NUL in either mode: the input code turns it into 0
+  before anything else (`$83FA`, `$843F`), so it neither prints nor
+  deletes.
 - **IBM mode's `ESC =`** is the download command, not `ESC &` as the
   manual's decimal and hex columns (84) have it.
 - **The ribbon's colours** are struck lightest band first, a mixed
@@ -509,4 +514,3 @@ technical manual, worked by the carriage at the home position.
   prints (the routines around `$E2F8` and `$D2B5`-`$D4A3`), and the
   feeds between their passes.
 - Superscript and subscript, to confirm.
-- The three shade records 0x32-0x34, which nothing found so far reads.
