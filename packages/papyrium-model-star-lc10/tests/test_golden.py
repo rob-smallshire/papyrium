@@ -16,3 +16,12 @@ def test_demo_prints_the_golden_pages():
     interpreter = StarLC10(name="star-lc10").create_interpreter()
     pages = interpreter.feed(StarLC10(name="star-lc10").demo()) + interpreter.finish()
     check_golden_pages(pages, GOLDEN_DIRPATH, "demo")
+
+
+def test_colour_demo_prints_the_golden_pages():
+    from papyrium.model.star_lc10 import StarLC10Colour
+
+    model = StarLC10Colour(name="star-lc10-colour")
+    interpreter = model.create_interpreter()
+    pages = interpreter.feed(model.demo()) + interpreter.finish()
+    check_golden_pages(pages, GOLDEN_DIRPATH, "colour-demo")

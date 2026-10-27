@@ -66,3 +66,53 @@ def demo() -> bytes:
             FF,
         ]
     )  # fmt: skip
+
+
+COLOUR_LETTER = (
+    "The LC-10 Colour has a ribbon of four bands, black, cyan, magenta and "
+    "yellow, and strikes the same dots through two bands for violet, orange "
+    "and green. Programs choose colours with ESC r; anyone can, by typing "
+    "commands such as ((C)) and a digit into the text itself."
+)
+
+_COLOURS = ("Black", "Red", "Blue", "Violet", "Yellow", "Orange", "Green")
+
+
+def _band(n: int) -> bytes:
+    """A row of solid colour, printed as bit-image graphics."""
+    return ESC + b"r" + bytes([n]) + ESC + b"L" + bytes([60, 0]) + b"\xff" * 60
+
+
+def colour_demo() -> bytes:
+    swatches = b"".join(
+        line(ESC + b"r" + bytes([n]), f"{name:<8}", _band(n), "  ", ESC + b"4", name, ESC + b"5")
+        for n, name in enumerate(_COLOURS)
+    )
+    return b"".join(
+        [
+            ESC + b"@" + ESC + b"x\x01",
+            line(
+                ESC + b"h\x01",
+                ESC + b"r\x02", "Star ", ESC + b"r\x01", "LC-10 ", ESC + b"r\x04", "Colour",
+                ESC + b"r\x00", ESC + b"h\x00",
+            ),
+            line(),
+            *(line(text) for text in textwrap.wrap(COLOUR_LETTER, 72)),
+            heading("Seven colours"),
+            swatches,
+            ESC + b"r\x00",
+            heading("Embedded commands"),
+            line(
+                b"((F))2((C))6Orator in green, ",
+                b"((F))0((C))1((I))1Courier italic in red((I))0((C))0.",
+            ),
+            # ((S)) keeps the base line, so double height rises into the line above.
+            line(),
+            line(b"((S))3((C))3Double size in violet((S))0((C))0"),
+            heading("Bit-image graphics in colour"),
+            ESC + b"r\x02",
+            waves(),
+            ESC + b"r\x00",
+            FF,
+        ]
+    )  # fmt: skip

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "papyrium-model-star-lc10"
 dynamic = ["version"]
 authors = [{ name = "Robert Smallshire", email = "robert@smallshire.org.uk" }]
-description = "The Star LC-10 9-pin dot-matrix printer, emulated for Papyrium."
+description = "The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers, emulated for Papyrium."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -20,6 +20,7 @@ dependencies = [
 
 [project.entry-points."papyrium.model"]
 star-lc10 = "papyrium.model.star_lc10:StarLC10"
+star-lc10-colour = "papyrium.model.star_lc10:StarLC10Colour"
 
 [tool.setuptools.dynamic]
 version = { attr = "papyrium.model.star_lc10.__version__" }

@@ -29,10 +29,11 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-brother-m1109/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="20%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-brother-m1109/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="20%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="20%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="20%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="20%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
 </tr>
 </table>
 
@@ -84,18 +85,19 @@ connection open for its whole life.
 ```
 $ papyrium list-models
                                      Models                                     
-┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name          ┃ Description                                                  ┃
-┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ brother-m1109 │ Brother M-1109: an 80-column, 9-pin dot-matrix printer in    │
-│               │ its Mode I.                                                  │
-│ epson-fx80    │ Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking │
-│               │ ESC/P.                                                       │
-│ epson-lx800   │ Epson LX-800: an 80-column, 9-pin dot-matrix printer         │
-│               │ speaking ESC/P.                                              │
-│ star-lc10     │ Star LC-10: an 80-column, 9-pin dot-matrix printer speaking  │
-│               │ ESC/P.                                                       │
-└───────────────┴──────────────────────────────────────────────────────────────┘
+┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name             ┃ Description                                               ┃
+┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ brother-m1109    │ Brother M-1109: an 80-column, 9-pin dot-matrix printer in │
+│                  │ its Mode I.                                               │
+│ epson-fx80       │ Epson FX-80: an 80-column, 9-pin dot-matrix printer       │
+│                  │ speaking ESC/P.                                           │
+│ epson-lx800      │ Epson LX-800: an 80-column, 9-pin dot-matrix printer      │
+│                  │ speaking ESC/P.                                           │
+│ star-lc10        │ Star LC-10: an 80-column, 9-pin dot-matrix printer        │
+│                  │ speaking ESC/P.                                           │
+│ star-lc10-colour │ Star LC-10 Colour: the LC-10 with a four-colour ribbon.   │
+└──────────────────┴───────────────────────────────────────────────────────────┘
 
 $ papyrium list-fonts
                                      Fonts                                      
@@ -253,6 +255,7 @@ package can add to it:
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-fx80`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) |
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium-model-star-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/) |
+|  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium-model-star-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium-font-draft-9`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-draft-9/) |
 |  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium-font-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lc10/) |
 |  | `lc10-draft` | The Star LC-10's pica draft font, made as the printer makes it | [`papyrium-font-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-lc10/) |
@@ -286,7 +289,7 @@ workspace, and share the `papyrium` namespace:
 | [`papyrium-model-epson-fx80`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-fx80/) | The Epson FX-80 9-pin dot-matrix printer, emulated for Papyrium |
 | [`papyrium-model-brother-m1109`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-brother-m1109/) | The Brother M-1109 9-pin dot-matrix printer, emulated for Papyrium |
 | [`papyrium-model-epson-lx800`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-epson-lx800/) | The Epson LX-800 9-pin dot-matrix printer, emulated for Papyrium |
-| [`papyrium-model-star-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/) | The Star LC-10 9-pin dot-matrix printer, emulated for Papyrium |
+| [`papyrium-model-star-lc10`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-model-star-lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers, emulated for Papyrium |
 | [`papyrium-font-draft-9`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-draft-9/) | draft-9, a 9-pin dot-matrix font in the style of 1980s printers, designed for Papyrium |
 | [`papyrium-font-m1109-draft`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-m1109-draft/) | m1109-draft, the Brother M-1109's draft characters, reconstructed for Papyrium |
 | [`papyrium-font-m1109-nlq`](https://github.com/rob-smallshire/papyrium/blob/master/packages/papyrium-font-m1109-nlq/) | m1109-nlq, the Brother M-1109's near letter quality characters, reconstructed for Papyrium |

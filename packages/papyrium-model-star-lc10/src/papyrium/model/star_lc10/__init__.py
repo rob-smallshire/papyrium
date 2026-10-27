@@ -13,7 +13,7 @@ from papyrium.model.star_lc10.generator import LC10CharacterGenerator
 
 __version__ = "0.1.0"
 
-__all__ = ["StarLC10"]
+__all__ = ["StarLC10", "StarLC10Colour"]
 
 #: The commands after ESC in the LC-10's Standard mode, as its firmware's
 #: command table lists them (docs/star-lc10-firmware.md).
@@ -41,7 +41,8 @@ class StarLC10(PrinterModel):
     LC-10's own characters and character generator, from its firmware:
     draft and four NLQ typefaces (Courier, Sanserif, and Orator with small
     capitals or with lower case), each in pica and elite, and the IBM block
-    graphics, twelve dots high so that boxes join.
+    graphics, twelve dots high so that boxes join. Its black ribbon ignores
+    ESC r, and of the embedded commands it obeys only the sheet feeder's.
 
     Options model its DIP switches, at their factory settings by default,
     and its paper: form-length in inches (11, switch 1-1; 12 with it off),
@@ -77,6 +78,8 @@ class StarLC10(PrinterModel):
     ) -> None:
         super().__init__(name=name, **kwargs)
         self._mechanism = EscpMechanism(
+            colour_ribbon=self._COLOUR_RIBBON,
+            embedded_commands=self._EMBEDDED_COMMANDS,
             font=options.nine_row_font(font),
             elite_font=options.nine_row_font(elite_font),
             block_graphics_font=_font("lc10-block-graphics"),
@@ -111,12 +114,18 @@ class StarLC10(PrinterModel):
             commands=_COMMANDS,
         )
 
+    #: The LC-10 has a black ribbon; the LC-10 Colour a four-colour one.
+    _COLOUR_RIBBON = False
+    #: The embedded commands, ((X))n sent as text, it obeys.
+    _EMBEDDED_COMMANDS = frozenset("04RT")
+    _MODEL_NAME = "LC-10"
+
     @property
     def mechanism(self) -> EscpMechanism:
         return self._mechanism
 
     def identity(self) -> ModelIdentity:
-        return ModelIdentity(manufacturer="Star", model="LC-10")
+        return ModelIdentity(manufacturer="Star", model=self._MODEL_NAME)
 
     def languages(self) -> tuple[str, ...]:
         return ("escp",)
@@ -126,3 +135,21 @@ class StarLC10(PrinterModel):
 
     def create_interpreter(self) -> Interpreter:
         return EscpInterpreter(self._mechanism)
+
+
+class StarLC10Colour(StarLC10):
+    """Star LC-10 Colour: the LC-10 with a four-colour ribbon.
+
+    ESC r prints in seven colours, the ribbon's black, cyan, magenta and
+    yellow bands and violet, orange and green struck through two of them,
+    and the embedded commands set the type style, size, colour, bold and
+    italic from text: ((F))n, ((S))n, ((C))n, ((B))n and ((I))n. The
+    options are the LC-10's.
+    """
+
+    _COLOUR_RIBBON = True
+    _EMBEDDED_COMMANDS = frozenset("FSCBI04RT")
+    _MODEL_NAME = "LC-10 Colour"
+
+    def demo(self) -> bytes:
+        return demo.colour_demo()
