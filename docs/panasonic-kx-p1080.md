@@ -330,8 +330,23 @@ that anything in it may be used, its characters included.
   letters such as Ç and ü. No KX-P1080 manual mentions them; the
   KX-P1080i's IBM mode has such characters, so this firmware may share
   more with the i than the U manual shows.
-- **Proportional widths** are not stored as a table of the manual's
-  values, in bytes, nibbles or less one.
+- **Proportional widths** are at `$5C00` (ROM 0x1C00, upright) and
+  `$5C80` (italic), one byte a code 0-127, the width in 1/120 inch in the
+  low nibble and another value, probably an offset, in the high one;
+  `$5D70` and `$5DF0` repeat the widths with other high nibbles. The
+  attribute byte's bits 3-5 choose among eight tables (`$43C6`), bit 5
+  the italic one. `$2A13` makes a character's advance from them, doubled
+  for double width. The ROM's widths are the manuals' but for seven: the
+  comma is 7 (italic 8) where both manuals print 6 (7); "1" 9, not 12, in
+  both; "w" 12, not 13, in both; and the italic "6" and "9" 11, ":" 8 and
+  ";" 9 (as M has it; I prints 7). Papyrium follows the ROM.
+- **Graphics.** `$369D` gives each `ESC *` density its column pitch in
+  1/1440 inch, 24, 12, 12, 6, 18, 20 and 16 for 60, 120, 120, 240, 80,
+  72 and 90 dpi, and its line-buffer attribute byte, 0xE0-0xE6.
+- **The line buffer** (external RAM at `$8000`) holds the characters of
+  the line, with two attribute bytes before any character whose modes
+  differ from the last, the first marked by bit 7 (`$2A88` on); the
+  printing side reads it forwards or backwards by the head's direction.
 - A table of 37 jumps at 0x2000 is probably a dispatch, of which commands
   is not yet known; there is no list of escape letters, so escapes are
   probably dispatched by a computed index.
@@ -347,7 +362,6 @@ that anything in it may be used, its characters included.
   characters are all in this EPROM.
 - How far commands change the print mode in the selector's NLQ and Comp.
   positions: M says they cannot, yet says `ESC !` works in every mode.
-- The italic semicolon's width, 9 (M) or 7 (I).
 - Which pins download characters use, and how they print in NLQ.
 - The self test's and hex dump's printed layout.
 - Undefined escape sequences and the unlisted control codes.

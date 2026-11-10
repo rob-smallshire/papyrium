@@ -20,15 +20,27 @@
 # -- Data in the program -----------------------------------------------------
 
 $1000-$1BFF  data  characters_b      The character data, continued from $4FFF; read as $5000-$5BFF
-$1C00-$1EFF  data  data_1c00         Not yet known
+$1C00-$1C7F  data  widths_upright    Proportional widths for codes 0-127 in the low nibble, in 1/120 inch; read as $5C00
+$1C80-$1CFF  data  widths_italic     The same for italics; read as $5C80
+$1D00-$1D6F  data  widths_1d00       Width tables read as $5D00 and $5D38 (attribute bit 3): not yet known
+$1D70-$1DEF  data  widths_upright_2  The upright widths again, with other high nibbles; read as $5D70 (attribute bit 4)
+$1DF0-$1E6F  data  widths_italic_2   The italic widths again, with other high nibbles; read as $5DF0
+$1E70-$1EFF  data  widths_1e70       Width tables read as $5E70 and $5EA8 (attribute bits 3 and 4): not yet known
 $1F00-$1FFF  data  fill_1f00         Unused (mostly 0xFF)
 $286E-$28F1  data  national_sets     ESC R's eleven sets, twelve bytes each: the character location for # $ @ [ \ ] ^ ` { | } ~
+$3658-$3667  data  graphics_handlers The handler for each ESC * density, 0-6
+$369D-$36AA  data  graphics_modes    Each density's column pitch in 1/1440 inch (24, 12, 12, 6, 18, 20, 16) and its attribute byte, $E0-$E6
+$43C6-$43D5  data  width_tables      The width table for each value of the attribute byte's bits 3-5
 $4524-$4533  data  builder_table     The column builder for each kind of character, by bits 4-6 of its index entry
 $4B00-$4CFF  data  character_index   Four bytes for each code 0-127: start column, byte count, and a 12-bit offset from $4B00 with the kind in bits 4-6 and descender in bit 7
 $4D00-$4FFF  data  characters_a      The characters' column data, two passes each, bit 7 the top pin; continues at $5000
 
 # -- Routines ----------------------------------------------------------------
 
+$2A13  code  character_width           A character's advance in 1/1440 inch: its width from width_tables by attribute bits 3-5, doubled with $9E bit 5, times 12
+$2A88  code  queue_character           Store the character in $9F in the line buffer, its attributes before it when they changed
+$2ABA  code  store_character           Store the character in $9F at line_buffer's end
+$2ACF  code  store_attributes          Store the attribute bytes $9D and $9E, then the character
 $2856  code  national_location         The location a national code prints in the set chosen ($97 bits 0-3)
 $44DE  code  character_lookup          The character in $EB: its index entry from character_index, or from $56C8 (IBM PC symbols) when $E9 bits 2-3 are set
 $4534  code  italic_shear              Slant the column buffer: each column takes bits 7-6, 5-4, 3-2 and 1-0 from it and the three columns after
@@ -52,6 +64,9 @@ $8000  ram  line_buffer      The line waiting to print: character codes, each at
 $FF2A  ram  line_index       Position in line_buffer
 $FF90  ram  print_flags      Bit 1: build the second pass of each character
 $FF97  ram  national_set     Bits 0-3: the ESC R set
+$FF9D  ram  text_attributes  The current attribute byte stored before characters: bits 3-5 choose the width table (bit 5 italic), bits 4-6 also the record's kind ($40 text, $60 graphics)
+$FF9E  ram  text_attributes_2 The second attribute byte: bit 0 a graphics record, bit 5 double width
+$FF9F  ram  next_character   The character being stored
 $FFA8  ram  column_buffer    24 half-columns ($FFA8-$FFBF) the character is built in
 $FFE9  ram  attributes_1     The character's first attribute byte: bits 2-3 choose the $56C8 index (IBM PC symbols), bit 5 italic (italic_shear); bit 4 perhaps double width
 $FFEA  ram  attributes_2     The character's second attribute byte
