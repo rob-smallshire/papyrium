@@ -8,11 +8,10 @@ written up in `docs/panasonic-kx-p1080.md`.
   from which `tools/rom-map/disassemble.py` writes the annotated
   disassembly, `docs/local/panasonic-kx-p1080/KX-P1080U.dis`. Run
   `uv run python tools/rom-map/disassemble.py tools/kx-p1080-rom/kx-p1080-map.txt`.
-- `dump_patch.py` makes an EPROM image that has the printer print its
-  CPU's internal ROM, which holds the draft fonts and is not in the dump,
-  and the job that prints it: `KX-P1080U-dump.bin`, to program into a
-  27128 in place of the original, and `dump-job.prn`, to send to the
-  printer's parallel port with the print mode switch at Std. Pgm. Each
-  page of the internal ROM prints twice as bit-image columns, bit 7 the
-  top pin, labelled in draft, with two pages of known EPROM bytes to check
-  the reading of a scan by.
+- `dump_patch.py` makes `KX-P1080U-dump.bin`, an EPROM image whose self
+  test prints the CPU's internal ROM, which holds the draft fonts and is
+  not in the dump, as hex text: each line an address, sixteen bytes and
+  their checksum, the whole 4 KB twice. Program it into a 27128 in place
+  of the original EPROM and switch on holding LF, with the print mode
+  switch at NLQ; it prints about eight pages and stops. Nothing else in
+  the firmware changes.
