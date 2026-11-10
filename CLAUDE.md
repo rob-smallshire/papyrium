@@ -208,7 +208,8 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   `lx800-draft` and `lx800-nlq-roman` through `tools/lx800-rom/`, and for
   the LC-10 Colour's, for everything needed to simulate the LC-10 and
   LC-10 Colour, which gives `papyrium.font.lc10` through
-  `tools/lc10-rom/`); without it, a reconstruction never
+  `tools/lc10-rom/`, and for the Panasonic KX-P1080U's, for anything in
+  it); without it, a reconstruction never
   comes from reading a ROM, and no ROM image is ever committed.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask
   beebium-architect about Beebium's behaviour.

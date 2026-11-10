@@ -5,7 +5,7 @@ that a Papyrium model of them relies on, restated in our own words from
 Panasonic's manuals and from a dump of a KX-P1080U's firmware. This is the
 research for those models; none is built yet.
 
-Sources, kept uncommitted in `docs/local/pansonic-kx-p1080/`, each OCRed
+Sources, kept uncommitted in `docs/local/panasonic-kx-p1080/`, each OCRed
 with `tools/manual-ocr/ocr.sh`:
 
 - *KX-P1080 Operating Instructions*, the US edition (120 V), complete,
@@ -288,8 +288,8 @@ or which eight of the nine pins they use.
 
 ## Firmware
 
-The KX-P1080U's EPROM, as far as read so far. Using it for more than
-research, for the characters especially, is Rob's decision (CLAUDE.md).
+The KX-P1080U's EPROM, as far as read so far. Rob decided (2026-11-10)
+that anything in it may be used, its characters included.
 
 - **CPU.** NEC µPD7810 family: MAME's `unidasm` (architecture `upd7810`)
   disassembles it cleanly, with the family's CALL (0x44), JMP (0x54), RET
