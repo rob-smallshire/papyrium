@@ -6,6 +6,15 @@ what the KX-P1080U's firmware shows; this is what the i's manual says,
 including its IBM mode, which the KX-P1080U lacks. Where the firmware has
 since answered a question the manual leaves open, a note says so.
 
+The KX-P1080U's firmware holds the characters the IBM mode prints, though
+nothing in the U reaches them: the code page 437 characters in draft and
+italic, 40 of them in NLQ, the box drawing and blocks (double-line pieces
+printed single), the Matrix Printer's block graphics built from the code,
+and their proportional widths (IBM PC characters, under Firmware, in
+`docs/panasonic-kx-p1080.md`). It does not hold the IBM mode's commands:
+its dispatch table has no `ESC m`, and none of the IBM-only behaviour
+below.
+
 Source: KX-P1080i Operating Instructions (Matsushita Electric of Canada), as
 scanned by Manualslib, OCRed with Tesseract
 (`docs/local/panasonic-kx-p1080/Panasonic_KX-P1080i_Manual.txt` and `-pages/`).

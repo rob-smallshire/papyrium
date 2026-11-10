@@ -386,14 +386,29 @@ that anything in it may be used, its characters included.
   pass's pins leans one 1/240 inch column further right than the pair
   below (the LC-10 moves each pin a column, not each pair). Pins slanted
   past the 24th column are lost. Draft italics are stored, in the CPU.
-- **IBM PC characters.** With bits 2-3 of the character's attribute byte
-  set, the NLQ index is taken from `$56C8` instead: 41 of code page 437's
-  characters that Epson's international set lacks, ç ê ë ï î ô û ÿ ¢ ƒ á
-  í ó ú, ½ ¼ « », α ß Γ π Σ σ µ τ Φ Θ Ω δ ∞ φ ε ∩ ≡ and others, in NLQ;
-  their draft forms are in the CPU. No KX-P1080 manual mentions them and
-  no command in this firmware selects them (there is no `ESC m`): the
-  firmware evidently shares its character code with the KX-P1080i's IBM
-  mode.
+- **IBM PC characters.** No KX-P1080 manual mentions them and no command
+  in this firmware selects them (there is no `ESC m`), but the firmware
+  has what the KX-P1080i's IBM mode prints, evidently sharing its
+  character code:
+  - Draft, in the internal ROM: 56 characters from 0x09C0 and their
+    italics from 0x0BB8, the code page 437 characters that are neither
+    among the 32 international ones nor box drawing, in order: Ç â ê ë ï
+    î ô û ÿ ¢ ƒ á í ó ú ª º ⌐ ¬ ½ ¼ « » α β Γ π Σ σ µ τ Φ Θ Ω δ ∞ φ ε ∩ ≡
+    ± ≥ ≤ ÷ ≈ ° ∙ · √ ⁿ ² ■, then ♥ ♦ ♣ ♠ (IBM set II's codes 3-6).
+  - NLQ, with bits 2-3 of the attribute byte set, from the index at
+    `$56C8` (its data still offset from `$4B00`): the first 40 of those,
+    Ç to ≡, at entries 1-40. The rest have no NLQ form.
+  - Box drawing and blocks, codes 0xB0-0xDF: `$2988` maps each to one of
+    19 shapes, and `$4467` prints a shape from internal ROM 0x0DB0 as
+    two 12-column bands, the second four pins lower, so that lines join
+    at 1/6 inch spacing: ░ ▒ ▓, the eleven single-line pieces, █ ▄ ▌ ▐
+    ▀, and ⌠ ⌡ after them. There are no double-line shapes: every
+    double-line piece prints as the single-line one of the same form
+    (═ as ─, ╔ as ┌, ╬ as ┼).
+  - The IBM Matrix Printer's 64 block graphics are not stored: `$4428`
+    builds each from its code's six bits, a 2 by 3 mosaic of solid blocks.
+  - Proportional widths for them at `$5D00` and `$5D38` (upright and
+    italic), and `$5E70` and `$5EA8` for NLQ.
 - **Proportional widths** are at `$5C00` (ROM 0x1C00, upright) and
   `$5C80` (italic), one byte a code 0-127, the width in 1/120 inch in the
   low nibble and in the high one where printing starts (`$439C` keeps it
