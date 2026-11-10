@@ -28,6 +28,17 @@ EPROM_SHA1 = "4839aebb1c22222bf43eb4c6de6287909c0d0ce6"
 INTERNAL_ROM_SHA1 = "06cf7011e56efb96d840ff4862cb7888d9dc5ba4"
 
 FONT_DIRPATH = REPO_DIRPATH / "src" / "papyrium" / "font" / "kx_p1080"
+WIDTHS_FILEPATH = REPO_DIRPATH / "src/papyrium/model/panasonic_kx_p1080/widths.py"
+
+#: The proportional width tables ($43C6) for the ROM characters, by CPU
+#: address $4000 on (file offset 0 on): upright, italic, and both double
+#: width. The tables for the IBM PC characters are left out.
+WIDTH_TABLES = {
+    "upright": 0x1C00,
+    "italic": 0x1C80,
+    "upright_double": 0x1D70,
+    "italic_double": 0x1DF0,
+}
 
 #: The characters at codes 0-31, as papyrium.language.escp.charsets has
 #: them; the firmware keeps them in this order in both qualities.
@@ -197,6 +208,28 @@ PROVENANCE = [
 ]
 
 
+def widths_text(eprom: bytes) -> str:
+    lines = [
+        '"""The KX-P1080U\'s proportional widths, from its firmware.',
+        "",
+        "Written by tools/kx-p1080-rom/extract.py from the EPROM's tables at $5C00,",
+        "$5C80, $5D70 and $5DF0: one byte for each code 0-127, the width in 1/120",
+        "inch in the low nibble and in the high nibble where printing starts:",
+        "with bit 3 clear, that many columns into the character, moving it left;",
+        "with it set, bits 0-2 columns before it, moving it right.",
+        '"""',
+        "",
+        "WIDTH_TABLES = {",
+    ]
+    for name, at in WIDTH_TABLES.items():
+        data = eprom[at : at + 128].hex()
+        lines.append(f'    "{name}": bytes.fromhex(')
+        lines.extend(f'        "{data[i : i + 64]}"' for i in range(0, 256, 64))
+        lines.append("    ),")
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
 def main(eprom_filepath: Path, internal_rom_filepath: Path) -> None:
     eprom = read_rom(eprom_filepath, EPROM_SHA1, "EPROM")
     internal = read_rom(internal_rom_filepath, INTERNAL_ROM_SHA1, "internal ROM")
@@ -231,6 +264,9 @@ def main(eprom_filepath: Path, internal_rom_filepath: Path) -> None:
         text = font_text([title, *PROVENANCE, *notes], rows, columns, glyphs)
         (FONT_DIRPATH / filename).write_text(text + "\n", encoding="utf-8")
         print(f"{filename}: {len(glyphs)} characters")
+    WIDTHS_FILEPATH.parent.mkdir(parents=True, exist_ok=True)
+    WIDTHS_FILEPATH.write_text(widths_text(eprom), encoding="utf-8")
+    print(f"{WIDTHS_FILEPATH.name}: {len(WIDTH_TABLES)} width tables")
 
 
 if __name__ == "__main__":

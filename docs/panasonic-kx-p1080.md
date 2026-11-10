@@ -3,7 +3,7 @@
 Facts about the Panasonic KX-P1080 family of 9-pin dot-matrix printers
 that a Papyrium model of them relies on, restated in our own words from
 Panasonic's manuals and from a dump of a KX-P1080U's firmware. This is the
-research for those models; none is built yet.
+research for those models, which Papyrium now has (For Papyrium, below).
 
 Sources, kept uncommitted in `docs/local/panasonic-kx-p1080/`, each OCRed
 with `tools/manual-ocr/ocr.sh`:
@@ -390,11 +390,18 @@ that anything in it may be used, its characters included.
   mode.
 - **Proportional widths** are at `$5C00` (ROM 0x1C00, upright) and
   `$5C80` (italic), one byte a code 0-127, the width in 1/120 inch in the
-  low nibble and another value, probably an offset, in the high one;
-  `$5D70` and `$5DF0` repeat the widths with other high nibbles. The
-  attribute byte's bits 3-5 choose among eight tables (`$43C6`), bit 5
-  the italic one. `$2A13` makes a character's advance from them, doubled
-  for double width. The ROM's widths are the manuals' but for seven: the
+  low nibble and in the high one where printing starts (`$439C` keeps it
+  in `VV:EF`, `$4615` uses it): with bit 3 clear, that many columns into
+  the character, moving it left; with bit 3 set, bits 0-2 columns before
+  it, moving it right, as 9, one column right, does for the full-width
+  capitals. `$5D70` and `$5DF0` are the same widths for double width,
+  with their own starts. The attribute byte's bits 3-5 choose among the
+  eight tables (`$43C6`): bit 3 the IBM PC characters', bit 4 double
+  width's, bit 5 italic's. `$2A13` makes a character's advance from them,
+  doubled for double width. NLQ uses the same tables; its start is taken
+  to be in 1/120 inch columns too, which leaves it the same column of
+  space before a character as draft has, though the NLQ print loop is
+  not traced far enough to confirm it. The ROM's widths are the manuals' but for seven: the
   comma is 7 (italic 8) where both manuals print 6 (7); "1" 9, not 12, in
   both; "w" 12, not 13, in both; and the italic "6" and "9" 11, ":" 8 and
   ";" 9 (as M has it; I prints 7). Papyrium follows the ROM.
@@ -432,12 +439,17 @@ that anything in it may be used, its characters included.
 
 ## For Papyrium
 
-- The ESC/P interpreter and `EscpMechanism` cover most of this; what is
-  new is `ESC w` as pitch (clashing with the LC-10's double height), the
-  semi-compressed 15 cpi pitch, `ESC n` and `ESC o`, `ESC y` and `ESC z`
-  downloads, `ESC !`'s narrower layout, the selector switch's three
-  positions, the half-speed and emphasized-proportional rules, and the
-  width table above.
+- `papyrium.model.panasonic_kx_p1080` models the KX-P1080U
+  (`panasonic-kx-p1080u`) and the KX-P1080 (`panasonic-kx-p1080`), which
+  differ only in their default character set, on the ESC/P interpreter:
+  `KXP1080Interpreter` adds `ESC w` as pitch, the 15 cpi pitch, `ESC n`
+  and `ESC o`, `ESC y` and `ESC z` downloads, `ESC !` without Epson's
+  proportional, italic and underline bits, the selector switch's three
+  positions, the ROM's width tables and italic fonts, and code 255 as an
+  italic slashed zero. Its fonts are `papyrium.font.kx_p1080`.
+- Not modelled yet: half speed and unidirectional printing, the paper-out
+  detector, the self test and hex dump, how downloads print in NLQ and
+  proportional spacing, and the open questions above.
 - The KX-P1080i's IBM mode is three IBM printers, Matrix and Graphics I and
   II, none of them the Proprinter: a separate language or languages, built
   per the emulation rule from those printers' own documents.

@@ -30,12 +30,14 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
-<td width="17%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
-<td width="17%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="17%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="17%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
-<td width="17%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
-<td width="17%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="12%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
 </tr>
 </table>
 
@@ -86,21 +88,26 @@ connection open for its whole life.
 ```
 $ papyrium list-models
                                      Models                                     
-┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name              ┃ Description                                              ┃
-┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ brother-m1109     │ Brother M-1109: an 80-column, 9-pin dot-matrix printer   │
-│                   │ in its Mode I.                                           │
-│ epson-fx80        │ Epson FX-80: an 80-column, 9-pin dot-matrix printer      │
-│                   │ speaking ESC/P.                                          │
-│ epson-lx800       │ Epson LX-800: an 80-column, 9-pin dot-matrix printer     │
-│                   │ speaking ESC/P.                                          │
-│ ibm-proprinter-ii │ IBM Proprinter II: an 80-column, 9-wire dot-matrix       │
-│                   │ printer speaking                                         │
-│ star-lc10         │ Star LC-10: an 80-column, 9-pin dot-matrix printer       │
-│                   │ speaking ESC/P or,                                       │
-│ star-lc10-colour  │ Star LC-10 Colour: the LC-10 with a four-colour ribbon.  │
-└───────────────────┴──────────────────────────────────────────────────────────┘
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name                ┃ Description                                            ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ brother-m1109       │ Brother M-1109: an 80-column, 9-pin dot-matrix printer │
+│                     │ in its Mode I.                                         │
+│ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
+│                     │ speaking ESC/P.                                        │
+│ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
+│                     │ speaking ESC/P.                                        │
+│ ibm-proprinter-ii   │ IBM Proprinter II: an 80-column, 9-wire dot-matrix     │
+│                     │ printer speaking                                       │
+│ panasonic-kx-p1080  │ Panasonic KX-P1080: an 80-column, 9-pin dot-matrix     │
+│                     │ printer speaking ESC/P.                                │
+│ panasonic-kx-p1080u │ Panasonic KX-P1080U: the KX-P1080 for the UK, its      │
+│                     │ firmware Papyrium's source.                            │
+│ star-lc10           │ Star LC-10: an 80-column, 9-pin dot-matrix printer     │
+│                     │ speaking ESC/P or,                                     │
+│ star-lc10-colour    │ Star LC-10 Colour: the LC-10 with a four-colour        │
+│                     │ ribbon.                                                │
+└─────────────────────┴────────────────────────────────────────────────────────┘
 
 $ papyrium list-fonts
                                      Fonts                                      
@@ -269,6 +276,8 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) |
 |  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) |
+|  | `panasonic-kx-p1080` | Panasonic KX-P1080: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) |
+|  | `panasonic-kx-p1080u` | Panasonic KX-P1080U: the KX-P1080 for the UK, its firmware Papyrium's source | [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) |
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) |
@@ -310,6 +319,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
 | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |
 | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) | The IBM Proprinter II 9-wire dot-matrix printer |
+| [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) | The Panasonic KX-P1080 and KX-P1080U 9-pin dot-matrix printers |
 | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers |
 | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) | draft-9: a 9-pin dot-matrix font designed for Papyrium |
 | [`papyrium.font.kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/kx_p1080/) | The Panasonic KX-P1080U's draft and near letter quality fonts, from its firmware |
@@ -322,9 +332,10 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.cli`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/cli/) | The ``papyrium`` command: run a virtual vintage printer and inspect its jobs |
 
 `docs/specification.md` is the design as handed over from Beebium.
-`docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md` and
-`docs/star-lc-10.md` record the behaviour Papyrium follows, from the
-manufacturers' manuals, and `CLAUDE.md` records the working practices.
+`docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md`,
+`docs/star-lc-10.md`, `docs/ibm-proprinter-ii.md` and
+`docs/panasonic-kx-p1080.md` record the behaviour Papyrium follows, from
+the manufacturers' manuals and firmware, and `CLAUDE.md` records the working practices.
 
 ## Development
 

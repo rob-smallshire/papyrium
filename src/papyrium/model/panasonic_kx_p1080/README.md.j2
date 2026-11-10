@@ -1,0 +1,54 @@
+{% import "package.md.j2" as common -%}
+{{ common.generated_notice() }}
+# papyrium.model.panasonic_kx_p1080
+
+The Panasonic KX-P1080 and KX-P1080U, 9-pin dot-matrix printers of the
+mid-1980s, for Papyrium. They speak ESC/P through `papyrium.language.escp`:
+the Epson FX-80's commands with Epson's near letter quality and some of
+Panasonic's own, `ESC w` choosing 10, 12, 15 or 17 characters to the inch,
+`ESC n` and `ESC o` near letter quality in pica and elite, and `ESC y` and
+`ESC z` download characters. Both qualities space proportionally.
+`docs/panasonic-kx-p1080.md` records the behaviour followed, from the
+manuals and from the KX-P1080U's firmware.
+
+Everything it prints with comes from a KX-P1080U's firmware: the draft
+fonts from its CPU's internal ROM, which the printer was made to print as
+a hex dump (`docs/panasonic-kx-p1080-rom-recovery.md`), and near letter
+quality and the proportional widths from its EPROM. Italics are the
+ROM's own draft italics, and near letter quality slanted as the firmware
+slants it.
+
+## Demonstration page
+
+<img src="{{ repo_url(demo_image("demo-panasonic-kx-p1080u", "panasonic-kx-p1080u", height=6.6), raw=True) }}" alt="The panasonic-kx-p1080u demonstration page" width="100%">
+
+Print it yourself, as PNG and PDF, with `papyrium demo panasonic-kx-p1080u`;
+`-M` options set the printer up, such as `-M print-mode=nlq`.
+
+Registered as `panasonic-kx-p1080u`, the UK model, shipped with the
+England character set, and `panasonic-kx-p1080`, the US one, with the USA
+set, on the `papyrium.model` axis. The options model the printer's DIP
+switches, its print mode selector and its paper:
+
+{{ options_table("panasonic-kx-p1080u", {
+    "print-mode": "The print mode selector: `std` (Std. Pgm.), `nlq` (near letter quality, which commands cannot leave) or `comp` (compressed, which DC2 does not cancel)",
+    "form-length": "Form length in inches (switch 2 gives 11 or 12)",
+    "auto-line-feed": "Each carriage return also feeds a line (switch 3)",
+    "skip-perforation": "Skip one inch over the perforation (switch 4)",
+    "character-set": "Power-on international set: any of the eleven `ESC R` sets, by name or number (switches 5-7 give 0-7)",
+    "data-bits": "`8`, or `7` to clear bit 7 of everything received (switch 8)",
+    "paper-width": "Paper width in inches, tear-off strips included; the line is centred on it",
+    "top-offset": "Inches from the perforation to the top of the first line",
+    "stationery": "The paper: `fanfold` (plain, with tear-off strips), `sheet` (no strips), `green-bar`, `blue-bar`, `music-ruled`",
+    "font": "The draft characters: an installed font's name, or the path of a dot font file",
+    "italic-font": "The draft italics, `ESC 4`: a 9-row dot font's name or file",
+    "nlq-font": "The near letter quality characters: an 18 x 24 dot font's name or file",
+    "nlq-italic-font": "The near letter quality italics: an 18 x 24 dot font's name or file",
+}, defaults={"paper-width": "`9.5`, or `8.5` for `sheet`", "character-set": "`uk`; `usa` for `panasonic-kx-p1080`"}) }}
+
+Not modelled yet: the self test and hex dump, the paper-out detector,
+half speed and unidirectional printing, how downloads print in near letter
+quality and proportional spacing, and the KX-P1080i, whose IBM mode is
+three IBM printers.
+
+{{ common.licence(repo_url("LICENSE")) }}
