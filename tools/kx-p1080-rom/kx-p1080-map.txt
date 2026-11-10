@@ -1,0 +1,61 @@
+# A map of the Panasonic KX-P1080U's program EPROM, as traced so far:
+# where it keeps data rather than code, and what its routines and RAM
+# locations do, in our own words. tools/rom-map/disassemble.py reads it to
+# lay out and annotate the disassembly, and describes its format;
+# docs/panasonic-kx-p1080.md explains what it shows.
+
+# A uPD7810-family CPU. The 16K EPROM answers at $0000-$3FFF and again at
+# $4000-$7FFF, but the CPU's own 4K hides its first 4K at $0000-$0FFF, so
+# the program reaches that through the second copy, at $4000-$4FFF. The
+# character data, at ROM offsets 0x0D00-0x1BFF, is so one block at
+# $4D00-$5BFF.
+@rom docs/local/panasonic-kx-p1080/KX-P1080U.BIN
+@listing docs/local/panasonic-kx-p1080/KX-P1080U.dis
+@arch upd7810
+@segment 1000-3FFF at 1000
+@segment 0000-0FFF at 4000
+@mirror 5000-7FFF at 1000
+@vpage FF
+
+# -- Data in the program -----------------------------------------------------
+
+$1000-$1BFF  data  characters_b      The character data, continued from $4FFF; read as $5000-$5BFF
+$1C00-$1EFF  data  data_1c00         Not yet known
+$1F00-$1FFF  data  fill_1f00         Unused (mostly 0xFF)
+$286E-$28F1  data  national_sets     ESC R's eleven sets, twelve bytes each: the character location for # $ @ [ \ ] ^ ` { | } ~
+$4524-$4533  data  builder_table     The column builder for each kind of character, by bits 4-6 of its index entry
+$4B00-$4CFF  data  character_index   Four bytes for each code 0-127: start column, byte count, and a 12-bit offset from $4B00 with the kind in bits 4-6 and descender in bit 7
+$4D00-$4FFF  data  characters_a      The characters' column data, two passes each, bit 7 the top pin; continues at $5000
+
+# -- Routines ----------------------------------------------------------------
+
+$2856  code  national_location         The location a national code prints in the set chosen ($97 bits 0-3)
+$44DE  code  character_lookup          The character in $EB: its index entry from character_index, or from $56C8 (IBM PC symbols) when $E9 bits 2-3 are set
+$4534  code  italic_shear              Slant the column buffer: each column takes bits 7-6, 5-4, 3-2 and 1-0 from it and the three columns after
+$4558  code  clear_columns             Zero the column buffer
+$4565  code  build_plain               Kinds 0, 6, 7: plain columns
+$4569  code  build_pairs               Kind 1: columns, bit 0 a blank column after
+$456D  code  build_plain_mirrored_2    Kind 2: plain columns, mirrored from two before the end
+$4578  code  build_pairs_mirrored_2    Kind 3: as kind 1, mirrored from two before the end
+$4583  code  build_plain_mirrored_1    Kind 4: plain columns, mirrored from one before the end
+$458D  code  build_pairs_mirrored_1    Kind 5: as kind 1, mirrored from one before the end
+$4597  code  character_data            Point HL at a character's columns ($4B00 + offset, the second pass with $90 bit 1) and DE at its start column in the buffer
+$45BA  code  plain_columns             Copy columns into the buffer, dropping any dot the previous column fired
+$45CA  code  paired_columns            As plain_columns, a byte with bit 0 set giving a blank column after it
+$45E7  code  mirror_columns            Copy the buffer's columns back out in reverse to complete a symmetrical character
+$480B  code  next_from_line            The next character from the line buffer, with any attribute change before it, printing left to right
+$482F  code  previous_from_line        The same, right to left
+
+# -- RAM ---------------------------------------------------------------------
+
+$8000  ram  line_buffer      The line waiting to print: character codes, each attribute change two bytes before them, the first with bit 7 set
+$FF2A  ram  line_index       Position in line_buffer
+$FF90  ram  print_flags      Bit 1: build the second pass of each character
+$FF97  ram  national_set     Bits 0-3: the ESC R set
+$FFA8  ram  column_buffer    24 half-columns ($FFA8-$FFBF) the character is built in
+$FFE9  ram  attributes_1     The character's first attribute byte: bits 2-3 choose the $56C8 index (IBM PC symbols), bit 5 italic (italic_shear); bit 4 perhaps double width
+$FFEA  ram  attributes_2     The character's second attribute byte
+$FFEB  ram  character_code   The character being built
+$FFEC  ram  data_count       Bytes of column data less one
+$FFED  ram  start_column     Index entry byte 0
+$FFEE  ram  byte_count       Index entry byte 1

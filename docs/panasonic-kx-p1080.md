@@ -307,12 +307,29 @@ that anything in it may be used, its characters included.
   `ESC R`'s order, each giving the character location for `` # $ @ [ \ ] ^
   ` { | } ~ ``, the international characters being locations 0-31 in the
   Epson FX's order. They match M's table exactly.
-- **Characters.** 0x0D00-0x1BFF holds dot columns, bit 0 the top pin: an
-  F, an E and others read plainly, but packed without spacing, with dots
-  in neighbouring columns, and not at a fixed size. Whether they are the
-  draft and italic sets, NLQ, or an encoding of them is not yet known.
-  Nothing in the program loads their addresses directly except a few
-  pointers into the region (`$1240`, `$1710`, `$56C8`, `$5B40`).
+- **Characters** (`$44DE` on; `tools/kx-p1080-rom/kx-p1080-map.txt`
+  names the routines). An index at `$4B00` (ROM 0x0B00) has four bytes
+  for each code 0-127, codes 0-31 being the 32 international characters:
+  the column the character starts at, its byte count, and a 12-bit offset
+  from `$4B00` to its data, with a kind in bits 4-6 of the last byte and a
+  descender in bit 7. The data, in 0x0D00-0x1BFF, is two sets of columns
+  one after the other, bit 7 the top pin, on a grid of 1/240 inch
+  columns. Built into a 24-column buffer (`$FFA8`), each column loses any
+  dot the column before fired; in kinds 1, 3 and 5 a byte's bit 0 instead
+  leaves a blank column after it; kinds 2-5 are half a character,
+  completed by copying the columns back out in reverse from one or two
+  before the end (`$45E7`). The two sets are NLQ's two passes, and the
+  second alone is a whole character: draft is presumably that pass at
+  1/72 inch rows, NLQ both interleaved at 1/144 inch.
+- **Italics** are not stored: `$4534` slants the built columns, taking
+  each column's pins from it and the three columns after, two pins from
+  each, the top pins furthest, as the Star LC-10 does.
+- **IBM PC characters.** With bits 2-3 of the character's attribute byte
+  set, the index is taken from `$56C8` instead, in which entries 0x20 on
+  are code page 437's Φ Θ Ω δ ∞ φ ε ∩ ≡ ± and the first ones accented
+  letters such as Ç and ü. No KX-P1080 manual mentions them; the
+  KX-P1080i's IBM mode has such characters, so this firmware may share
+  more with the i than the U manual shows.
 - **Proportional widths** are not stored as a table of the manual's
   values, in bytes, nibbles or less one.
 - A table of 37 jumps at 0x2000 is probably a dispatch, of which commands

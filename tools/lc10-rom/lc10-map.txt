@@ -1,13 +1,15 @@
 # A map of the Star LC-10 Colour's program, firmware version 1.5, as traced
 # so far: where it keeps data rather than code, and what its routines and
-# RAM locations do, in our own words. tools/lc10-rom/disassemble.py reads
-# it to lay out and annotate the disassembly; docs/star-lc10-firmware.md
-# explains what it shows.
-#
-# Each line is a CPU address or range, a kind, a name and a description.
-# Kinds: data (bytes), commands (a command table: a byte and its handler's
-# address, three bytes an entry, ended by a zero), code (a routine or an
-# entry point within one), ram (a zero-page or RAM location).
+# RAM locations do, in our own words. tools/rom-map/disassemble.py reads
+# it to lay out and annotate the disassembly, and describes its format;
+# docs/star-lc10-firmware.md explains what it shows.
+
+# The program is the ROM's upper 32K, at CPU addresses $8000-$FFFF; the
+# lower 32K is the data space the CPU reaches through DME.
+@rom docs/local/star-lc10/LC10-NX1P-1.5CL.bin
+@listing docs/local/star-lc10/LC10-NX1P-1.5CL.dis
+@arch m740
+@segment 8000-FFFF at 8000
 
 # -- Data in the program -----------------------------------------------------
 

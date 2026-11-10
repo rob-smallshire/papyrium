@@ -130,7 +130,7 @@ The vectors:
 | `$FFFC` | `_INT2` (P01) and `BRK` | `$FF7E` |
 | `$FFFE` | Reset | `$8100` |
 
-`tools/lc10-rom/disassemble.py` disassembles the program with MAME's
+`tools/rom-map/disassemble.py` disassembles the program with MAME's
 `unidasm` (architecture `m740`), used as a tool only, into
 `docs/local/star-lc10/LC10-NX1P-1.5CL.dis`. Build `unidasm` from a MAME
 checkout with `make EMULATOR=0 TOOLS=1 NOWERROR=1`; the script looks for
@@ -146,7 +146,7 @@ in October 2026, so MAME is the reference here.
 `tools/lc10-rom/lc10-map.txt` is the map of the program: where it keeps
 data rather than code, and a name and a line of description for every
 routine, entry point and RAM location traced so far, every command
-handler among them. `disassemble.py` reads it, disassembles only the
+handler among them. `tools/rom-map/disassemble.py` reads it, disassembles only the
 code, so the listing stays on instruction boundaries after the tables in
 the program, prints the command tables as decoded entries (`'I' ->
 $9513  ibm_esc_i`), heads each named routine with its description, and

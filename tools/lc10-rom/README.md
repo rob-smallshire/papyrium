@@ -6,13 +6,9 @@ written up in `docs/star-lc10-firmware.md`.
 
 - `extract.py` decodes the ROM's character tables into the dot font files
   of `papyrium.font.lc10`.
-- `disassemble.py` disassembles the program with MAME's `unidasm`
-  (architecture `m740`), used as a tool only, into
-  `docs/local/star-lc10/LC10-NX1P-1.5CL.dis`, laid out and annotated from
-  `lc10-map.txt`: data kept apart from code, command tables decoded, and
-  routines, handlers and RAM locations named. Build `unidasm` from a MAME
-  checkout with `make EMULATOR=0 TOOLS=1 NOWERROR=1`; the script looks for
-  it in `docs/local/m50734/`. Run it with
-  `uv run python tools/lc10-rom/disassemble.py`.
-- `lc10-map.txt` is the map of the program, in our own words: add to it as
-  tracing finds things, and run `disassemble.py` again.
+- `lc10-map.txt` is the map of the program, in our own words, from which
+  `tools/rom-map/disassemble.py` writes the annotated disassembly,
+  `docs/local/star-lc10/LC10-NX1P-1.5CL.dis`: data kept apart from code,
+  command tables decoded, and routines, handlers and RAM locations named.
+  Run `uv run python tools/rom-map/disassemble.py tools/lc10-rom/lc10-map.txt`;
+  add to the map as tracing finds things, and run it again.
