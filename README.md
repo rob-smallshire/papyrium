@@ -30,14 +30,16 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
-<td width="12%" valign="top"><a href="src/papyrium/model/brother_m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/epson_fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/epson_lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/ibm_proprinter_ii/"><img src="docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/panasonic_kx_p1080/"><img src="docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/panasonic_kx_p1080/"><img src="docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
-<td width="12%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/brother_m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/epson_fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/epson_lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/ibm_proprinter_ii/"><img src="docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
+</tr>
+<tr>
+<td width="25%" valign="top"><a href="src/papyrium/model/panasonic_kx_p1080/"><img src="docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/panasonic_kx_p1080/"><img src="docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/star_lc10/"><img src="docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
 </tr>
 </table>
 

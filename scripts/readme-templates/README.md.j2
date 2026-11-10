@@ -36,11 +36,17 @@ Each printer model has a demonstration page, printed here by Papyrium
 itself; `papyrium demo MODEL` prints one.
 
 <table>
+{%- for row in plugins["model"]|batch(4, none) %}
 <tr>
-{%- for model in plugins["model"] %}
-<td width="{{ (100 / plugins["model"]|length)|round|int }}%" valign="top"><a href="{{ repo_url(model.module.dirpath) }}"><img src="{{ repo_url(demo_image("demo-top-" ~ model.name, model.name, height=3.35), raw=True) }}" alt="The top of the {{ model.name }} demonstration page" width="100%"></a><br><code>{{ model.name }}</code></td>
+{%- for model in row %}
+{%- if model %}
+<td width="25%" valign="top"><a href="{{ repo_url(model.module.dirpath) }}"><img src="{{ repo_url(demo_image("demo-top-" ~ model.name, model.name, height=3.35), raw=True) }}" alt="The top of the {{ model.name }} demonstration page" width="100%"></a><br><code>{{ model.name }}</code></td>
+{%- else %}
+<td width="25%"></td>
+{%- endif %}
 {%- endfor %}
 </tr>
+{%- endfor %}
 </table>
 
 ## Quick start
