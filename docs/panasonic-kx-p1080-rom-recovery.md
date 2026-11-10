@@ -199,7 +199,7 @@ a fixed grid.
 
 The printout is very regular: 10 characters to the inch (30 px at
 300 dpi) and the same 57 character positions on every line. So the
-reader built for it, so far as working scripts rather than a tool:
+reader built for it, now `tools/kx-p1080-rom/read_dump_scan.py`:
 
 1. **Rows.** A horizontal ink profile splits each page into its lines:
    60, 60, 60, 60 and 15, or 255 in all.
@@ -279,7 +279,25 @@ It is almost all data:
   international characters; 128 italic from 0x0540; and the IBM PC
   characters' draft forms from 0x09C0 and 0x0BB8. The first time they
   were drawn, A to H came out as A to H.
-- A further 0x200 bytes not yet traced, and 0x50 bytes unused at the end.
+- **Block graphics** for the IBM PC characters from 0x0DB0, which no
+  command of the KX-P1080U reaches, and 0x50 bytes unused at the end.
+
+## What came after
+
+- **The draft column format.** The routine at `$46CE` that turns a
+  column byte into pins lowers a column two pins when its bit 0 is set,
+  column by column, so a j's hook reaches the ninth pin while its stem
+  does not.
+- **Fonts.** `tools/kx-p1080-rom/extract.py` makes `papyrium.font.kx_p1080`:
+  draft and draft italic from the internal ROM, and NLQ and its italic
+  from the EPROM, built and slanted as the firmware builds and slants
+  them.
+- **The printer.** `papyrium.model.panasonic_kx_p1080` prints with them,
+  with the ROM's proportional widths, and with download characters and
+  NLQ's passes traced through the firmware (`docs/panasonic-kx-p1080.md`).
+- **The reader** became a tool. Run on the scan with the 35 lines read by
+  eye (`KX-P1080U-internal-hand.txt` in `docs/local/`) and the last line
+  filled with 0xFF, it gives the same image, byte for byte.
 
 ## Lessons
 
@@ -302,9 +320,7 @@ It is almost all data:
   `$FFF0-$FFF4`, which the routine borrows, is also the serial receive
   buffer's state. A rerun with private RAM and an end marker would give
   line 0FF0 and a second reading of everything.
-- Thirteen draft characters have a dot in two adjacent columns, which a
-  head cannot fire; check them against the printout. Also trace how
-  bit 0 of each column reaches the pins (`$45F8`).
-- Trace 0x0DB0-0x0FAF.
-- Turn the scan reader into `tools/kx-p1080-rom/`, and the draft and
-  NLQ fonts into `papyrium.font`.
+- Thirteen draft characters have a dot in two adjacent columns, which
+  the head cannot fire twice so soon; Papyrium prints such a dot once, as
+  it does for the LX-800. A sample of the printer's draft would show what
+  it does.

@@ -29,10 +29,13 @@ restated in our own words, with page references, in committed notes:
 `docs/epson-fx80.md` for the FX-80, `docs/epson-lx800.md` for the
 LX-800, `docs/brother-m1109.md` for the Brother M-1109 and `docs/star-lc-10.md` for the Star LC-10 and LC-10
 Colour, `docs/ibm-proprinter-ii.md` for the IBM Proprinter II and
-`docs/panasonic-kx-p1080.md` for the Panasonic KX-P1080 family. Check a behaviour question there, then
+`docs/panasonic-kx-p1080.md` for the Panasonic KX-P1080 family, with the
+KX-P1080i's manual in `docs/panasonic-kx-p1080i.md`. Check a behaviour question there, then
 in the manual, before deciding it yourself, and record new findings there.
 Where a printer's firmware has been read, what it shows is written up
-beside them: `docs/star-lc10-firmware.md` for the LC-10.
+beside them: `docs/star-lc10-firmware.md` for the LC-10, and for the
+KX-P1080U, whose CPU's own ROM was read out by making the printer print
+it, `docs/panasonic-kx-p1080-rom-recovery.md`.
 
 ## Architecture
 

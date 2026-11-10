@@ -21,3 +21,13 @@ written up in `docs/panasonic-kx-p1080.md`.
   NLQ built from the EPROM as the printer builds it, and NLQ italic
   slanted as the printer slants it. Run
   `uv run python tools/kx-p1080-rom/extract.py`.
+- `read_dump_scan.py` reads a scan of that printout back into
+  `KX-P1080U-internal.bin` and its transcript: it fits each line's
+  character grid, learns the sixteen digits from the scan itself, starting
+  from the line addresses, accepts a line only if its checksum holds, and
+  reads every accepted character again by its nearest neighbours on other
+  lines. Lines it cannot read are listed to be read by eye and given in a
+  file of hand readings, whose checksums are checked too. Run
+  `uv run --with numpy --with pillow python tools/kx-p1080-rom/read_dump_scan.py SCAN_PDF_FILEPATH [HAND_READINGS_FILEPATH]`;
+  it needs `pdftoppm` (Poppler). How it came to work is told in
+  `docs/panasonic-kx-p1080-rom-recovery.md`.

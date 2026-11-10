@@ -6,7 +6,9 @@ Panasonic's manuals and from a dump of a KX-P1080U's firmware. This is the
 research for those models, which Papyrium now has (For Papyrium, below).
 
 Sources, kept uncommitted in `docs/local/panasonic-kx-p1080/`, each OCRed
-with `tools/manual-ocr/ocr.sh`:
+with `tools/manual-ocr/ocr.sh`. The KX-P1080i's manual is restated in full
+in `docs/panasonic-kx-p1080i.md`, and how the firmware was recovered is
+told in `docs/panasonic-kx-p1080-rom-recovery.md`:
 
 - *KX-P1080 Operating Instructions*, the US edition (120 V), complete,
   106 pages, cited as "M" with its printed page numbers (M 4-31).
@@ -344,9 +346,10 @@ that anything in it may be used, its characters included.
     the Epson FX's order, and 127 the slashed zero. Draft is a half-dot
     design, dots mostly in alternate columns; 13 characters have a dot in
     two adjacent columns, which the head cannot fire twice so soon.
-  - 0x0DB0-0x0FAF: twelve-byte characters for codes 0x40 on, read by
-    `$4467` for the IBM PC characters' block graphics (shades of 0xAA and
-    0x55, lines of 0x0F); not used by the KX-P1080U's commands.
+  - 0x0DB0-0x0FAF: the IBM PC characters' block graphics (shades of 0xAA
+    and 0x55, lines of 0x0F), read by `$4467` from 0x0DB0 + 12 x (code -
+    0x40), twelve bytes on, with a second twelve for the passes below the
+    fourth; not reached by the KX-P1080U's commands.
     0x0FB0-0x0FFF unused (0xFF).
 - **National sets** at 0x286E: twelve bytes for each of eleven sets, in
   `ESC R`'s order, each giving the character location for `` # $ @ [ \ ] ^
@@ -459,10 +462,17 @@ that anything in it may be used, its characters included.
 - What, if anything, reaches the IBM PC characters.
 - How far commands change the print mode in the selector's NLQ and Comp.
   positions: M says they cannot, yet says `ESC !` works in every mode.
-- Undefined escape sequences and the unlisted control codes.
+- Undefined escape sequences and the unlisted control codes (1-7, 16,
+  21-23, 25-26 and 28-31, blank in M's code chart).
 - The `ESC l` range; graphics past the right margin.
 - M says CAN clears the receive buffer, but its example shows only the
   line being dropped.
+- `ESC C 0` n gives the page length in inches, yet M says `ESC C` with n 0
+  "returns to the inch designation"; `ESC e 1` n is cancelled by n 1, not
+  0, and n 0 prints without feeding.
+- The top and bottom margins: M's printing area figure gives 3.85 inches
+  from the top edge of fanfold paper to the first line, which must be the
+  loading position, not a margin.
 
 ## For Papyrium
 
