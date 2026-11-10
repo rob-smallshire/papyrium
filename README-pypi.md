@@ -109,6 +109,15 @@ $ papyrium list-fonts
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ draft-9                              │ An original 9-pin draft font in the   │
 │                                      │ style of 1980s dot-matrix printers.   │
+│ kx-p1080-draft                       │ The KX-P1080U's draft font, extracted │
+│                                      │ from its CPU's internal ROM.          │
+│ kx-p1080-draft-italic                │ The KX-P1080U's draft italics,        │
+│                                      │ extracted from its CPU's internal     │
+│                                      │ ROM.                                  │
+│ kx-p1080-nlq                         │ The KX-P1080U's near letter quality   │
+│                                      │ font, extracted from its EPROM.       │
+│ kx-p1080-nlq-italic                  │ The KX-P1080U's NLQ italics, slanted  │
+│                                      │ as the printer slants them.           │
 │ lc10-block-graphics                  │ The Star LC-10's IBM block graphics,  │
 │                                      │ extracted from its firmware ROM.      │
 │ lc10-draft                           │ The Star LC-10's pica draft font,     │
@@ -263,6 +272,10 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) |
+|  | `kx-p1080-draft` | The KX-P1080U's draft font, extracted from its CPU's internal ROM | [`papyrium.font.kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/kx_p1080/) |
+|  | `kx-p1080-draft-italic` | The KX-P1080U's draft italics, extracted from its CPU's internal ROM | [`papyrium.font.kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/kx_p1080/) |
+|  | `kx-p1080-nlq` | The KX-P1080U's near letter quality font, extracted from its EPROM | [`papyrium.font.kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/kx_p1080/) |
+|  | `kx-p1080-nlq-italic` | The KX-P1080U's NLQ italics, slanted as the printer slants them | [`papyrium.font.kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/kx_p1080/) |
 |  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
 |  | `lc10-draft` | The Star LC-10's pica draft font, made as the printer makes it | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
 |  | `lc10-draft-elite` | The Star LC-10's elite draft font, extracted from its firmware ROM | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) |
@@ -299,6 +312,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) | The IBM Proprinter II 9-wire dot-matrix printer |
 | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers |
 | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) | draft-9: a 9-pin dot-matrix font designed for Papyrium |
+| [`papyrium.font.kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/kx_p1080/) | The Panasonic KX-P1080U's draft and near letter quality fonts, from its firmware |
 | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) | The Star LC-10's draft and near letter quality fonts, from its firmware |
 | [`papyrium.font.lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800/) | The Epson LX-800's draft and near letter quality Roman fonts, from its firmware |
 | [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) | The Brother M-1109's draft and NLQ fonts, reconstructed from its printed output |

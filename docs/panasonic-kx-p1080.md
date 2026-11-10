@@ -330,16 +330,19 @@ that anything in it may be used, its characters included.
   - 0x00C0-0x053F: the draft characters, codes 0-127, nine column bytes
     each; 0x0540-0x09BF the draft italics; 0x09C0 and 0x0BB8 the IBM PC
     characters' draft forms, 56 each, in code page 437's order from
-    0x80 (Ç ü é â ä à å ç ê ë è ï ...). `$4302` copies a character's nine
-    bytes to the column buffer unchanged. Bits 7-1 are rows top first, and
-    in most characters bit 0 is clear or set in a column or two, but in
-    descending ones (j, Ç's cedilla) it draws the descender, so how the
-    eight bits reach the nine pins is still to trace (`$45F8`). Codes 0-31
-    are the international characters (à é ù ò ì º £ ¡ ¿ Ñ ñ ¤ ... Å å Ç §
-    ß Æ æ Ø ø ¨ Ä Ö Ü ä ö ü É), in the Epson FX's order. Draft is a
-    half-dot design, dots mostly in alternate columns; 13 characters have
-    a dot in two adjacent columns, which the head cannot fire, and are to
-    be checked against the printout.
+    0x80 (Ç ü é â ä à å ç ê ë è ï ...), the second set apparently their
+    italics. `$4302` copies a character's nine bytes to the column buffer
+    unchanged, and `$46CE` turns each into pins as it prints: with
+    `VV:C4` 0, as for draft, a byte with bit 0 clear fires pins 1-8 from
+    bits 7-0, and one with bit 0 set is lowered two pins, bits 7-1 firing
+    pins 3-9. The lowering is column by column: g, p, q and y lower every
+    column, j only its hook, ç only its cedilla. (`VV:C4` 1 lowers every
+    column one pin, bit 0 firing pin 9, as NLQ does for its descenders;
+    2 lowers two; 3 none.) Codes 0-31 are the international characters
+    (à è ù ò ì ° £ ¡ ¿ Ñ ñ ¤ ₧ Å å ç § ß Æ æ Ø ø ¨ Ä Ö Ü ä ö ü É é ¥), in
+    the Epson FX's order, and 127 the slashed zero. Draft is a half-dot
+    design, dots mostly in alternate columns; 13 characters have a dot in
+    two adjacent columns, which the head cannot fire twice so soon.
   - 0x0DB0-0x0FAF: further tables not yet traced (bytes 0x0A, 0x05,
     0xAA, 0x55: shading patterns, perhaps); 0x0FB0-0x0FFF unused (0xFF).
 - **National sets** at 0x286E: twelve bytes for each of eleven sets, in
@@ -355,11 +358,14 @@ that anything in it may be used, its characters included.
   0x0D00-0x1BFF, is the character's two passes one after the other, bit 7
   the top pin, on a grid of 1/240 inch columns. Built into a 24-column
   buffer (`$FFA8`), each column loses any dot the column before fired; in
-  kinds 1, 3 and 5 a byte's bit 0 instead leaves a blank column after it;
+  kinds 1, 3 and 5 a byte with bit 0 set spreads over two columns, the
+  first firing what it can and the second the dots it could not (`$45CA`);
   kinds 2-5 are half a character, completed by copying the columns back
   out in reverse from one or two before the end (`$45E7`). The first pass
   prints the even rows and the second the odd rows, 1/144 inch apart: a
-  serifed face 16 rows high, as the manual's NLQ samples show.
+  serifed face 16 rows high, as the manual's NLQ samples show. A
+  character with the descender bit prints a pin lower (`VV:C4` 1,
+  `$4501`).
 - **Draft characters are in the internal ROM**, not the EPROM. The draft path (`$4302`)
   copies nine column bytes for the character from a base chosen by the
   attribute byte (`$4348`): `$00C0` upright, `$0540` italic, `$09C0` and
@@ -369,9 +375,11 @@ that anything in it may be used, its characters included.
   and 56 and 56 more (above). Download characters
   are nine bytes each in RAM at `$819D` (`$43DA`).
 - **NLQ italics** are not stored: `$4534` slants the built columns,
-  taking each column's pins from it and the three columns after, two pins
-  from each, the top pins furthest, as the Star LC-10 does. Draft italics
-  are stored, in the CPU.
+  taking each column's pins from it and the three columns before it, two
+  pins from each, the top two from furthest left, so that each pair of a
+  pass's pins leans one 1/240 inch column further right than the pair
+  below (the LC-10 moves each pin a column, not each pair). Pins slanted
+  past the 24th column are lost. Draft italics are stored, in the CPU.
 - **IBM PC characters.** With bits 2-3 of the character's attribute byte
   set, the NLQ index is taken from `$56C8` instead: 41 of code page 437's
   characters that Epson's international set lacks, ç ê ë ï î ô û ÿ ¢ ƒ á

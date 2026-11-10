@@ -15,3 +15,9 @@ written up in `docs/panasonic-kx-p1080.md`.
   of the original EPROM and switch on holding LF, with the print mode
   switch at NLQ; it prints about eight pages and stops. Nothing else in
   the firmware changes.
+- `extract.py` writes the fonts of `papyrium.font.kx_p1080` from the
+  EPROM and `KX-P1080U-internal.bin`, the internal ROM transcribed from
+  that printout: draft and draft italic as the internal ROM stores them,
+  NLQ built from the EPROM as the printer builds it, and NLQ italic
+  slanted as the printer slants it. Run
+  `uv run python tools/kx-p1080-rom/extract.py`.

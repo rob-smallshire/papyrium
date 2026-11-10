@@ -56,6 +56,10 @@ mdns = "papyrium.advertiser.mdns:MdnsAdvertiser"
 
 [project.entry-points."papyrium.font"]
 draft-9 = "papyrium.font.draft_9:Draft9Font"
+kx-p1080-draft = "papyrium.font.kx_p1080:KXP1080DraftFont"
+kx-p1080-draft-italic = "papyrium.font.kx_p1080:KXP1080DraftItalicFont"
+kx-p1080-nlq = "papyrium.font.kx_p1080:KXP1080NlqFont"
+kx-p1080-nlq-italic = "papyrium.font.kx_p1080:KXP1080NlqItalicFont"
 lc10-block-graphics = "papyrium.font.lc10:LC10BlockGraphicsFont"
 lc10-draft = "papyrium.font.lc10:LC10DraftFont"
 lc10-draft-elite = "papyrium.font.lc10:LC10DraftEliteFont"
