@@ -347,9 +347,14 @@ that anything in it may be used, its characters included.
   the line, with two attribute bytes before any character whose modes
   differ from the last, the first marked by bit 7 (`$2A88` on); the
   printing side reads it forwards or backwards by the head's direction.
-- A table of 37 jumps at 0x2000 is probably a dispatch, of which commands
-  is not yet known; there is no list of escape letters, so escapes are
-  probably dispatched by a computed index.
+- **Escapes** are dispatched through a table at `$32FA` of a handler
+  address for each command byte 0-127, `$3B7B` (ignore) for those the
+  printer lacks. Its commands are exactly the KX-P1080 manual's: there is
+  no `ESC m`, so this firmware has no IBM mode, whatever the IBM PC
+  characters above are for. The map names every handler.
+- **A table of 37 jumps at 0x2000**, which nothing in the EPROM jumps
+  into: the EPROM's entry points, presumably called from the CPU's
+  internal ROM.
 - 0x1F00-0x1FFF is unused (0xFF).
 
 ## Open questions

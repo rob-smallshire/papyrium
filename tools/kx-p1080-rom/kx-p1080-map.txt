@@ -28,6 +28,7 @@ $1DF0-$1E6F  data  widths_italic_2   The italic widths again, with other high ni
 $1E70-$1EFF  data  widths_1e70       Width tables read as $5E70 and $5EA8 (attribute bits 3 and 4): not yet known
 $1F00-$1FFF  data  fill_1f00         Unused (mostly 0xFF)
 $286E-$28F1  data  national_sets     ESC R's eleven sets, twelve bytes each: the character location for # $ @ [ \ ] ^ ` { | } ~
+$32FA-$33F9  data  escape_handlers   The handler for each command byte 0-127 after ESC, two bytes each; $3B7B for those the printer lacks
 $3658-$3667  data  graphics_handlers The handler for each ESC * density, 0-6
 $369D-$36AA  data  graphics_modes    Each density's column pitch in 1/1440 inch (24, 12, 12, 6, 18, 20, 16) and its attribute byte, $E0-$E6
 $43C6-$43D5  data  width_tables      The width table for each value of the attribute byte's bits 3-5
@@ -57,6 +58,67 @@ $45CA  code  paired_columns            As plain_columns, a byte with bit 0 set g
 $45E7  code  mirror_columns            Copy the buffer's columns back out in reverse to complete a symmetrical character
 $480B  code  next_from_line            The next character from the line buffer, with any attribute change before it, printing left to right
 $482F  code  previous_from_line        The same, right to left
+
+# -- Escape command handlers, from escape_handlers -------------------------
+
+$34C7  code  esc_p_upper             ESC P: pica
+$34D0  code  esc_m_upper             ESC M: elite
+$34D9  code  esc_n                   ESC n: NLQ pica
+$34E5  code  esc_o                   ESC o: NLQ elite
+$34F1  code  esc_p                   ESC p: proportional
+$3505  code  esc_si                  ESC SI: compressed
+$350A  code  esc_so                  ESC SO: double width for the line
+$350F  code  esc_w_upper             ESC W: double width
+$3523  code  esc_w                   ESC w: pitch 10, 12, 15 or 17 cpi
+$3551  code  esc_x                   ESC x: NLQ or draft
+$3562  code  esc_s_upper             ESC S: superscript or subscript
+$3579  code  esc_t_upper             ESC T: script off
+$357F  code  esc_4                   ESC 4: italic
+$3585  code  esc_5                   ESC 5: italic off
+$358B  code  esc_6                   ESC 6: 128-159 and 255 print italic international characters
+$35A4  code  esc_7                   ESC 7: cancel ESC 6
+$35BD  code  esc_r_upper             ESC R: international set
+$35CF  code  esc_g_upper             ESC G: double strike
+$35D5  code  esc_h_upper             ESC H: double strike off
+$35DB  code  esc_e_upper             ESC E: emphasized
+$35E4  code  esc_f_upper             ESC F: emphasized off
+$35EA  code  esc_minus               ESC -: underline
+$35FB  code  esc_bang                ESC !: master select
+$360D  code  esc_k_upper             ESC K: 60 dpi bit image
+$3618  code  esc_l_upper             ESC L: 120 dpi bit image
+$3623  code  esc_y_upper             ESC Y: 120 dpi double speed bit image
+$362E  code  esc_z_upper             ESC Z: 240 dpi bit image
+$3639  code  esc_caret               ESC ^: 9-pin bit image
+$363C  code  esc_star                ESC *: bit image in density m
+$37C4  code  esc_question            ESC ?: reassign a bit image density
+$37EB  code  esc_a_upper             ESC A: n/72 inch spacing
+$3803  code  esc_2                   ESC 2: 1/6 inch spacing
+$3810  code  esc_0                   ESC 0: 1/8 inch spacing
+$3812  code  esc_1                   ESC 1: 7/72 inch spacing
+$3818  code  esc_3                   ESC 3: n/216 inch spacing
+$381E  code  esc_j_upper             ESC J: feed n/216 inch
+$3833  code  esc_q_upper             ESC Q: right margin
+$3861  code  esc_l                   ESC l: left margin
+$388D  code  esc_a                   ESC a: alignment
+$38B8  code  esc_f                   ESC f: skip spaces or lines
+$38F8  code  esc_less                ESC <: head home for the next line
+$3904  code  esc_greater             ESC >: bit 7 set
+$3909  code  esc_equals              ESC =: bit 7 clear
+$3911  code  esc_hash                ESC #: bit 7 as received
+$3916  code  esc_8                   ESC 8: paper-out detector off
+$391B  code  esc_9                   ESC 9: paper-out detector on
+$3920  code  esc_at                  ESC @: initialise
+$395A  code  esc_u_upper             ESC U: unidirectional
+$396A  code  esc_s                   ESC s: half speed
+$397A  code  esc_b_upper             ESC B: vertical tabs
+$39CB  code  esc_d_upper             ESC D: horizontal tabs
+$3A24  code  esc_e                   ESC e: regular tabs
+$3A62  code  esc_c_upper             ESC C: page length
+$3AA5  code  esc_n_upper             ESC N: skip over perforation
+$3ABF  code  esc_o_upper             ESC O: cancel the skip
+$3AC8  code  esc_y                   ESC y: define a download character
+$3B3E  code  esc_z                   ESC z: release a download character
+$3B7B  code  esc_unknown             An escape the printer lacks: ignored
 
 # -- RAM ---------------------------------------------------------------------
 
