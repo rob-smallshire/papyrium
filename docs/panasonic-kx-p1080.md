@@ -50,7 +50,7 @@ mains, and the KX-P1080i is a variant with an IBM mode and faster speeds.
 | | Draft | NLQ |
 |---|---|---|
 | Matrix (H x V) | 9 x 9 | 18 x 18 |
-| Dot pitch | 1/120 in x 1/72 in | 1/240 in x 1/144 in, two passes |
+| Dot pitch | 1/120 in x 1/72 in | 1/240 in x 1/144 in, two passes (the firmware puts the passes 1/216 in apart: Passes, under Firmware) |
 | Speed (KX-P1080, U) | 100 cps pica and elite | 20 cps |
 | Speed (KX-P1080i) | 120 cps | 24 cps |
 
@@ -284,7 +284,8 @@ download replaces the character at its code, up to 40 at once, at codes
 32-126 and 128-255 (32-126 with 7-bit data). The character is nine columns
 and three of space, and a dot following one in its row is not printed.
 Nothing says how downloads print in NLQ, italic or proportional spacing,
-or which eight of the nine pins they use.
+or which eight of the nine pins they use; the firmware does (Downloads,
+under Firmware).
 
 ## Firmware
 
@@ -343,8 +344,10 @@ that anything in it may be used, its characters included.
     the Epson FX's order, and 127 the slashed zero. Draft is a half-dot
     design, dots mostly in alternate columns; 13 characters have a dot in
     two adjacent columns, which the head cannot fire twice so soon.
-  - 0x0DB0-0x0FAF: further tables not yet traced (bytes 0x0A, 0x05,
-    0xAA, 0x55: shading patterns, perhaps); 0x0FB0-0x0FFF unused (0xFF).
+  - 0x0DB0-0x0FAF: twelve-byte characters for codes 0x40 on, read by
+    `$4467` for the IBM PC characters' block graphics (shades of 0xAA and
+    0x55, lines of 0x0F); not used by the KX-P1080U's commands.
+    0x0FB0-0x0FFF unused (0xFF).
 - **National sets** at 0x286E: twelve bytes for each of eleven sets, in
   `ESC R`'s order, each giving the character location for `` # $ @ [ \ ] ^
   ` { | } ~ ``, the international characters being locations 0-31 in the
@@ -362,7 +365,7 @@ that anything in it may be used, its characters included.
   first firing what it can and the second the dots it could not (`$45CA`);
   kinds 2-5 are half a character, completed by copying the columns back
   out in reverse from one or two before the end (`$45E7`). The first pass
-  prints the even rows and the second the odd rows, 1/144 inch apart: a
+  prints the even rows and the second the odd rows, 1/216 inch apart (Passes): a
   serifed face 16 rows high, as the manual's NLQ samples show. A
   character with the descender bit prints a pin lower (`VV:C4` 1,
   `$4501`).
@@ -373,7 +376,7 @@ that anything in it may be used, its characters included.
   at 0x0000-0x0FFF, which they fill from just after its CALT table
   (0x0080-0x00BF): 128 characters of nine bytes upright, as many italic,
   and 56 and 56 more (above). Download characters
-  are nine bytes each in RAM at `$819D` (`$43DA`).
+  are nine bytes each in RAM at `$819D` (Downloads, below).
 - **NLQ italics** are not stored: `$4534` slants the built columns,
   taking each column's pins from it and the three columns before it, two
   pins from each, the top two from furthest left, so that each pair of a
@@ -394,17 +397,44 @@ that anything in it may be used, its characters included.
   in `VV:EF`, `$4615` uses it): with bit 3 clear, that many columns into
   the character, moving it left; with bit 3 set, bits 0-2 columns before
   it, moving it right, as 9, one column right, does for the full-width
-  capitals. `$5D70` and `$5DF0` are the same widths for double width,
-  with their own starts. The attribute byte's bits 3-5 choose among the
-  eight tables (`$43C6`): bit 3 the IBM PC characters', bit 4 double
-  width's, bit 5 italic's. `$2A13` makes a character's advance from them,
-  doubled for double width. NLQ uses the same tables; its start is taken
-  to be in 1/120 inch columns too, which leaves it the same column of
-  space before a character as draft has, though the NLQ print loop is
-  not traced far enough to confirm it. The ROM's widths are the manuals' but for seven: the
+  capitals. `$5D70` and `$5DF0` are NLQ's, the same widths with their own
+  starts. The attribute byte's bits 3-5 choose among the eight tables
+  (`$43C6`): bit 3 the IBM PC characters', bit 4 NLQ's, bit 5 italic's.
+  `$2A13` makes a character's advance from them, doubled for double width.
+  In NLQ, whose buffer columns are 1/240 inch, `$4382` and `$4615` double
+  the column count and the start, so both stay in 1/120 inch. The ROM's widths are the manuals' but for seven: the
   comma is 7 (italic 8) where both manuals print 6 (7); "1" 9, not 12, in
   both; "w" 12, not 13, in both; and the italic "6" and "9" 11, ":" 8 and
   ";" 9 (as M has it; I prints 7). Papyrium follows the ROM.
+- **Passes.** A line prints in up to six passes, `VV:92` a mask of those
+  it needs and `VV:90` the one printing (`$41D7`). `$2B62` asks for them
+  character by character: pass 0 always; pass 2 for NLQ, double strike
+  and scripts; passes 1 and 3 for NLQ with attribute `EA` bit 3; 4 and 5
+  for scripts. Before each, `$4850` feeds the paper to the pass's height
+  in 1/216 inch steps (the unit of `ESC 3`, `ESC A`'s argument tripled):
+  passes 0 and 1 at 0, 2 and 3 one step down, 4 twelve and 5 thirteen.
+  So double strike's second pass and NLQ's second rows print 1/216 inch
+  below the first, not the 1/144 inch of the specifications table, and
+  subscript four pins lower. An NLQ character prints its first data on
+  passes 0 and 1, its second on 2 and 3 (`$44CC`).
+- **Downloads.** `ESC y` (`$3AC8`) accepts a code above 31 other than
+  127; any other, or a forty-first download, ends the command at the code,
+  leaving the nine bytes to be taken as text. Codes are listed at `$8175`
+  (`VV:72` of them) and their columns kept at `$819D`, nine bytes a slot,
+  each losing the dots of the column before as it is stored; redefining a
+  code reuses its slot, and `ESC z` (`$3B3E`) moves the last slot into
+  the freed one. Each byte received is classed (`$25E2`); `$2656` makes a
+  printable one a download, class 6, if its code is listed, looking for
+  the code with bit 7 set under `ESC 4` (`VV:95` bit 5), and before the
+  national set is applied. `$29D8` buffers a download as its slot number
+  with the current attributes less NLQ, the IBM PC table and
+  proportional spacing, marked by `EA` bit 2, and with `EA` bit 4 in NLQ.
+  `$43DA` prints its nine columns with `VV:C4` 3, bits 7-0 firing pins
+  1-8, never lowered; `$4405` lets them print on pass 0, and on pass 2
+  when `EA` bit 4 is set. So a download prints in draft in the current
+  pitch, upright even under `ESC 4`, at the fixed pitch's width in
+  proportional spacing, and in NLQ struck twice, 1/216 inch apart, as
+  draft's double strike is.
 - **Graphics.** `$369D` gives each `ESC *` density its column pitch in
   1/1440 inch, 24, 12, 12, 6, 18, 20 and 16 for 60, 120, 120, 240, 80,
   72 and 90 dpi, and its line-buffer attribute byte, 0xE0-0xE6.
@@ -426,12 +456,9 @@ that anything in it may be used, its characters included.
 
 - Why the dump stopped after 0x0FE0, missing the last line and its
   second pass; a second printout would confirm the assumed 0xFF there.
-- What 0x0DB0-0x0FAF of the internal ROM holds.
 - What, if anything, reaches the IBM PC characters.
 - How far commands change the print mode in the selector's NLQ and Comp.
   positions: M says they cannot, yet says `ESC !` works in every mode.
-- Which pins download characters use, and how they print in NLQ.
-- The self test's and hex dump's printed layout.
 - Undefined escape sequences and the unlisted control codes.
 - The `ESC l` range; graphics past the right margin.
 - M says CAN clears the receive buffer, but its example shows only the
@@ -447,9 +474,7 @@ that anything in it may be used, its characters included.
   proportional, italic and underline bits, the selector switch's three
   positions, the ROM's width tables and italic fonts, and code 255 as an
   italic slashed zero. Its fonts are `papyrium.font.kx_p1080`.
-- Not modelled yet: how downloads print in NLQ and proportional spacing
-  (they print in draft, twelve columns wide, on the top eight pins), and
-  the open questions above. Half speed, unidirectional printing, the
+- Not modelled yet: the open questions above. Half speed, unidirectional printing, the
   paper-out detector, the self test and the hex dump change nothing on
   the page and are not simulated.
 - The KX-P1080i's IBM mode is three IBM printers, Matrix and Graphics I and

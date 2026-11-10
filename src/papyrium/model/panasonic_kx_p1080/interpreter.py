@@ -34,6 +34,11 @@ SEMI_COMPRESSED_WIDTH = inches(1) // 15
 #: The print mode selector's positions: Std. Pgm., NLQ and Comp.
 PRINT_MODES = ("std", "nlq", "comp")
 
+#: Where download characters are kept, by the code they replace: apart
+#: from the ROM's locations, since a download replaces the code received,
+#: before the national set and the italic table are applied.
+DOWNLOAD_LOCATION = 0x400
+
 #: The most download characters the RAM holds at once.
 _MOST_DOWNLOADS = 40
 
@@ -47,13 +52,14 @@ class KXP1080CharacterGenerator(CharacterGenerator):
 
     Italics are fonts of their own, the ROM's draft italics and NLQ slanted
     as the firmware slants it, so the generator leans nothing. The second
-    NLQ pass prints 1/144 inch below the first. A compressed cell is 14
+    NLQ pass prints 1/216 inch below the first, as double strike's does
+    ($4850 feeds pass 2 one 1/216 inch step). A compressed cell is 14
     columns, 1/240 inch apart ($4382); every other pitch's is 12.
     """
 
     prints_adjacent_dots_once: bool = True
     nlq_emphasized: bool = True
-    nlq_pass_offset: int = inches(1) // 144
+    nlq_pass_offset: int = inches(1) // 216
 
     def cell_columns(self, pitch: int) -> int:
         return 14 if pitch == CONDENSED_WIDTH else super().cell_columns(pitch)
@@ -239,6 +245,10 @@ class KXP1080Interpreter(EscpInterpreter):
     def _rom_character(location: int) -> str:
         """The character at a ROM location: 127, which code 255 prints after
         ESC 6, is the slashed zero."""
+        if location >= DOWNLOAD_LOCATION:
+            # A download is recorded as the character it replaces.
+            location = (location - DOWNLOAD_LOCATION) & ~ITALIC
+            return " " if location < 0x20 else EscpInterpreter._rom_character(location)
         if location & ~ITALIC == DEL:
             return SLASHED_ZERO
         return EscpInterpreter._rom_character(location)
@@ -264,40 +274,64 @@ class KXP1080Interpreter(EscpInterpreter):
 
     # -- Proportional spacing -----------------------------------------------------
 
-    def _width_entry(self, location: int) -> int:
-        """The width table entry of the ROM character at *location*: upright
-        or italic, single or double width ($43C6)."""
+    def _width_entry(self, location: int, *, nlq: bool) -> int:
+        """The width table entry of the ROM character at *location*: draft
+        or NLQ, upright or italic ($43C6)."""
         name = "italic" if self._is_italic(location) else "upright"
-        if self._is_double_width():
-            name += "_double"
+        if nlq:
+            name += "_nlq"
         return WIDTH_TABLES[name][location & 0x7F]
 
     def _proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int]:
-        return _proportional_layout(self._width_entry(location))
+        return _proportional_layout(self._width_entry(location, nlq=False))
 
     def _nlq_proportional_cell(self, location: int, glyph: Glyph) -> tuple[int, int] | None:
-        # NLQ columns are half as wide; the table's are taken as 1/120 inch.
-        columns, move = _proportional_layout(self._width_entry(location))
+        # The width and start are in 1/120 inch, two of NLQ's columns
+        # ($4382 and $4615 double them in NLQ).
+        columns, move = _proportional_layout(self._width_entry(location, nlq=True))
         return 2 * columns, 2 * move
 
     # -- Download characters ---------------------------------------------------------
 
     def _esc_download(self) -> ArgumentReader:
-        """ESC y c d1...d9: the character at code c from nine columns of
-        eight dots, bit 7 the top pin, a dot following one in its row not
-        printed."""
+        """ESC y c d1...d9 ($3AC8): the character for code c from nine
+        columns of eight dots, bit 7 the top pin, a dot following one in its
+        row not stored. A code up to 31 or 127, or a forty-first download,
+        ends the command at the code, leaving the nine bytes to print."""
         code = yield
+        location = DOWNLOAD_LOCATION + code
+        if code <= 0x1F or code == DEL:
+            logger.debug("ignoring a download at code %d", code)
+            return
+        downloads = sum(1 for held in self._ram if held >= DOWNLOAD_LOCATION)
+        if location not in self._ram and downloads >= _MOST_DOWNLOADS:
+            logger.warning("ignoring a download at code %d: %d are held", code, downloads)
+            return
         columns = []
         for _ in range(_DOWNLOAD_COLUMNS):
             columns.append((yield))
-        location = self._location(code)
-        if location not in self._ram and len(self._ram) >= _MOST_DOWNLOADS:
-            logger.warning("ignoring a download at %d: %d are defined", code, _MOST_DOWNLOADS)
-            return
         character = self._draft_user_character(0x80, columns)
         self._ram[location] = UserCharacter(character.glyph, first_column=0, last_column=11)
 
     def _esc_release_download(self) -> ArgumentReader:
-        """ESC z c: the ROM's character at code c again."""
+        """ESC z c ($3B3E): the ROM's character for code c again."""
         code = yield
-        self._ram.pop(self._location(code), None)
+        self._ram.pop(DOWNLOAD_LOCATION + code, None)
+
+    def _character(self, byte: int) -> None:
+        """A download replaces the code as received, before the national
+        set; under ESC 4 the code with bit 7 set ($2656)."""
+        location = DOWNLOAD_LOCATION + (byte | 0x80 if self._italic else byte)
+        if location in self._ram:
+            self._print_location(location)
+        else:
+            super()._character(byte)
+
+    def _character_layout(self, location: int) -> tuple[int, int, int, tuple]:
+        """A download keeps the fixed pitch in proportional spacing ($29D8
+        clears the proportional bit)."""
+        if location >= DOWNLOAD_LOCATION and self._is_proportional():
+            pitch = self._column_width()
+            width = pitch * (2 if self._is_double_width() else 1)
+            return width, width // self._cell_columns(pitch), 0, self._glyph_source(location)
+        return super()._character_layout(location)

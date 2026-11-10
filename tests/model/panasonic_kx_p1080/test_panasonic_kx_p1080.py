@@ -16,8 +16,9 @@ from papyrium.model.panasonic_kx_p1080 import PanasonicKXP1080, PanasonicKXP1080
 
 SAMPLE_JOB = b"\x1b@Panasonic KX-P1080U\r\n\x1bnNear letter quality\x1bP\r\n\x0cSecond page\r\n\x0c"
 
-#: Page units: a 1/120 inch column and a pin, 1/72 inch.
-COLUMN, PIN = 36, 60
+#: Page units: a 1/120 inch column, a pin (1/72 inch), and the 1/216 inch
+#: the second pass of NLQ and of double strike prints below the first.
+COLUMN, PIN, PASS = 36, 60, 20
 PICA = 432
 
 DRAFT = KXP1080DraftFont(name="kx-p1080-draft")
@@ -61,6 +62,12 @@ def _advance(prefix, **options):
     one = {x for x, _ in _dots(prefix + b"H", **options)}
     two = {x for x, _ in _dots(prefix + b"HH", **options)}
     return min(two - one) - min(one)
+
+
+def _nlq_y(row):
+    """Where an NLQ glyph's *row* prints: its pin, and the second pass
+    1/216 inch lower ($4850)."""
+    return (row // 2) * PIN + (row % 2) * PASS
 
 
 def test_are_registered_on_the_model_axis():
@@ -140,10 +147,10 @@ def test_codes_160_to_254_print_draft_italics():
     assert _relative(_dots(b"\xec")) == _relative(_dots(b"\x1b4l"))
 
 
-def test_esc_n_and_x_print_nlq_in_two_passes_half_a_dot_apart():
+def test_esc_n_and_x_print_nlq_in_two_passes():
     for command in (b"\x1bn", b"\x1bx\x01"):
         dots = _relative(_dots(command + b"H"))
-        expected = _relative({(c * 18, r * 30) for c, r in NLQ.glyph("H").dots})
+        expected = _relative({(c * 18, _nlq_y(r)) for c, r in NLQ.glyph("H").dots})
         assert dots == expected
 
 
@@ -154,7 +161,7 @@ def test_esc_o_prints_nlq_elite():
 
 def test_nlq_italic_prints_the_slanted_columns():
     dots = _relative(_dots(b"\x1bn\x1b4l"))
-    expected = _relative({(c * 18, r * 30) for c, r in NLQ_ITALIC.glyph("l").dots})
+    expected = _relative({(c * 18, _nlq_y(r)) for c, r in NLQ_ITALIC.glyph("l").dots})
     assert dots == expected
 
 
@@ -252,3 +259,52 @@ def test_code_255_prints_an_italic_slashed_zero_after_esc_6():
     expected = _relative({(c * COLUMN, r * PIN) for c, r in DRAFT_ITALIC.glyph("0̸").dots})
     assert dots == expected
     assert not _dots(b"\xff")
+
+
+BOX = bytes([0xFF, 0, 0x81, 0, 0x81, 0, 0x81, 0, 0xFF])
+BOX_DOTS = {(0, 0), (0, 7 * PIN), (8 * COLUMN, 0), (8 * COLUMN, 7 * PIN)}
+
+
+def test_a_download_replaces_the_code_received_whatever_the_national_set():
+    # Defined in the USA set, it still replaces code 35 in England's, where
+    # the ROM's character for 35 is the pound sign.
+    assert BOX_DOTS <= _relative(_dots(b"\x1bR\x00\x1by#" + BOX + b"\x1bR\x03#"))
+
+
+def test_under_italic_a_download_is_found_at_the_code_plus_128():
+    # A download at "A" does not replace an italic A ...
+    italic_a = _relative(_dots(b"\x1b4A"))
+    assert _relative(_dots(b"\x1byA" + BOX + b"\x1b4A")) == italic_a
+    # ... one at 0xC1 does, and prints for code 0xC1 too, upright.
+    assert BOX_DOTS <= _relative(_dots(b"\x1by\xc1" + BOX + b"\x1b4A"))
+    assert BOX_DOTS <= _relative(_dots(b"\x1by\xc1" + BOX + b"\xc1"))
+
+
+def test_a_download_prints_in_draft_struck_twice_in_nlq():
+    draft = _relative(_dots(b"\x1byA" + BOX + b"A"))
+    nlq = _relative(_dots(b"\x1bn\x1byA" + BOX + b"A"))
+    assert nlq == {(x, y + d) for x, y in draft for d in (0, PASS)}
+
+
+def test_a_download_keeps_the_fixed_pitch_in_proportional_spacing():
+    assert _advance(b"\x1byH" + BOX + b"\x1bp\x01") == PICA
+
+
+def test_codes_up_to_31_and_127_cannot_be_downloaded():
+    # The command ends at the code, and the nine bytes print as text.
+    for code in (b"\x1f", b"\x7f"):
+        assert _relative(_dots(b"\x1by" + code + b"HHHHHHHHH")) == _relative(_dots(b"HHHHHHHHH"))
+
+
+def test_at_most_forty_downloads_are_held():
+    data = b"".join(b"\x1by" + bytes([0x21 + n]) + BOX for n in range(40))
+    # A forty-first ends at its code, and its nine bytes print as text.
+    dots = _dots(data + b"\x1byZHHHHHHHHH")
+    assert dots == _dots(data + b"HHHHHHHHH")
+
+
+def test_nlq_takes_its_proportional_placement_from_its_own_tables():
+    # The draft table moves W a column right; NLQ's ($5D70) leaves it in place.
+    fixed = min(x for x, _ in _dots(b"\x1bnW"))
+    proportional = min(x for x, _ in _proportional(b"\x1bnW").dots)
+    assert proportional == fixed

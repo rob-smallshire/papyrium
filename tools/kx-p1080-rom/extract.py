@@ -31,13 +31,14 @@ FONT_DIRPATH = REPO_DIRPATH / "src" / "papyrium" / "font" / "kx_p1080"
 WIDTHS_FILEPATH = REPO_DIRPATH / "src/papyrium/model/panasonic_kx_p1080/widths.py"
 
 #: The proportional width tables ($43C6) for the ROM characters, by CPU
-#: address $4000 on (file offset 0 on): upright, italic, and both double
-#: width. The tables for the IBM PC characters are left out.
+#: address $4000 on (file offset 0 on): draft upright and italic, and NLQ
+#: upright and italic, chosen by the attribute byte's NLQ bit (4). The
+#: tables for the IBM PC characters are left out.
 WIDTH_TABLES = {
     "upright": 0x1C00,
     "italic": 0x1C80,
-    "upright_double": 0x1D70,
-    "italic_double": 0x1DF0,
+    "upright_nlq": 0x1D70,
+    "italic_nlq": 0x1DF0,
 }
 
 #: The characters at codes 0-31, as papyrium.language.escp.charsets has
@@ -212,11 +213,12 @@ def widths_text(eprom: bytes) -> str:
     lines = [
         '"""The KX-P1080U\'s proportional widths, from its firmware.',
         "",
-        "Written by tools/kx-p1080-rom/extract.py from the EPROM's tables at $5C00,",
-        "$5C80, $5D70 and $5DF0: one byte for each code 0-127, the width in 1/120",
-        "inch in the low nibble and in the high nibble where printing starts:",
-        "with bit 3 clear, that many columns into the character, moving it left;",
-        "with it set, bits 0-2 columns before it, moving it right.",
+        "Written by tools/kx-p1080-rom/extract.py from the EPROM's tables at $5C00",
+        "and $5C80 (draft upright and italic) and $5D70 and $5DF0 (NLQ): one byte",
+        "for each code 0-127, the width in 1/120 inch in the low nibble and in the",
+        "high nibble where printing starts: with bit 3 clear, that many 1/120 inch",
+        "columns into the character, moving it left; with it set, bits 0-2",
+        "columns before it, moving it right.",
         '"""',
         "",
         "WIDTH_TABLES = {",
