@@ -31,6 +31,7 @@ $286E-$28F1  data  national_sets     ESC R's eleven sets, twelve bytes each: the
 $32FA-$33F9  data  escape_handlers   The handler for each command byte 0-127 after ESC, two bytes each; $3B7B for those the printer lacks
 $3658-$3667  data  graphics_handlers The handler for each ESC * density, 0-6
 $369D-$36AA  data  graphics_modes    Each density's column pitch in 1/1440 inch (24, 12, 12, 6, 18, 20, 16) and its attribute byte, $E0-$E6
+$4348-$4357  data  draft_tables      The draft font for each value of the attribute byte's bits 3-5: $00C0 upright, $0540 italic, $09C0 and $0BB8 the IBM PC characters; all in the CPU's internal ROM
 $43C6-$43D5  data  width_tables      The width table for each value of the attribute byte's bits 3-5
 $4524-$4533  data  builder_table     The column builder for each kind of character, by bits 4-6 of its index entry
 $4B00-$4CFF  data  character_index   Four bytes for each code 0-127: start column, byte count, and a 12-bit offset from $4B00 with the kind in bits 4-6 and descender in bit 7
@@ -43,7 +44,9 @@ $2A88  code  queue_character           Store the character in $9F in the line bu
 $2ABA  code  store_character           Store the character in $9F at line_buffer's end
 $2ACF  code  store_attributes          Store the attribute bytes $9D and $9E, then the character
 $2856  code  national_location         The location a national code prints in the set chosen ($97 bits 0-3)
-$44DE  code  character_lookup          The character in $EB: its index entry from character_index, or from $56C8 (IBM PC symbols) when $E9 bits 2-3 are set
+$4302  code  draft_character           A draft character: nine column bytes from draft_tables, code times 9, into the column buffer
+$43DA  code  download_character        A download character: nine column bytes from $819D, code times 9
+$44DE  code  character_lookup          An NLQ character: its index entry from character_index, or from $56C8 (IBM PC characters) when $E9 bits 2-3 are set
 $4534  code  italic_shear              Slant the column buffer: each column takes bits 7-6, 5-4, 3-2 and 1-0 from it and the three columns after
 $4558  code  clear_columns             Zero the column buffer
 $4565  code  build_plain               Kinds 0, 6, 7: plain columns

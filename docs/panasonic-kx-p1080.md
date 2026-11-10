@@ -307,29 +307,42 @@ that anything in it may be used, its characters included.
   `ESC R`'s order, each giving the character location for `` # $ @ [ \ ] ^
   ` { | } ~ ``, the international characters being locations 0-31 in the
   Epson FX's order. They match M's table exactly.
-- **Characters** (`$44DE` on; `tools/kx-p1080-rom/kx-p1080-map.txt`
+- **NLQ characters** (`$44DE` on; `tools/kx-p1080-rom/kx-p1080-map.txt`
   names the routines). An index at `$4B00` (ROM 0x0B00) has four bytes
-  for each code 0-127, codes 0-31 being the 32 international characters:
-  the column the character starts at, its byte count, and a 12-bit offset
-  from `$4B00` to its data, with a kind in bits 4-6 of the last byte and a
-  descender in bit 7. The data, in 0x0D00-0x1BFF, is two sets of columns
-  one after the other, bit 7 the top pin, on a grid of 1/240 inch
-  columns. Built into a 24-column buffer (`$FFA8`), each column loses any
-  dot the column before fired; in kinds 1, 3 and 5 a byte's bit 0 instead
-  leaves a blank column after it; kinds 2-5 are half a character,
-  completed by copying the columns back out in reverse from one or two
-  before the end (`$45E7`). The two sets are NLQ's two passes, and the
-  second alone is a whole character: draft is presumably that pass at
-  1/72 inch rows, NLQ both interleaved at 1/144 inch.
-- **Italics** are not stored: `$4534` slants the built columns, taking
-  each column's pins from it and the three columns after, two pins from
-  each, the top pins furthest, as the Star LC-10 does.
+  for each code 0-127: the column the character starts at, its byte
+  count, and a 12-bit offset from `$4B00` to its data, with a kind in bits
+  4-6 of the last byte and a descender in bit 7. Codes 0-31 are the 32
+  international characters and 127 a slashed zero. The data, in
+  0x0D00-0x1BFF, is the character's two passes one after the other, bit 7
+  the top pin, on a grid of 1/240 inch columns. Built into a 24-column
+  buffer (`$FFA8`), each column loses any dot the column before fired; in
+  kinds 1, 3 and 5 a byte's bit 0 instead leaves a blank column after it;
+  kinds 2-5 are half a character, completed by copying the columns back
+  out in reverse from one or two before the end (`$45E7`). The first pass
+  prints the even rows and the second the odd rows, 1/144 inch apart: a
+  serifed face 16 rows high, as the manual's NLQ samples show.
+- **Draft characters are not in this EPROM.** The draft path (`$4302`)
+  copies nine column bytes for the character from a base chosen by the
+  attribute byte (`$4348`): `$00C0` upright, `$0540` italic, `$09C0` and
+  `$0BB8` the IBM PC characters. Those addresses are in the CPU's own 4 KB
+  at 0x0000-0x0FFF, which they fill from just after its CALT table
+  (0x0080-0x00BF): 128 characters of nine bytes upright, as many italic,
+  and 56 and 56 more. So the CPU is a µPD7811 and **the draft and draft
+  italic fonts are in its mask ROM**, which this dump does not have. The
+  manual's samples show draft as a sans-serif face. Download characters
+  are nine bytes each in RAM at `$819D` (`$43DA`).
+- **NLQ italics** are not stored: `$4534` slants the built columns,
+  taking each column's pins from it and the three columns after, two pins
+  from each, the top pins furthest, as the Star LC-10 does. Draft italics
+  are stored, in the CPU.
 - **IBM PC characters.** With bits 2-3 of the character's attribute byte
-  set, the index is taken from `$56C8` instead, in which entries 0x20 on
-  are code page 437's Φ Θ Ω δ ∞ φ ε ∩ ≡ ± and the first ones accented
-  letters such as Ç and ü. No KX-P1080 manual mentions them; the
-  KX-P1080i's IBM mode has such characters, so this firmware may share
-  more with the i than the U manual shows.
+  set, the NLQ index is taken from `$56C8` instead: 41 of code page 437's
+  characters that Epson's international set lacks, ç ê ë ï î ô û ÿ ¢ ƒ á
+  í ó ú, ½ ¼ « », α ß Γ π Σ σ µ τ Φ Θ Ω δ ∞ φ ε ∩ ≡ and others, in NLQ;
+  their draft forms are in the CPU. No KX-P1080 manual mentions them and
+  no command in this firmware selects them (there is no `ESC m`): the
+  firmware evidently shares its character code with the KX-P1080i's IBM
+  mode.
 - **Proportional widths** are at `$5C00` (ROM 0x1C00, upright) and
   `$5C80` (italic), one byte a code 0-127, the width in 1/120 inch in the
   low nibble and another value, probably an offset, in the high one;
@@ -359,12 +372,11 @@ that anything in it may be used, its characters included.
 
 ## Open questions
 
-- The CPU's internal ROM. If the CPU is a µPD7811, its 4 KB is not in this
-  dump: reset, initialisation, the CALT routines and the vectors, perhaps
-  more. The part number on the board would settle it. Reading the
-  internal ROM would need the chip itself.
-- The character data's format, and whether the draft, italic and NLQ
-  characters are all in this EPROM.
+- The CPU's internal ROM, which holds the draft and draft italic fonts,
+  besides reset, the CALT routines and the vectors: not in this dump.
+  Without it, draft must be reconstructed from printed output, as the
+  M-1109's was. The CPU's markings would confirm the part.
+- What, if anything, reaches the IBM PC characters.
 - How far commands change the print mode in the selector's NLQ and Comp.
   positions: M says they cannot, yet says `ESC !` works in every mode.
 - Which pins download characters use, and how they print in NLQ.
