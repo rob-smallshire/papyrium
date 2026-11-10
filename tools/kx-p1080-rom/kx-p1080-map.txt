@@ -164,4 +164,4 @@ $FF92  ram   passes_wanted           The passes the line still needs, a bit each
 $2FB7  code  regular_vertical_stop   The distance to the next regular vertical stop: n times the stored spacing from the top of form, 0 for n 0
 $8140  ram   vertical_stop_spacing   ESC e 1: the line spacing then in force, then n
 $8152  ram   horizontal_stop_interval ESC e 0: the interval as a distance, then n
-$2988  data  box_drawing_shapes      For each code 0xB0-0xDF, its shape in internal ROM 0x0DB0, 0x40 on: double-line pieces share the single-line shapes
+$2988-$29B7  data  box_drawing_shapes      For each code 0xB0-0xDF, its shape in internal ROM 0x0DB0, 0x40 on: double-line pieces share the single-line shapes
