@@ -291,18 +291,54 @@ or which eight of the nine pins they use.
 The KX-P1080U's EPROM, as far as read so far. Rob decided (2026-11-10)
 that anything in it may be used, its characters included.
 
-- **CPU.** NEC µPD7810 family: MAME's `unidasm` (architecture `upd7810`)
-  disassembles it cleanly, with the family's CALL (0x44), JMP (0x54), RET
-  (0xB8) and its internal RAM at 0xFF00-0xFFFF.
+- **CPU.** IC2, a Matsushita MN1276 in a 64-pin shrink DIP: a µPD7811
+  equivalent with Panasonic's own mask ROM, of the NEC µPD7810 family.
+  MAME's `unidasm` (architecture `upd7810`) disassembles it cleanly, with
+  the family's CALL (0x44), JMP (0x54), RET (0xB8) and its internal RAM at
+  0xFF00-0xFFFF. The EPROM is IC3, an NEC D27128D labelled `PJWIXP1080U`,
+  `IC3 U160B`, `61201`.
 - **Memory map.** Call targets fall into 0x2000-0x3FFF and 0x4000-0x4FFF
   and land on subroutine entries there, either way taking the address
   modulo 0x4000 as the file offset; calls into 0x0000-0x1FFF never do,
   being data read as code. So the EPROM answers at 0x0000-0x3FFF and again
   at 0x4000-0x7FFF, and its first 4 KB is reached only through the second
-  copy: something in the CPU occupies 0x0000-0x0FFF. That is a µPD7811's
-  4 KB of internal mask ROM, which would hold the reset code, the CALT
-  table at 0x0080 (the EPROM has code there) and the interrupt vectors.
-  If so, **part of the firmware is inside the CPU and not in this dump.**
+  copy: the CPU's 4 KB internal mask ROM occupies 0x0000-0x0FFF.
+- **The internal ROM** (how it was recovered: `docs/panasonic-kx-p1080-rom-recovery.md`) was read out (2026-11-10) by an EPROM patched with
+  `tools/kx-p1080-rom/dump_patch.py`, whose self test prints it as a hex
+  dump with a checksum on each line, and transcribed from a 300 dpi scan
+  of the printout: by template matching on the fixed character grid,
+  trained on the line addresses, each line kept only if its checksum
+  held, and every cell confirmed by a nearest-neighbour vote from the
+  other lines; 35 lines the matcher could not read were read by eye. The
+  scan holds 255 of the 256 lines: 0x0FF0-0x0FFF is missing and assumed
+  0xFF like the 64 bytes before it. The image and its transcript are
+  `KX-P1080U-internal.bin` (SHA-1 `06cf7011e56efb96d840ff4862cb7888d9dc5ba4`
+  with that assumption) and `KX-P1080U-internal.txt` beside the EPROM in
+  `docs/local/panasonic-kx-p1080/`. It holds:
+  - Reset, at 0x0000: `DI`, a jump over the vectors to 0x0063, `V` set
+    to 0xFF in both register banks, 0x0F into the memory mapping register
+    `MM`, then `JMP $2000`, the first of the EPROM's jumps. The interrupt
+    vectors at 0x0004, 0x0008, 0x0010, 0x0018 and 0x0028 and the software
+    interrupt's at 0x0060 jump to the rest of that table (`$2003`, `$2006`,
+    `$2009`, `$200C`, `$200F`, `$2012`). The rest of the internal ROM looks
+    like data, not code.
+  - 0x0080-0x00BF: the CALT table, every entry an address in the EPROM's
+    jump table (0x2015 on).
+  - 0x00C0-0x053F: the draft characters, codes 0-127, nine column bytes
+    each; 0x0540-0x09BF the draft italics; 0x09C0 and 0x0BB8 the IBM PC
+    characters' draft forms, 56 each, in code page 437's order from
+    0x80 (Ç ü é â ä à å ç ê ë è ï ...). `$4302` copies a character's nine
+    bytes to the column buffer unchanged. Bits 7-1 are rows top first, and
+    in most characters bit 0 is clear or set in a column or two, but in
+    descending ones (j, Ç's cedilla) it draws the descender, so how the
+    eight bits reach the nine pins is still to trace (`$45F8`). Codes 0-31
+    are the international characters (à é ù ò ì º £ ¡ ¿ Ñ ñ ¤ ... Å å Ç §
+    ß Æ æ Ø ø ¨ Ä Ö Ü ä ö ü É), in the Epson FX's order. Draft is a
+    half-dot design, dots mostly in alternate columns; 13 characters have
+    a dot in two adjacent columns, which the head cannot fire, and are to
+    be checked against the printout.
+  - 0x0DB0-0x0FAF: further tables not yet traced (bytes 0x0A, 0x05,
+    0xAA, 0x55: shading patterns, perhaps); 0x0FB0-0x0FFF unused (0xFF).
 - **National sets** at 0x286E: twelve bytes for each of eleven sets, in
   `ESC R`'s order, each giving the character location for `` # $ @ [ \ ] ^
   ` { | } ~ ``, the international characters being locations 0-31 in the
@@ -321,15 +357,13 @@ that anything in it may be used, its characters included.
   out in reverse from one or two before the end (`$45E7`). The first pass
   prints the even rows and the second the odd rows, 1/144 inch apart: a
   serifed face 16 rows high, as the manual's NLQ samples show.
-- **Draft characters are not in this EPROM.** The draft path (`$4302`)
+- **Draft characters are in the internal ROM**, not the EPROM. The draft path (`$4302`)
   copies nine column bytes for the character from a base chosen by the
   attribute byte (`$4348`): `$00C0` upright, `$0540` italic, `$09C0` and
   `$0BB8` the IBM PC characters. Those addresses are in the CPU's own 4 KB
   at 0x0000-0x0FFF, which they fill from just after its CALT table
   (0x0080-0x00BF): 128 characters of nine bytes upright, as many italic,
-  and 56 and 56 more. So the CPU is a µPD7811 and **the draft and draft
-  italic fonts are in its mask ROM**, which this dump does not have. The
-  manual's samples show draft as a sans-serif face. Download characters
+  and 56 and 56 more (above). Download characters
   are nine bytes each in RAM at `$819D` (`$43DA`).
 - **NLQ italics** are not stored: `$4534` slants the built columns,
   taking each column's pins from it and the three columns after, two pins
@@ -366,16 +400,15 @@ that anything in it may be used, its characters included.
   no `ESC m`, so this firmware has no IBM mode, whatever the IBM PC
   characters above are for. The map names every handler.
 - **A table of 37 jumps at 0x2000**, which nothing in the EPROM jumps
-  into: the EPROM's entry points, presumably called from the CPU's
-  internal ROM.
+  into: the EPROM's entry points, reached from the internal ROM's
+  vectors and CALT table.
 - 0x1F00-0x1FFF is unused (0xFF).
 
 ## Open questions
 
-- The CPU's internal ROM, which holds the draft and draft italic fonts,
-  besides reset, the CALT routines and the vectors: not in this dump.
-  Without it, draft must be reconstructed from printed output, as the
-  M-1109's was. The CPU's markings would confirm the part.
+- The internal ROM's last line, 0x0FF0-0x0FFF, missing from the scan,
+  and a second reading of the whole: the dump prints it twice.
+- What 0x0DB0-0x0FAF of the internal ROM holds.
 - What, if anything, reaches the IBM PC characters.
 - How far commands change the print mode in the selector's NLQ and Comp.
   positions: M says they cannot, yet says `ESC !` works in every mode.
