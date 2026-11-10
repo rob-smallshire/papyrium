@@ -161,3 +161,6 @@ $819D  ram   download_columns        The download characters' columns, nine byte
 $FF72  ram   download_count          How many download characters are held, up to 40
 $FF90  ram   pass                    The pass printing: 0-5
 $FF92  ram   passes_wanted           The passes the line still needs, a bit each
+$2FB7  code  regular_vertical_stop   The distance to the next regular vertical stop: n times the stored spacing from the top of form, 0 for n 0
+$8140  ram   vertical_stop_spacing   ESC e 1: the line spacing then in force, then n
+$8152  ram   horizontal_stop_interval ESC e 0: the interval as a distance, then n

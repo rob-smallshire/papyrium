@@ -119,6 +119,8 @@ class KXP1080Interpreter(EscpInterpreter):
             self._condensed = True
         if self._seven_bit:
             self._msb = 0
+        # ESC e 1 0: VT prints and returns without feeding.
+        self._vertical_tab_feeds = True
 
     def _escape_table(self) -> dict[str, Callable[[], ArgumentReader | None]]:
         table = super()._escape_table()
@@ -130,6 +132,8 @@ class KXP1080Interpreter(EscpInterpreter):
                 "M": lambda: self._select_draft(elite=True),
                 "P": lambda: self._select_draft(elite=False),
                 "E": self._esc_emphasized,
+                "C": self._esc_form_length,
+                "e": self._esc_regular_tabs,
                 "y": self._esc_download,
                 "z": self._esc_release_download,
             }
@@ -158,6 +162,73 @@ class KXP1080Interpreter(EscpInterpreter):
         if code == SI:
             self._hard_condensed = False
         yield from super()._control(code)
+
+    # -- Page length and tab stops ------------------------------------------------
+
+    def _esc_form_length(self) -> ArgumentReader:
+        """ESC C n, n lines at the spacing now, or ESC C 0 m, m inches ($3A62).
+
+        Bit 7 of n and m is ignored. With no line spacing, m 0, or m 23 or
+        more, nothing changes; otherwise this line becomes the top of form
+        and the vertical stops and the skip over the perforation go.
+        """
+        n = (yield) & 0x7F
+        if n == 0:
+            inches_long = (yield) & 0x7F
+            if not 1 <= inches_long <= 22:
+                logger.debug("ignoring a page length of %d inches", inches_long)
+                return
+            form_length = inches(inches_long)
+        elif self._line_spacing == 0:
+            logger.debug("ignoring a page length in lines with no line spacing")
+            return
+        else:
+            form_length = n * self._line_spacing
+        self._set_top_of_form()
+        self._skip_perforation = 0
+        self._vertical_tab_channels = [[] for _ in range(8)]
+        self._vertical_tabs = self._vertical_tab_channels[self._vertical_tab_channel]
+        self._vertical_tab_feeds = True
+        self._form_length = form_length
+
+    def _esc_regular_tabs(self) -> ArgumentReader:
+        """ESC e 0 n and ESC e 1 n ($3A24): stops every n columns or lines.
+
+        Horizontal stops every 0 columns are none. Vertical stops are every
+        n lines at the spacing now, from the top of form ($2FB7): every 1
+        line makes VT a line feed, every 0 makes it print without feeding.
+        A distance longer than the page is ignored.
+        """
+        kind = (yield) & 0x7F
+        n = yield
+        if kind in (0, ord("0")) and n == 0:
+            self._tabs = []
+            return
+        if kind in (1, ord("1")):
+            if n * self._line_spacing > self._form_length:
+                logger.debug("ignoring vertical stops every %d lines, beyond the page", n)
+                return
+            if n == 0:
+                self._vertical_tab_feeds = False
+                return
+        self._vertical_tab_feeds = True
+        if kind in (0, ord("0")):
+            width = self._tab_unit()
+            right = self._right_limit(text=True) - self._left_margin
+            self._tabs = list(range(n * width, right, n * width))
+        elif kind in (1, ord("1")):
+            step = n * self._line_spacing
+            stops = list(range(step, self._form_length, step))
+            self._vertical_tab_channels[self._vertical_tab_channel] = stops
+            self._vertical_tabs = stops
+
+    def _vertical_tab(self) -> None:
+        if not self._vertical_tab_feeds:
+            self._end_line()
+            self._x = self._left_margin
+            self._one_line_double_width = False
+            return
+        super()._vertical_tab()
 
     # -- Pitch and quality ------------------------------------------------------
 

@@ -438,6 +438,19 @@ that anything in it may be used, its characters included.
   pitch, upright even under `ESC 4`, at the fixed pitch's width in
   proportional spacing, and in NLQ struck twice, 1/216 inch apart, as
   draft's double strike is.
+- **Page length and regular stops.** `ESC C` (`$3A62`) ignores bit 7 of
+  its argument. n lines fix the page at n times the spacing then in
+  force, and with no spacing the command is ignored; n 0 takes a further
+  byte, inches, 1-22 accepted and anything else ignored, so M's "returns
+  to the inch designation" is only `ESC C 0` m. A page length makes this
+  line the top of form, clears the regular vertical stops and calls
+  `ESC O`. `ESC e` (`$3A24`) keeps the horizontal interval as a distance
+  at the pitch then in force (8 pica columns at power on, `$21F9`) and
+  the vertical one as n and the spacing then in force, ignoring a
+  distance longer than the page. VT (`$2FB7`) moves to the next multiple
+  of n lines from the top of form: every 1 line makes it a line feed,
+  which is all M's "released when n = 1" is, and every 0 lines feeds
+  nothing, so the line prints and the head returns.
 - **Graphics.** `$369D` gives each `ESC *` density its column pitch in
   1/1440 inch, 24, 12, 12, 6, 18, 20 and 16 for 60, 120, 120, 240, 80,
   72 and 90 dpi, and its line-buffer attribute byte, 0xE0-0xE6.
@@ -467,9 +480,6 @@ that anything in it may be used, its characters included.
 - The `ESC l` range; graphics past the right margin.
 - M says CAN clears the receive buffer, but its example shows only the
   line being dropped.
-- `ESC C 0` n gives the page length in inches, yet M says `ESC C` with n 0
-  "returns to the inch designation"; `ESC e 1` n is cancelled by n 1, not
-  0, and n 0 prints without feeding.
 - The top and bottom margins: M's printing area figure gives 3.85 inches
   from the top edge of fanfold paper to the first line, which must be the
   loading position, not a margin.

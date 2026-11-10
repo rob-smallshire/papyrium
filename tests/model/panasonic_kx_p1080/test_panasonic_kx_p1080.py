@@ -308,3 +308,55 @@ def test_nlq_takes_its_proportional_placement_from_its_own_tables():
     fixed = min(x for x, _ in _dots(b"\x1bnW"))
     proportional = min(x for x, _ in _proportional(b"\x1bnW").dots)
     assert proportional == fixed
+
+
+def _pages(data, **options):
+    interpreter = PanasonicKXP1080U(name="kx", **options).create_interpreter()
+    return interpreter.feed(b"\x1b@" + data) + interpreter.finish()
+
+
+def _form_feed_distance(setup):
+    """How far down the paper B prints from A, after *setup*, A, a line
+    feed and a form feed, across sheets."""
+    tops = []
+    for number, page in enumerate(_pages(setup + b"A\r\n\x0cB\r\n\x0c")):
+        rows = sorted({y for _, y in page.dots})
+        if rows:
+            # A and B each print rows 0-6 of a 9-pin cell; a sheet may hold both.
+            starts = [rows[0]] + [b for a, b in zip(rows, rows[1:]) if b - a > 6 * PIN]
+            tops.extend(number * page.height + start for start in starts)
+    return tops[1] - tops[0]
+
+
+def test_esc_c_takes_lines_without_bit_7():
+    assert _form_feed_distance(b"\x1bC\x8c") == _form_feed_distance(b"\x1bC\x0c") == 2 * 4320
+
+
+def test_esc_c_0_takes_inches_from_1_to_22_and_ignores_others():
+    eleven = _form_feed_distance(b"")
+    assert _form_feed_distance(b"\x1bC\x00\x03") == _form_feed_distance(b"\x1bC\x12")
+    for inches in (0, 23):
+        assert _form_feed_distance(b"\x1bC\x00" + bytes([inches])) == eleven
+
+
+def test_esc_c_is_ignored_entirely_with_no_line_spacing():
+    # Nothing changes, the vertical tab stops included.
+    assert _form_feed_distance(b"\x1b3\x00\x1bC\x0c\x1b2") == _form_feed_distance(b"")
+
+
+def _vt_drop(setup):
+    """How far a VT after *setup* moves down: A and B both end on row 6."""
+    return max(y for _, y in _dots(setup + b"A\x0bB")) - max(y for _, y in _dots(setup + b"A"))
+
+
+def test_esc_e_1_0_makes_vt_print_without_feeding():
+    assert _vt_drop(b"\x1be\x01\x00") == 0
+
+
+def test_esc_e_1_1_makes_vt_a_line_feed():
+    assert _vt_drop(b"\x1be\x01\x01") == _vt_drop(b"")
+
+
+def test_esc_e_0_0_cancels_the_horizontal_stops():
+    tabbed = min(x for x, _ in _dots(b"\tA"))
+    assert min(x for x, _ in _dots(b"\x1be\x00\x00\tA")) < tabbed
