@@ -252,9 +252,12 @@ were misaligned, and it was among those read by eye.
 
 - `KX-P1080U-internal.bin`: the 4 KB internal ROM. 255 of its 256 lines
   are confirmed by their checksum and by two independent readings.
-- The scan stops at 0FE0. Line 0FF0 should have been printed, so it is
-  presumably on a sheet not scanned. It is filled with 0xFF like the
-  64 bytes before it.
+- The printer stopped after 0FE0, printing neither line 0FF0 nor the
+  second pass, though the routine's logic goes on to both; the cause is
+  not yet known. Line 0FF0 is filled with 0xFF like the 64 bytes before
+  it, which is safe as far as anything traced goes: no code in the EPROM
+  names an address in 0x0D00-0x0FFF, and the last draft table ends at
+  0x0DAF.
 - `KX-P1080U-internal.txt`: the transcript, each line marked as read by
   the scanner, by hand or assumed.
 - `KX-P1080U-cpu.bin`: what the CPU sees at 0x0000-0x7FFF, the internal
@@ -295,8 +298,10 @@ It is almost all data:
 
 ## Still to do
 
-- Line 0FF0, and the second pass for a third reading of everything:
-  scanning the rest of the printout would settle both.
+- Why the dump stopped after 0FE0. A suspect: the self test's RAM,
+  `$FFF0-$FFF4`, which the routine borrows, is also the serial receive
+  buffer's state. A rerun with private RAM and an end marker would give
+  line 0FF0 and a second reading of everything.
 - Thirteen draft characters have a dot in two adjacent columns, which a
   head cannot fire; check them against the printout. Also trace how
   bit 0 of each column reaches the pins (`$45F8`).

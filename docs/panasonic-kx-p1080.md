@@ -310,8 +310,11 @@ that anything in it may be used, its characters included.
   trained on the line addresses, each line kept only if its checksum
   held, and every cell confirmed by a nearest-neighbour vote from the
   other lines; 35 lines the matcher could not read were read by eye. The
-  scan holds 255 of the 256 lines: 0x0FF0-0x0FFF is missing and assumed
-  0xFF like the 64 bytes before it. The image and its transcript are
+  scan holds 255 of the 256 lines, the printer having stopped after
+  0x0FE0 for a reason not found; 0x0FF0-0x0FFF is taken to be 0xFF like
+  the 64 bytes before it (Rob's decision, 2026-11-10), since nothing
+  traced reads it: the EPROM's code names no address in 0x0D00-0x0FFF,
+  and the draft path's last base, `$0BB8`, ends at 0x0DAF. The image and its transcript are
   `KX-P1080U-internal.bin` (SHA-1 `06cf7011e56efb96d840ff4862cb7888d9dc5ba4`
   with that assumption) and `KX-P1080U-internal.txt` beside the EPROM in
   `docs/local/panasonic-kx-p1080/`. It holds:
@@ -406,8 +409,8 @@ that anything in it may be used, its characters included.
 
 ## Open questions
 
-- The internal ROM's last line, 0x0FF0-0x0FFF, missing from the scan,
-  and a second reading of the whole: the dump prints it twice.
+- Why the dump stopped after 0x0FE0, missing the last line and its
+  second pass; a second printout would confirm the assumed 0xFF there.
 - What 0x0DB0-0x0FAF of the internal ROM holds.
 - What, if anything, reaches the IBM PC characters.
 - How far commands change the print mode in the selector's NLQ and Comp.
