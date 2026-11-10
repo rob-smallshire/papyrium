@@ -26,7 +26,7 @@ $1D00-$1D6F  data  widths_1d00       Width tables read as $5D00 and $5D38 (attri
 $1D70-$1DEF  data  widths_upright_2  The upright widths again, with other high nibbles; read as $5D70 (attribute bit 4)
 $1DF0-$1E6F  data  widths_italic_2   The italic widths again, with other high nibbles; read as $5DF0
 $1E70-$1EFF  data  widths_1e70       Width tables read as $5E70 and $5EA8 (attribute bits 3 and 4): not yet known
-$1F00-$1FFF  data  fill_1f00         Unused (mostly 0xFF)
+$1F1B-$1FFF  data  fill_1f1b         Unused (0xFF); tools/kx-p1080-rom/dump_patch.py puts its routine at $1F40
 $286E-$28F1  data  national_sets     ESC R's eleven sets, twelve bytes each: the character location for # $ @ [ \ ] ^ ` { | } ~
 $32FA-$33F9  data  escape_handlers   The handler for each command byte 0-127 after ESC, two bytes each; $3B7B for those the printer lacks
 $3658-$3667  data  graphics_handlers The handler for each ESC * density, 0-6
@@ -43,6 +43,11 @@ $2A13  code  character_width           A character's advance in 1/1440 inch: its
 $2A88  code  queue_character           Store the character in $9F in the line buffer, its attributes before it when they changed
 $2ABA  code  store_character           Store the character in $9F at line_buffer's end
 $2ACF  code  store_attributes          Store the attribute bytes $9D and $9E, then the character
+$1F00  code  late_1f00                 Reached by a jump from $21C5 (as $5F00): a later addition, by its place
+$1F10  code  late_esc_r                Reached by a jump from ESC R's handler ($35C4, as $5F10)
+$209D  code  reset                     Power on and reset: stack, ports, RAM; most of the jump table's entries come here
+$3739  code  graphics_byte             Each bit-image data byte, through $3750 and $3786
+$3786  code  store_graphics_byte       Store the data byte received ($74) as the next column
 $2856  code  national_location         The location a national code prints in the set chosen ($97 bits 0-3)
 $4302  code  draft_character           A draft character: nine column bytes from draft_tables, code times 9, into the column buffer
 $43DA  code  download_character        A download character: nine column bytes from $819D, code times 9
@@ -128,6 +133,8 @@ $3B7B  code  esc_unknown             An escape the printer lacks: ignored
 $8000  ram  line_buffer      The line waiting to print: character codes, each attribute change two bytes before them, the first with bit 7 set
 $FF2A  ram  line_index       Position in line_buffer
 $FF90  ram  print_flags      Bit 1: build the second pass of each character
+$FF74  ram  received_byte    The byte received, after the bit-7 commands
+$FF7A  ram  spacing_216      ESC 3's argument, n/216 inch
 $FF97  ram  national_set     Bits 0-3: the ESC R set
 $FF9D  ram  text_attributes  The current attribute byte stored before characters: bits 3-5 choose the width table (bit 5 italic), bits 4-6 also the record's kind ($40 text, $60 graphics)
 $FF9E  ram  text_attributes_2 The second attribute byte: bit 0 a graphics record, bit 5 double width
