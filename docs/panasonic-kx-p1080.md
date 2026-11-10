@@ -514,4 +514,6 @@ that anything in it may be used, its characters included.
   the page and are not simulated.
 - The KX-P1080i's IBM mode is three IBM printers, Matrix and Graphics I and
   II, none of them the Proprinter: a separate language or languages, built
-  per the emulation rule from those printers' own documents.
+  per the emulation rule from those printers' own documents. What a
+  KX-P1080i model could take from what we have, and what it lacks, is in
+  `docs/panasonic-kx-p1080i.md` (For Papyrium).

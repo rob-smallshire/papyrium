@@ -665,3 +665,36 @@ characters").
     block graphics (internal ROM 0x0DB0 on), which nothing in the U
     reaches: the U's firmware evidently shares its character code with the
     i's (`docs/panasonic-kx-p1080.md`).
+
+## For Papyrium
+
+No KX-P1080i model is built yet (decided 2026-11-10). What one would
+start from, and what it lacks:
+
+- **Standard mode** is the KX-P1080's command set, which
+  `papyrium.model.panasonic_kx_p1080` already models from the KX-P1080U's
+  firmware; the i adds `ESC m` (kept through `ESC @`) and differs in speed
+  only, which does not show on the page.
+- **Characters.** The KX-P1080U's firmware holds the IBM mode's
+  characters though the U cannot reach them (IBM PC characters, under
+  Firmware, in `docs/panasonic-kx-p1080.md`): 56 code page 437 characters
+  in draft and italic, 40 of them in NLQ, the box drawing and blocks as
+  19 two-band shapes with double-line pieces printed single, the Matrix
+  Printer's 64 mosaics built from the code, and proportional widths for
+  them. `tools/kx-p1080-rom/extract.py` does not yet extract any of
+  them. The other 16 code page 437 characters (± through ■ and the suits)
+  have no NLQ form; what the i prints for them in NLQ is not known.
+- **Missing: the IBM mode's behaviour.** The U's firmware has no `ESC m`
+  in its dispatch table and none of the IBM-only handling, so the IBM
+  modes' commands come only from this manual, which gives them as the
+  short list of differences in 5.4: `ESC :` elite, `ESC Q 3` deselect,
+  `ESC 2` taking up `ESC A`'s spacing, `ESC 6` and `ESC 7` choosing the
+  Graphics sets, `ESC R` and DEL inert in the Graphics modes.
+- **Missing: the emulated printers' own manuals.** By the emulation rule
+  in `CLAUDE.md`, the IBM Matrix Printer and the IBM Graphics Printer
+  would be modelled first, from their own manuals, and the i's IBM modes
+  built on them. `docs/local/` has only the Proprinter's manuals.
+- **Unconfirmed: the i's characters.** That the i prints with the U's
+  fonts is likely, the U's firmware evidently being written for both,
+  but not shown; a dump of an i's EPROM and CPU, or a printed sample of
+  its draft, NLQ and IBM characters, would settle it.
