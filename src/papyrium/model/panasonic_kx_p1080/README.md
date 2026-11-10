@@ -45,10 +45,10 @@ switches, its print mode selector and its paper:
 | `nlq-font` | `kx-p1080-nlq` | The near letter quality characters: an 18 x 24 dot font's name or file |
 | `nlq-italic-font` | `kx-p1080-nlq-italic` | The near letter quality italics: an 18 x 24 dot font's name or file |
 
-Not modelled yet: the self test and hex dump, the paper-out detector,
-half speed and unidirectional printing, how downloads print in near letter
-quality and proportional spacing, and the KX-P1080i, whose IBM mode is
-three IBM printers.
+Not modelled yet: how download characters print in near letter quality
+and proportional spacing, which the manual does not say (they print in
+draft, twelve columns wide), and the KX-P1080i, whose IBM mode is three
+IBM printers.
 
 ## Licence
 

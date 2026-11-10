@@ -447,9 +447,11 @@ that anything in it may be used, its characters included.
   proportional, italic and underline bits, the selector switch's three
   positions, the ROM's width tables and italic fonts, and code 255 as an
   italic slashed zero. Its fonts are `papyrium.font.kx_p1080`.
-- Not modelled yet: half speed and unidirectional printing, the paper-out
-  detector, the self test and hex dump, how downloads print in NLQ and
-  proportional spacing, and the open questions above.
+- Not modelled yet: how downloads print in NLQ and proportional spacing
+  (they print in draft, twelve columns wide, on the top eight pins), and
+  the open questions above. Half speed, unidirectional printing, the
+  paper-out detector, the self test and the hex dump change nothing on
+  the page and are not simulated.
 - The KX-P1080i's IBM mode is three IBM printers, Matrix and Graphics I and
   II, none of them the Proprinter: a separate language or languages, built
   per the emulation rule from those printers' own documents.
