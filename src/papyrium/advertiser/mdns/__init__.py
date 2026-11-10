@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ipaddress
 import logging
+import socket
 from collections.abc import Callable, Iterable
 
 import ifaddr
@@ -31,6 +32,11 @@ SERVICE_TYPES = {"appsocket": "_pdl-datastream._tcp.local."}
 
 InterfaceAddresses = Callable[[], Iterable[str]]
 
+#: Documentation addresses (RFC 5737, RFC 3849), never routed: connecting
+#: a UDP socket towards one asks the system which of its addresses it
+#: would send from, without sending anything.
+_ROUTE_PROBES = {socket.AF_INET: "192.0.2.1", socket.AF_INET6: "2001:db8::1"}
+
 
 def _machine_addresses() -> list[str]:
     """Every address of this machine's network interfaces, IPv6 without its scope."""
@@ -41,21 +47,60 @@ def _machine_addresses() -> list[str]:
     return addresses
 
 
-def _announced_addresses(endpoint: Endpoint, interface_addresses: InterfaceAddresses) -> list[str]:
+def _primary_addresses() -> list[str]:
+    """The addresses this machine sends from by its default routes, one for
+    each family that has one."""
+    addresses = []
+    for family, probe in _ROUTE_PROBES.items():
+        try:
+            with socket.socket(family, socket.SOCK_DGRAM) as probe_socket:
+                probe_socket.connect((probe, 9))
+                addresses.append(probe_socket.getsockname()[0].split("%")[0])
+        except OSError as error:
+            logger.debug("no default route for %s: %s", family.name, error)
+    return addresses
+
+
+def _every_address(
+    version: int, interface_addresses: InterfaceAddresses, primary_addresses: InterfaceAddresses
+) -> list[str]:
+    """This machine's addresses of one IP *version* that a client may reach.
+
+    Loopback is left out, and link-local addresses too while there are
+    others, since they reach only their own link, which the announcement
+    cannot say. The address the default route sends from comes first: a
+    client that tries only the first address announced then reaches the
+    machine whenever it can be reached by its usual route.
+    """
+    candidates = [
+        candidate
+        for candidate in interface_addresses()
+        if ipaddress.ip_address(candidate).version == version
+        and not ipaddress.ip_address(candidate).is_loopback
+    ]
+    routable = [c for c in candidates if not ipaddress.ip_address(c).is_link_local]
+    candidates = routable or candidates
+    primary = [address for address in primary_addresses() if address in candidates]
+    return primary + [candidate for candidate in candidates if candidate not in primary]
+
+
+def _announced_addresses(
+    endpoint: Endpoint,
+    interface_addresses: InterfaceAddresses,
+    primary_addresses: InterfaceAddresses = _primary_addresses,
+) -> list[str]:
     """The addresses to announce for *endpoint*.
 
     An unspecified address (``0.0.0.0`` or ``::``) stands for every
-    address of its family on this machine except loopback; any other is
-    announced as bound.
+    address of its family on this machine a client may reach (see
+    :func:`_every_address`); any other is announced as bound.
     """
     announced = []
     for bound in endpoint.addresses:
         address = ipaddress.ip_address(bound)
         if address.is_unspecified:
-            for candidate in interface_addresses():
-                other = ipaddress.ip_address(candidate)
-                if other.version == address.version and not other.is_loopback:
-                    announced.append(candidate)
+            every = _every_address(address.version, interface_addresses, primary_addresses)
+            announced.extend(every)
         elif not address.is_loopback:
             announced.append(bound)
     return list(dict.fromkeys(announced))
@@ -84,7 +129,9 @@ def _txt_record(advertisement: Advertisement) -> dict[str, str]:
 
 
 def service_infos(
-    advertisement: Advertisement, interface_addresses: InterfaceAddresses = _machine_addresses
+    advertisement: Advertisement,
+    interface_addresses: InterfaceAddresses = _machine_addresses,
+    primary_addresses: InterfaceAddresses = _primary_addresses,
 ) -> list[ServiceInfo]:
     """The DNS-SD services announcing *advertisement*, one for each endpoint it can describe.
 
@@ -104,7 +151,7 @@ def service_infos(
                 endpoint.protocol,
             )
             continue
-        addresses = _announced_addresses(endpoint, interface_addresses)
+        addresses = _announced_addresses(endpoint, interface_addresses, primary_addresses)
         if not addresses:
             logger.warning("not advertising port %d: no network address to give", endpoint.port)
             continue
@@ -135,16 +182,18 @@ class MdnsAdvertiser(Advertiser):
         *,
         zeroconf_factory: Callable[[], AsyncZeroconf] = AsyncZeroconf,
         interface_addresses: InterfaceAddresses = _machine_addresses,
+        primary_addresses: InterfaceAddresses = _primary_addresses,
         **kwargs,
     ) -> None:
         super().__init__(name=name, **kwargs)
         self._zeroconf_factory = zeroconf_factory
         self._interface_addresses = interface_addresses
+        self._primary_addresses = primary_addresses
         self._zeroconf: AsyncZeroconf | None = None
         self._infos: list[ServiceInfo] = []
 
     async def start(self, advertisement: Advertisement) -> None:
-        infos = service_infos(advertisement, self._interface_addresses)
+        infos = service_infos(advertisement, self._interface_addresses, self._primary_addresses)
         if not infos:
             return
         self._zeroconf = self._zeroconf_factory()
@@ -153,10 +202,11 @@ class MdnsAdvertiser(Advertiser):
             self._infos.append(info)
             instance = info.name.removesuffix(f".{info.type}")
             logger.info(
-                'advertising "%s" as %s on port %d',
+                'advertising "%s" as %s on port %d at %s',
                 instance,
                 info.type.removesuffix(".local."),
                 info.port,
+                ", ".join(info.parsed_addresses()),
             )
 
     async def stop(self) -> None:

@@ -33,8 +33,14 @@ find it (python-zeroconf issues 1287 and 1093). Appearing as an ordinary
 printer matters more, so the plain type is used, and the TXT record is how
 a client tells Papyrium apart.
 
-Only endpoints the network can reach are announced; an unspecified address
-stands for every address of its family on this machine except loopback.
+Only endpoints the network can reach are announced. An unspecified address
+stands for every address of its family on this machine except loopback,
+and except link-local addresses while there are others, since those reach
+only their own link. The address the machine's default route sends from
+is announced first, so that a client that tries only the first address,
+as many do, reaches the printer by the machine's usual route, not by a
+virtual machine's host-only network or a link-local address. Binding the
+transport to one address (`-T host=`) announces that address alone.
 The services name their own host, `papyrium-<8 hex digits>.local.`, so
 Papyrium never answers for the machine's own name. If the printer's name is
 taken, a free variant is chosen and the name actually registered is

@@ -44,7 +44,10 @@ class _FakeZeroconf:
 def _advertiser(zeroconf=None):
     zeroconf = zeroconf or _FakeZeroconf()
     advertiser = MdnsAdvertiser(
-        name="mdns", zeroconf_factory=lambda: zeroconf, interface_addresses=_interface_addresses
+        name="mdns",
+        zeroconf_factory=lambda: zeroconf,
+        interface_addresses=_interface_addresses,
+        primary_addresses=lambda: (),
     )
     return advertiser, zeroconf
 
@@ -92,6 +95,37 @@ def test_an_unspecified_address_stands_for_every_address_of_its_family_but_loopb
     assert sorted(info.parsed_addresses()) == ["192.168.1.20", "fe80::1"]
 
 
+#: A machine with a host-only virtual network and a link-local address
+#: beside its LAN address, as in a reported failure: a client that took
+#: the first address announced could reach neither of the others.
+CROWDED_ADDRESSES = ("169.254.239.69", "192.168.56.1", "192.168.1.90", "fe80::2", "fd00::5")
+
+
+def _crowded_infos(primary=("192.168.1.90",), addresses=("0.0.0.0",)):
+    advertisement = dataclasses.replace(
+        sample_advertisement(),
+        endpoints=(Endpoint(protocol="appsocket", port=9100, addresses=addresses),),
+    )
+    (info,) = service_infos(advertisement, lambda: CROWDED_ADDRESSES, lambda: primary)
+    return info.parsed_addresses()
+
+
+def test_link_local_addresses_are_left_out_while_the_machine_has_others():
+    assert _crowded_infos() == ["192.168.1.90", "192.168.56.1"]
+    assert _crowded_infos(primary=(), addresses=("::",)) == ["fd00::5"]
+
+
+def test_the_default_routes_address_is_announced_first():
+    assert _crowded_infos(primary=("192.168.1.90",))[0] == "192.168.1.90"
+    assert _crowded_infos(primary=("192.168.56.1",))[0] == "192.168.56.1"
+
+
+def test_a_link_local_address_is_announced_when_it_is_all_there_is():
+    advertisement = sample_advertisement()
+    (info,) = service_infos(advertisement, lambda: ("169.254.1.2", "127.0.0.1"), lambda: ())
+    assert info.parsed_addresses() == ["169.254.1.2"]
+
+
 def test_a_specific_address_is_announced_as_bound():
     advertisement = dataclasses.replace(
         sample_advertisement(),
@@ -124,7 +158,7 @@ async def test_start_registers_and_reports_the_name_actually_registered(caplog):
     assert len(zeroconf.registered) == 1
     assert (
         'advertising "Conformance Printer (Papyrium) (2)" as _pdl-datastream._tcp on port 9100'
-        in (caplog.text)
+        " at 192.168.1.20" in (caplog.text)
     )
 
 
@@ -144,6 +178,7 @@ async def test_nothing_to_announce_opens_no_responder():
         name="mdns",
         zeroconf_factory=lambda: created.append(1) or _FakeZeroconf(),
         interface_addresses=_interface_addresses,
+        primary_addresses=lambda: (),
     )
     advertisement = dataclasses.replace(
         sample_advertisement(),
