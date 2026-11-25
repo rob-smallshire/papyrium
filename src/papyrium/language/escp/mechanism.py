@@ -181,6 +181,10 @@ class EscpMechanism:
     esc_3_ignores_zero: bool = False
     #: An on/off argument is on when odd, rather than only for 1 or '1'.
     flags_by_lowest_bit: bool = False
+    #: A full line wraps to the next line; otherwise the carriage returns
+    #: and the rest prints over it, as the Centronics GLP does with switch
+    #: 2-6 off.
+    wrap_feeds_line: bool = True
     #: Near letter quality masks superscript and subscript, which print
     #: when it ends, rather than printing them in draft.
     nlq_masks_scripts: bool = False

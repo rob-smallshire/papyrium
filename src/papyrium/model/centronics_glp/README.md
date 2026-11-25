@@ -44,6 +44,7 @@ The options model the printers' DIP switches and paper. `centronics-glp`:
 | `character-set` | `2` | Power-on character set: `1` (ASCII) or `2` (German), switch 2-3 |
 | `form-length` | `11` | Form length in inches (switch 2-1 gives 11 or 12) |
 | `skip-perforation` | `no` | Skip one inch over the perforation (switch 2-5) |
+| `buffer-full-line-feed` | `yes` | A full line wraps to the next; otherwise it prints over itself (switch 2-6) |
 | `near-letter-quality` | `no` | Power on printing near letter quality (switch 2-4) |
 | `seven-bit` | `no` | Keep seven bits of every byte (switch 1-7) |
 | `paper-width` | `8.5`, or `9.5` with tear-off strips | Paper width in inches; the line is centred on it |
@@ -61,6 +62,7 @@ The options model the printers' DIP switches and paper. `centronics-glp`:
 | `character-set` | `2` | Power-on character set: `1` (ASCII) or `2` (German), switch 3 |
 | `form-length` | `11` | Form length in inches (switch 1 gives 11 or 12) |
 | `skip-perforation` | `no` | Skip one inch over the perforation (switch 5) |
+| `buffer-full-line-feed` | `yes` | A full line wraps to the next; otherwise it prints over itself (switch 6) |
 | `near-letter-quality` | `yes` | Power on printing near letter quality (switch 4) |
 | `line-spacing` | `1/6` | Power-on line spacing: `1/6` or `1/8` inch (switch 2) |
 | `paper-width` | `8.3` | Paper width in inches; the line is centred on it |
@@ -78,6 +80,7 @@ The options model the printers' DIP switches and paper. `centronics-glp`:
 | `character-set` | `2` | Power-on character set: `1` (ASCII) or `2` (German) |
 | `form-length` | `11` | Form length in inches (11 or 12) |
 | `skip-perforation` | `no` | Skip one inch over the perforation |
+| `buffer-full-line-feed` | `yes` | A full line wraps to the next; otherwise it prints over itself |
 | `seven-bit` | `no` | Keep seven bits of every byte |
 | `paper-width` | `8.5`, or `9.5` with tear-off strips | Paper width in inches; the line is centred on it |
 | `top-offset` | `19/36` | Inches from the top of the sheet to the top of the first line |

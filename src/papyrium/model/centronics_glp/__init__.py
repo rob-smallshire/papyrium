@@ -45,7 +45,8 @@ class CentronicsGlp(PrinterModel):
     and its paper: auto-line-feed (no, switch 2-7), character-set (2,
     switch 2-3: set 1 is ASCII, set 2 has German characters in place of
     @ [ \\ ] { | } ~), form-length in inches (11, switch 2-1; 12 with it
-    off), skip-perforation (no, switch 2-5), near-letter-quality (no,
+    off), skip-perforation (no, switch 2-5), buffer-full-line-feed (yes,
+    switch 2-6: a full line wraps to the next; off, it prints over itself), near-letter-quality (no,
     switch 2-4: power on in NLQ), seven-bit (no, switch 1-7: each byte's bit
     7 is dropped), paper-width in inches (8.5: a Letter cut sheet, or 9.5
     with tear-off strips), top-offset in inches (19/36), stationery (sheet;
@@ -65,6 +66,7 @@ class CentronicsGlp(PrinterModel):
         character_set: str = "2",
         form_length: str = "11",
         skip_perforation: bool = False,
+        buffer_full_line_feed: bool = True,
         near_letter_quality: bool = False,
         seven_bit: bool = False,
         paper_width: str | None = None,
@@ -81,6 +83,7 @@ class CentronicsGlp(PrinterModel):
             character_set=character_set,
             form_length=form_length,
             skip_perforation=skip_perforation,
+            buffer_full_line_feed=buffer_full_line_feed,
             near_letter_quality=near_letter_quality,
             seven_bit=seven_bit,
             line_spacing="1/6",
@@ -134,6 +137,7 @@ class SchneiderNlq401(CentronicsGlp):
         character_set: str = "2",
         form_length: str = "11",
         skip_perforation: bool = False,
+        buffer_full_line_feed: bool = True,
         near_letter_quality: bool = True,
         line_spacing: str = "1/6",
         paper_width: str | None = "8.3",
@@ -150,6 +154,7 @@ class SchneiderNlq401(CentronicsGlp):
             character_set=character_set,
             form_length=form_length,
             skip_perforation=skip_perforation,
+            buffer_full_line_feed=buffer_full_line_feed,
             near_letter_quality=near_letter_quality,
             seven_bit=True,
             line_spacing=line_spacing,
@@ -181,6 +186,7 @@ class BrotherM1009(CentronicsGlp):
         character_set: str = "2",
         form_length: str = "11",
         skip_perforation: bool = False,
+        buffer_full_line_feed: bool = True,
         seven_bit: bool = False,
         paper_width: str | None = None,
         top_offset: str = "19/36",
@@ -195,6 +201,7 @@ class BrotherM1009(CentronicsGlp):
             character_set=character_set,
             form_length=form_length,
             skip_perforation=skip_perforation,
+            buffer_full_line_feed=buffer_full_line_feed,
             near_letter_quality=False,
             seven_bit=seven_bit,
             line_spacing="1/6",
@@ -213,6 +220,7 @@ def _glp_mechanism(
     character_set: str,
     form_length: str,
     skip_perforation: bool,
+    buffer_full_line_feed: bool,
     near_letter_quality: bool,
     seven_bit: bool,
     line_spacing: str,
@@ -245,6 +253,7 @@ def _glp_mechanism(
         auto_line_feed=auto_line_feed,
         character_set=_CHARACTER_SETS[character_set],
         skip_perforation_lines=_SKIP_PERFORATION_LINES if skip_perforation else 0,
+        wrap_feeds_line=buffer_full_line_feed,
         near_letter_quality=near_letter_quality and nlq,
         nlq=nlq,
         power_on_line_spacing=inches(Fraction(line_spacing)),

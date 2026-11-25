@@ -864,7 +864,8 @@ class EscpInterpreter(Interpreter):
         self._end_line()
         self._x = self._left_margin
         top = self._y
-        self._advance_line()
+        if self._mechanism.wrap_feeds_line:
+            self._advance_line()
         if carried:
             dx = self._x - carried[0].x_before
             for entry in carried:

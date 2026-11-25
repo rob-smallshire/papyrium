@@ -135,3 +135,10 @@ def test_a_printer_may_take_fewer_tab_stops():
     assert dots(stops + b"\t" * 29 + b"A", horizontal_tab_stops=28) != dots(
         stops + b"\t" * 29 + b"A"
     )
+
+
+def test_a_full_line_can_wrap_without_feeding():
+    # The 81st character wraps: to the next line, or back over the first.
+    line = b"A" * 81
+    assert dots(line)[-1] == (LEFT + 36, LINE)
+    assert dots(line, wrap_feeds_line=False)[-1] == (LEFT + 36, 0)

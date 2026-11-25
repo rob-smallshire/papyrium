@@ -129,3 +129,13 @@ def test_bad_options_are_configuration_errors(option, value, message):
 def test_the_glp_has_no_line_spacing_switch():
     with pytest.raises(ConfigurationError, match="line-spacing"):
         CentronicsGlp.from_config(name="glp", config={"line-spacing": "1/8"})
+
+
+def test_with_switch_6_off_a_full_line_prints_over_itself():
+    line = b"A" * 81
+    wrapped = _pages(CentronicsGlp(name="glp"), line)[0].text
+    over = _pages(
+        CentronicsGlp.from_config(name="glp", config={"buffer-full-line-feed": "no"}), line
+    )
+    assert wrapped[-1].y > wrapped[0].y
+    assert over[0].text[-1].y == over[0].text[0].y
