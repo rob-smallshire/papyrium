@@ -16,15 +16,12 @@ writes the pages as PNG images and PDF documents, dot for dot.
 <img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/letter.png" alt="A letter printed by the Centronics GLP II in near letter quality" width="100%">
 </p>
 
-The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
-and LX-800, the Centronics GLP II (also sold as the Brother M-1109) and the
-Star LC-10, speaking Epson's ESC/P, the first Centronics GLP and the
-Schneider NLQ401 made from it, speaking their own near relative of it, the
-Commodore MPS-803, speaking Commodore's printer language, and
-the IBM Proprinter II, speaking IBM's Proprinter language. The first client is
-Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
-computer on the other end: any emulator, or real hardware behind a
-network adapter, can drive it.
+The printers are 9-pin dot-matrix printers of the 1980s, from the
+ubiquitous Epson FX-80 to the Star LC-10 Colour, which prints in four
+colours. Papyrium was initially conceived to be driven by emulated
+retro-computers, but can also be printed to by modern Windows, Linux or
+Mac computers with suitable drivers, or from real vintage computers with
+suitable hardware adapters.
 
 ## Quick start
 
