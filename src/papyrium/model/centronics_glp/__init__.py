@@ -274,5 +274,7 @@ def _glp_mechanism(
         underline_skips_high_characters=True,
         nlq_masks_scripts=True,
         horizontal_tab_stops=28,
+        graphics_wrap_whole=True,
+        graphics_count_high_bits=3,
         commands=_COMMANDS if nlq else _DRAFT_COMMANDS,
     )

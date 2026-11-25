@@ -142,3 +142,16 @@ def test_a_full_line_can_wrap_without_feeding():
     line = b"A" * 81
     assert dots(line)[-1] == (LEFT + 36, LINE)
     assert dots(line, wrap_feeds_line=False)[-1] == (LEFT + 36, 0)
+
+
+def test_a_bit_image_that_does_not_fit_can_wrap_whole():
+    # 70 characters, then 120 columns of 1/60 inch: two inches past the line.
+    data = b"A" * 70 + ESC + b"K\x78\x00" + b"\x80" * 120
+    image_ys = {y for x, y in dots(data, graphics_wrap_whole=True) if x == LEFT}
+    assert LINE in image_ys
+    assert all(y == 0 for x, y in dots(data) if x >= LEFT + 70 * PICA)
+
+
+def test_a_bit_image_count_can_take_three_bits_of_its_high_byte():
+    image = ESC + b"K\x01\x08" + b"\x80"
+    assert dots(image + b"A", graphics_count_high_bits=3) == [(LEFT, 0), (LEFT + 72 + 36, 0)]

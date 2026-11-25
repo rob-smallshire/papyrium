@@ -811,6 +811,12 @@ class EscpInterpreter(Interpreter):
             logger.debug("ignoring graphics in unknown density %d", mode)
             return
         pin_pitch = self._mechanism.pin_pitch
+        if (
+            self._mechanism.graphics_wrap_whole
+            and self._x > self._left_margin
+            and self._x + len(columns) * step > self._right_limit(text=False)
+        ):
+            self._wrap()
         self._print_line()
         entry = _Entry(self._x)
         fired = 0
@@ -832,6 +838,8 @@ class EscpInterpreter(Interpreter):
     def _read_graphics(self, mode: int) -> ArgumentReader:
         low = yield
         high = yield
+        if self._mechanism.graphics_count_high_bits is not None:
+            high &= (1 << self._mechanism.graphics_count_high_bits) - 1
         count = low + 256 * high
         columns = []
         for _ in range(count):

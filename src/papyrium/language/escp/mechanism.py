@@ -181,6 +181,11 @@ class EscpMechanism:
     esc_3_ignores_zero: bool = False
     #: An on/off argument is on when odd, rather than only for 1 or '1'.
     flags_by_lowest_bit: bool = False
+    #: A bit image that does not fit the rest of the line starts the next
+    #: one, as text that does not fit does, rather than losing its end.
+    graphics_wrap_whole: bool = False
+    #: The bits of a bit image count's high byte the printer reads; None for all.
+    graphics_count_high_bits: int | None = None
     #: A full line wraps to the next line; otherwise the carriage returns
     #: and the rest prints over it, as the Centronics GLP does with switch
     #: 2-6 off.
