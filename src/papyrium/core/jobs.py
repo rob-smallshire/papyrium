@@ -48,6 +48,8 @@ class JobEndReason(enum.Enum):
     REQUESTED = "requested"
     #: The printer instance shut down.
     SHUTDOWN = "shutdown"
+    #: The input ended: a whole file or stream was printed as one job.
+    END_OF_INPUT = "end-of-input"
 
 
 @dataclass(frozen=True)

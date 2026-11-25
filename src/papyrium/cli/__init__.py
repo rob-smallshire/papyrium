@@ -7,8 +7,11 @@ import contextlib
 import importlib.metadata
 import logging
 import signal
+import socket
+import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import Any, BinaryIO
 
 import click
 from asyoulikeit import ByAudience, Report, Reports, TableContent
@@ -19,6 +22,7 @@ from asyoulikeit.cli import (
     list_reports_command,
     report_output,
 )
+from exit_codes import ExitCode
 
 from papyrium.cli.help import use_plain_help
 from papyrium.cli.plugins import (
@@ -33,7 +37,13 @@ from papyrium.cli.plugins import (
 )
 from papyrium.core.advertising import Advertising
 from papyrium.core.instance import PrinterInstance, default_printer_name
-from papyrium.core.jobs import CAPTURE_FILENAME, JOB_RECORD_FILENAME, JobRecord, JobStore
+from papyrium.core.jobs import (
+    CAPTURE_FILENAME,
+    JOB_RECORD_FILENAME,
+    JobEndReason,
+    JobRecord,
+    JobStore,
+)
 from papyrium.core.model import PrinterModel
 from papyrium.core.rendering import JobRenderer, JobRendering
 from papyrium.core.spooler import Spooler
@@ -49,6 +59,8 @@ _DEFAULT_OUTPUT_NAMES = ("png", "pdf")
 _DEFAULT_OUTPUT_DIRNAME = "papyrium-jobs"
 _DEFAULT_IDLE_TIMEOUT_SECONDS = 5.0
 _READ_SIZE = 65536
+_DEFAULT_SEND_PORT = 9100
+_CONNECT_TIMEOUT_SECONDS = 10.0
 
 
 def _print_error(line: str, is_continuation: bool = False) -> None:
@@ -202,30 +214,44 @@ def serve(
         outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
         renderer = JobRenderer(model, outputs)
     store = JobStore(output_dirpath)
-    name = printer_name or default_printer_name(None if model is None else model.identity())
-    printer_uuid = store.printer_uuid()
+    printer_setup = _printer_setup(store, model_name, model_options, model, printer_name)
     spooler = Spooler(
         transport,
         store,
         idle_timeout_seconds=idle_timeout_seconds,
-        printer_setup={
-            "model": model_name,
-            "options": dict(model_options) if model is None else model.config,
-            "name": name,
-            "uuid": str(printer_uuid),
-        },
+        printer_setup=printer_setup,
         listener=renderer,
     )
     advertising = None
     if advertise:
         advertising = Advertising(
             ADVERTISERS.create(_DEFAULT_ADVERTISER_NAME, {}),
-            name=name,
-            printer_uuid=printer_uuid,
+            name=printer_setup["name"],
+            printer_uuid=uuid.UUID(printer_setup["uuid"]),
             model=model,
         )
     instance = PrinterInstance(transport, spooler, renderer, advertising=advertising)
     asyncio.run(_serve_until_signalled(instance))
+
+
+def _printer_setup(
+    store: JobStore,
+    model_name: str,
+    model_options: dict[str, str],
+    model: PrinterModel | None,
+    printer_name: str | None,
+) -> dict[str, Any]:
+    """How the printer whose jobs *store* holds is set up, as each job records it.
+
+    The model and its options let the capture be printed again; the name
+    and the store's UUID say which printer took the job.
+    """
+    return {
+        "model": model_name,
+        "options": dict(model_options) if model is None else model.config,
+        "name": printer_name or default_printer_name(None if model is None else model.identity()),
+        "uuid": str(store.printer_uuid()),
+    }
 
 
 def _serving_model(
@@ -344,6 +370,131 @@ def _print_job(chunks, model, outputs, dirpath: Path, *, source: str) -> Reports
     for filepath in filepaths:
         table.add_row(path=str(filepath))
     return Reports(files=Report(data=table))
+
+
+@cli.command("print")
+@click.argument("input_file", metavar="FILE", type=click.File("rb"))
+@click.option(
+    "--model",
+    "-m",
+    "model_name",
+    default=_DEFAULT_MODEL_NAME,
+    show_default=True,
+    help="The printer model to print with.",
+)
+@_MODEL_OPTION
+@_OUTPUT
+@_OUTPUT_OPTION
+@_OUTPUT_DIR
+@click.option(
+    "--name",
+    "printer_name",
+    default=None,
+    help="The printer's name; default: its model's, such as 'Epson FX-80 (Papyrium)'.",
+)
+@report_output(reports={"files": "Files written."})
+def print_job(
+    input_file: BinaryIO,
+    model_name: str,
+    model_options: dict[str, str],
+    output_names: tuple[str, ...],
+    output_options: dict[str, dict[str, str]],
+    output_dirpath: Path,
+    printer_name: str | None,
+):
+    """Print a file, or standard input given ``-``, as one job.
+
+    For printer output an emulator saves all at once, such as b2's Save
+    printer buffer. The job is made as ``serve`` makes one: a numbered
+    directory under ``--output-dir`` holding the bytes (``capture.prn``),
+    a record (``job.json``) and the pages, numbered after the jobs already
+    there. The job ends where the input ends.
+    """
+    source = _input_name(input_file)
+    model = MODELS.create(model_name, model_options)
+    outputs = create_outputs(output_names or _DEFAULT_OUTPUT_NAMES, output_options)
+    chunk = input_file.read(_READ_SIZE)
+    if not chunk:
+        raise DataError(f"{source} holds no bytes; nothing printed")
+    store = JobStore(output_dirpath)
+    job = store.create_job(
+        transport_name="print",
+        printer_setup=_printer_setup(store, model_name, model_options, model, printer_name),
+    )
+    rendering = JobRendering(model, outputs, job.dirpath)
+    try:
+        while chunk:
+            job.append(chunk)
+            rendering.feed(chunk)
+            chunk = input_file.read(_READ_SIZE)
+    finally:
+        job.close(JobEndReason.END_OF_INPUT)
+    filepaths = rendering.finish()
+    table = TableContent(
+        title=f"job {job.number}: {rendering.page_count} pages from {source}, in {job.dirpath}"
+    )
+    table.add_column("path", "File", header=True)
+    for filepath in filepaths:
+        table.add_row(path=str(filepath))
+    return Reports(files=Report(data=table))
+
+
+@cli.command()
+@click.argument("input_file", metavar="FILE", type=click.File("rb"))
+@click.option(
+    "--host", default="localhost", show_default=True, help="Where the printer is listening."
+)
+@click.option(
+    "--port",
+    default=_DEFAULT_SEND_PORT,
+    show_default=True,
+    type=click.IntRange(1, 65535),
+    help="The printer's raw TCP port.",
+)
+@report_output(reports={"sent": "What was sent, and where."})
+def send(input_file: BinaryIO, host: str, port: int):
+    """Send a file, or standard input given ``-``, to a running printer.
+
+    The bytes go to the printer's raw TCP port, as ``serve`` listens on by
+    default, so the job is that printer's own: it is captured, printed and
+    listed with its other jobs. As for any connection, the printer ends
+    the job by its own rules, usually its idle timeout, not when the
+    connection closes.
+    """
+    source = _input_name(input_file)
+    place = f"{host}:{port}"
+    try:
+        connection = socket.create_connection((host, port), timeout=_CONNECT_TIMEOUT_SECONDS)
+    except OSError as error:
+        raise ConfigurationError(
+            f"cannot reach a printer at {place}: {error}", exit_code=ExitCode.UNAVAILABLE
+        ) from error
+    byte_count = 0
+    with connection:
+        # A printer that stops reading holds the sender, for as long as it likes.
+        connection.settimeout(None)
+        try:
+            while chunk := input_file.read(_READ_SIZE):
+                connection.sendall(chunk)
+                byte_count += len(chunk)
+        except OSError as error:
+            raise ConfigurationError(
+                f"the connection to {place} failed after {byte_count} bytes: {error}",
+                exit_code=ExitCode.UNAVAILABLE,
+            ) from error
+    table = TableContent(title=f"sent {source} to {place}")
+    table.add_column("destination", "Printer", header=True)
+    table.add_column("byte_count", "Bytes")
+    table.add_row(destination=place, byte_count=byte_count)
+    return Reports(sent=Report(data=table))
+
+
+def _input_name(input_file: BinaryIO) -> str:
+    """How to name a FILE argument in messages: its path, or standard input."""
+    name = getattr(input_file, "name", None)
+    if not isinstance(name, str) or name in ("-", "<stdin>"):
+        return "standard input"
+    return name
 
 
 @cli.command()

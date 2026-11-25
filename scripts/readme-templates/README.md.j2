@@ -144,6 +144,28 @@ uv run papyrium serve -M auto-line-feed=yes
 Escape sequences go to the printer with `VDU 1`, so `VDU 1,27,1,69` turns
 on emphasized printing (`ESC E`).
 
+## Printing from other BBC Micro emulators
+
+Emulators that print to a file can be followed as they print. Point
+BeebEm's Comms > Printer Destination > File... (or B-em's Print to file
+(binary)) at a file, and serve from it:
+
+```sh
+uv run papyrium serve -t file-follow -T filepath=~/beebem-printer.prn
+```
+
+Output an emulator saves all at once, such as b2's Printer > Save printer
+buffer..., prints as one job with `print`, or goes to a running printer
+with `send`; either reads standard input given `-`:
+
+```sh
+uv run papyrium print b2-printer.dat
+uv run papyrium send b2-printer.dat --port 9100
+```
+
+`docs/emulators/` describes what each emulator does with its printer
+output, and what is lost on the way.
+
 ## Finding Papyrium on the network
 
 `--advertise` announces the printer on the local network with multicast
@@ -173,6 +195,8 @@ dialog must print to it in ESC/P, not PostScript or PCL.
 | Command | Purpose |
 |---|---|
 | `papyrium serve` | Run a printer until interrupted |
+| `papyrium print FILE` | Print a file, or standard input, as one job |
+| `papyrium send FILE` | Send a file, or standard input, to a running printer |
 | `papyrium render JOB_OR_CAPTURE` | Print a captured job again, from a job directory or a `.prn` file |
 | `papyrium demo MODEL` | Print a printer model's demonstration page, showing what it can do |
 | `papyrium list-jobs` | List captured jobs |

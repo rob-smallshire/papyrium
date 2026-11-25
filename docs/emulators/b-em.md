@@ -108,9 +108,10 @@ command (binary) the best route:
 2. take the command from `-printcmd` and `-printcmdbin`;
 3. flush after each byte (or once per emulated frame).
 
-The command could then hand the bytes to Papyrium: `nc HOST 9100` to the
-existing `raw-tcp` transport, or a Papyrium command reading its standard
-input, which would also work on Windows, where `nc` is not installed.
+The command could then hand the bytes to Papyrium: `papyrium send -`
+(or `nc HOST 9100`, where installed) to a running printer's `raw-tcp`
+transport, or `papyrium print -` to print them as one job when B-em
+closes the pipe.
 Papyrium would get the bytes as they are printed and B-em would get real
 backpressure. Flushing alone (fix 3) would also make the file route
 deliver bytes promptly.
