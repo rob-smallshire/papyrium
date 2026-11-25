@@ -261,5 +261,7 @@ def _glp_mechanism(
         esc_a_stores_for_esc_2=True,
         esc_3_ignores_zero=True,
         flags_by_lowest_bit=True,
+        underline_trims_spaces=True,
+        underline_skips_high_characters=True,
         commands=_COMMANDS if nlq else _DRAFT_COMMANDS,
     )

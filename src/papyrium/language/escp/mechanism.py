@@ -181,5 +181,12 @@ class EscpMechanism:
     esc_3_ignores_zero: bool = False
     #: An on/off argument is on when odd, rather than only for 1 or '1'.
     flags_by_lowest_bit: bool = False
+    #: Underline leaves out the spaces at either end of each underlined run,
+    #: a run ending where the printer prints what it has so far: at a change
+    #: of underline, emphasized, double strike, script, condensed or near
+    #: letter quality, and at the end of the line.
+    underline_trims_spaces: bool = False
+    #: The printer's own upper half, its high_characters, is never underlined.
+    underline_skips_high_characters: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None

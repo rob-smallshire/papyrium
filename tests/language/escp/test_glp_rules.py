@@ -75,3 +75,37 @@ def test_on_off_arguments_can_go_by_their_lowest_bit():
     assert dots(ESC + b"x\x03A", flags_by_lowest_bit=True, **options) == dots(
         ESC + b"x\x01A", **options
     )
+
+
+def _underlined_xs(data, **options):
+    """The columns of the underline, on row 8."""
+    return sorted({x for x, y in dots(data, **options) if y == 8 * 60})
+
+
+UNDERLINE_RULES = {"underline_trims_spaces": True, "underline_skips_high_characters": True}
+
+
+def test_underline_can_leave_out_leading_and_trailing_spaces():
+    data = ESC + b"-\x01 A A " + ESC + b"-\x00"
+    assert _underlined_xs(data)[0] == LEFT
+    trimmed = _underlined_xs(data, **UNDERLINE_RULES)
+    assert trimmed[0] == LEFT + PICA
+    assert trimmed[-1] < LEFT + 4 * PICA
+
+
+def test_underline_covers_spaces_between_characters():
+    trimmed = _underlined_xs(ESC + b"-\x01A A" + ESC + b"-\x00", **UNDERLINE_RULES)
+    assert LEFT + PICA + PICA // 2 in trimmed
+
+
+def test_a_change_of_style_ends_the_underlined_run():
+    # Emphasized begins a new run, so the space before it is trailing.
+    data = ESC + b"-\x01A " + ESC + b"EA" + ESC + b"-\x00"
+    trimmed = _underlined_xs(data, **UNDERLINE_RULES)
+    assert not [x for x in trimmed if LEFT + PICA <= x < LEFT + 2 * PICA]
+
+
+def test_graphics_can_go_without_underline():
+    data = ESC + b"-\x01" + ESC + b"=A\x00" + ESC + b"-\x00"
+    assert _underlined_xs(data, **GLP) != []
+    assert _underlined_xs(data, **GLP, **UNDERLINE_RULES) == []

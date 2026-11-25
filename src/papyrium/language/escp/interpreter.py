@@ -226,6 +226,8 @@ class EscpInterpreter(Interpreter):
         self._script: str | None = None
         self._msb: int | None = None
         self._high_shift = False
+        self._pending_underline: list[tuple[_Entry, list[tuple[int, int]]]] = []
+        self._underline_run_started = False
         self._stored_spacing = inches(1) // 6
         self._character_set = mechanism.character_set
         self._high_codes_printable = mechanism.high_codes_printable
@@ -281,6 +283,11 @@ class EscpInterpreter(Interpreter):
                 pending[:0] = unmatched
             if self._is_printable(byte):
                 self._character(byte)
+            elif self._mechanism.underline_trims_spaces:
+                modes = self._segment_modes()
+                yield from self._control(self._control_code(byte))
+                if self._segment_modes() != modes:
+                    self._end_underline_run()
             else:
                 yield from self._control(self._control_code(byte))
 
@@ -462,7 +469,7 @@ class EscpInterpreter(Interpreter):
         dots = self._character_dots(location, glyph_key, step, offset, italic)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(location, width))
+        self._add_line_dots(entry, location, width)
         self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -502,7 +509,7 @@ class EscpInterpreter(Interpreter):
         raise_by = half if self._base_line_kept else 0
         entry = _Entry(self._x, [(self._x + dx, self._y + dy - raise_by) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(location, width))
+        self._add_line_dots(entry, location, width)
         self._add_to_line(entry)
         self._x += width + self._extra_space
         self._line_feed_scale = max(self._line_feed_scale, self._spacing_scale)
@@ -544,7 +551,7 @@ class EscpInterpreter(Interpreter):
         dots = self._nlq_dots(glyph, cell, italic, offset, columns)
         entry = _Entry(self._x, [(self._x + dx, self._y + dy) for dx, dy in dots])
         entry.text.append(self._text_mark(location, width))
-        entry.dots.extend(self._line_dots(location, width, nlq=True))
+        self._add_line_dots(entry, location, width, nlq=True)
         self._add_to_line(entry)
         self._x += width + self._extra_space
         if self._immediate:
@@ -738,9 +745,47 @@ class EscpInterpreter(Interpreter):
             return dots
         if self._overline:
             dots.extend((self._x + x, self._y) for x in range(0, width, PROPORTIONAL_STEP))
-        if self._underline:
+        unlined_high = self._mechanism.underline_skips_high_characters and location >= HIGH_LOCATION
+        if self._underline and not unlined_high:
             dots.extend(self._underline_dots(width, nlq=nlq))
         return dots
+
+    def _add_line_dots(
+        self, entry: _Entry, location: int, width: int, *, nlq: bool = False
+    ) -> None:
+        """Add the lines across the character at *location* to its *entry*;
+        a space's wait, where underline leaves out the spaces at either end
+        of a run, until a character follows it in the run."""
+        dots = self._line_dots(location, width, nlq=nlq)
+        if not (self._mechanism.underline_trims_spaces and self._underline):
+            entry.dots.extend(dots)
+            return
+        if location == 0x20:
+            self._pending_underline.append((entry, dots))
+            return
+        if dots:
+            if self._underline_run_started:
+                for pending_entry, pending_dots in self._pending_underline:
+                    pending_entry.dots.extend(pending_dots)
+            self._pending_underline.clear()
+            self._underline_run_started = True
+        entry.dots.extend(dots)
+
+    def _segment_modes(self) -> tuple:
+        """The modes whose change makes the printer print what it has so far."""
+        return (
+            self._underline,
+            self._emphasized,
+            self._double_strike,
+            self._script,
+            self._condensed,
+            self._nlq,
+        )
+
+    def _end_underline_run(self) -> None:
+        """End an underlined run: the spaces at its end stay unlined."""
+        self._pending_underline.clear()
+        self._underline_run_started = False
 
     def _is_lined(self, location: int) -> bool:
         """Whether underline and overline mark the character at *location*."""
@@ -795,6 +840,7 @@ class EscpInterpreter(Interpreter):
         self._line.append(entry)
 
     def _print_line(self) -> None:
+        self._end_underline_run()
         for entry in self._line:
             for ink in entry.inks:
                 self._paper_dots.setdefault(ink, []).extend(entry.dots)
