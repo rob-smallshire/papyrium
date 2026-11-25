@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel
+from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel, rebadged
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 from papyrium.language.escp.charsets import M1109_CHARACTER_SETS
 from papyrium.model.brother_m1109 import demo
 
-__all__ = ["BrotherM1109"]
+__all__ = ["BrotherM1109", "CentronicsGlpIi", "RcaVp2100", "SonyPrnM09"]
 
 #: Skip-over-perforation, when switched on, skips one inch: six lines at 1/6 inch.
 _SKIP_PERFORATION_LINES = 6
@@ -102,3 +102,11 @@ class BrotherM1109(PrinterModel):
 
     def create_interpreter(self) -> Interpreter:
         return EscpInterpreter(self._mechanism)
+
+
+# The M-1109 is the second edition of the Great Little Printer, the
+# Centronics GLP II (model 3102), sold under these names as well. The first
+# edition (Centronics 3101, the Brother M-1009) is a different printer.
+CentronicsGlpIi = rebadged(BrotherM1109, manufacturer="Centronics", model="GLP II")
+SonyPrnM09 = rebadged(BrotherM1109, manufacturer="Sony", model="PRN-M09")
+RcaVp2100 = rebadged(BrotherM1109, manufacturer="RCA", model="VP2100")

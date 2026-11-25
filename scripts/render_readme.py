@@ -97,6 +97,8 @@ class Plugin:
     name: str
     description: str
     module: ModuleMeta
+    #: For a printer model sold under another name, the name of the model it is.
+    rebadge_of: str | None = None
 
 
 def _module_meta(name: str) -> ModuleMeta:
@@ -125,15 +127,24 @@ def load_plugins() -> dict[str, list[Plugin]]:
     plugins = {}
     for kind in AXES:
         namespace = namespace_for(kind)
+        points = sorted(entry_points(group=namespace), key=lambda point: point.name)
+        names_by_class = {point.load(): point.name for point in points}
         plugins[kind] = [
             Plugin(
                 point.name,
                 describe_extension(kind, namespace, point.name, single_line=True).rstrip("."),
                 _module_meta(point.value.split(":")[0]),
+                _rebadge_of(point.load(), names_by_class),
             )
-            for point in sorted(entry_points(group=namespace), key=lambda point: point.name)
+            for point in points
         ]
     return plugins
+
+
+def _rebadge_of(plugin_class: type, names_by_class: Mapping[type, str]) -> str | None:
+    """The plug-in name of the printer model *plugin_class* rebadges, if it is one."""
+    original = getattr(plugin_class, "rebadge_of", None)
+    return None if original is None else names_by_class[original]
 
 
 def _environment() -> dict[str, str]:

@@ -95,6 +95,8 @@ $ papyrium list-models
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ brother-m1109       │ Brother M-1109: an 80-column, 9-pin dot-matrix printer │
 │                     │ in its Mode I.                                         │
+│ centronics-glp-ii   │ Centronics GLP II: the Brother M-1109 sold under       │
+│                     │ another name.                                          │
 │ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
 │                     │ speaking ESC/P.                                        │
 │ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
@@ -105,6 +107,10 @@ $ papyrium list-models
 │                     │ printer speaking ESC/P.                                │
 │ panasonic-kx-p1080u │ Panasonic KX-P1080U: the KX-P1080 for the UK, its      │
 │                     │ firmware Papyrium's source.                            │
+│ rca-vp2100          │ RCA VP2100: the Brother M-1109 sold under another      │
+│                     │ name.                                                  │
+│ sony-prn-m09        │ Sony PRN-M09: the Brother M-1109 sold under another    │
+│                     │ name.                                                  │
 │ star-lc10           │ Star LC-10: an 80-column, 9-pin dot-matrix printer     │
 │                     │ speaking ESC/P or,                                     │
 │ star-lc10-colour    │ Star LC-10 Colour: the LC-10 with a four-colour        │
@@ -308,11 +314,14 @@ to it, its modules joining the `papyrium` namespace beside these:
 | Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) |
 |  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) |
 | Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.brother_m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/) |
+|  | `centronics-glp-ii` | Centronics GLP II: the Brother M-1109 sold under another name | [`papyrium.model.brother_m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) |
 |  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) |
 |  | `panasonic-kx-p1080` | Panasonic KX-P1080: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) |
 |  | `panasonic-kx-p1080u` | Panasonic KX-P1080U: the KX-P1080 for the UK, its firmware Papyrium's source | [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) |
+|  | `rca-vp2100` | RCA VP2100: the Brother M-1109 sold under another name | [`papyrium.model.brother_m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/) |
+|  | `sony-prn-m09` | Sony PRN-M09: the Brother M-1109 sold under another name | [`papyrium.model.brother_m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/brother_m1109/) |
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/draft_9/) |

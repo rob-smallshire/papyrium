@@ -7,6 +7,14 @@ speaks ESC/P through `papyrium.language.escp`. Its IBM personality, Mode
 II, is not modelled. `docs/brother-m1109.md` records the behaviour
 followed and how it differs from the FX-80.
 
+The M-1109 is the second edition of Centronics' and Brother's Great
+Little Printer, the Centronics GLP II (model 3102), which was also sold as
+the Sony PRN-M09 and the RCA VP2100. Each of those names is a printer
+model of its own here, `centronics-glp-ii`, `sony-prn-m09` and
+`rca-vp2100`, printing exactly as the M-1109 does and naming itself by its
+own badge. The first edition, the Centronics GLP (model 3101) or Brother
+M-1009, is a different printer and is not modelled.
+
 ## Demonstration page
 
 <img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-brother-m1109.png" alt="The brother-m1109 demonstration page" width="100%">

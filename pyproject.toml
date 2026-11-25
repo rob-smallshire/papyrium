@@ -82,11 +82,14 @@ proprinter = "papyrium.language.proprinter:ProprinterLanguage"
 
 [project.entry-points."papyrium.model"]
 brother-m1109 = "papyrium.model.brother_m1109:BrotherM1109"
+centronics-glp-ii = "papyrium.model.brother_m1109:CentronicsGlpIi"
 epson-fx80 = "papyrium.model.epson_fx80:EpsonFx80"
 epson-lx800 = "papyrium.model.epson_lx800:EpsonLX800"
 panasonic-kx-p1080 = "papyrium.model.panasonic_kx_p1080:PanasonicKXP1080"
 panasonic-kx-p1080u = "papyrium.model.panasonic_kx_p1080:PanasonicKXP1080U"
 ibm-proprinter-ii = "papyrium.model.ibm_proprinter_ii:IBMProprinterII"
+rca-vp2100 = "papyrium.model.brother_m1109:RcaVp2100"
+sony-prn-m09 = "papyrium.model.brother_m1109:SonyPrnM09"
 star-lc10 = "papyrium.model.star_lc10:StarLC10"
 star-lc10-colour = "papyrium.model.star_lc10:StarLC10Colour"
 

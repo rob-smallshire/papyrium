@@ -36,7 +36,7 @@ Each printer model has a demonstration page, printed here by Papyrium
 itself; `papyrium demo MODEL` prints one.
 
 <table>
-{%- for row in plugins["model"]|batch(4, none) %}
+{%- for row in plugins["model"]|rejectattr("rebadge_of")|batch(4, none) %}
 <tr>
 {%- for model in row %}
 {%- if model %}

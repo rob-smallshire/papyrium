@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from papyrium.core.options import construct
 from papyrium.core.page import Page
@@ -62,6 +63,9 @@ class PrinterModel(Extension):
     model the printer's switches.
     """
 
+    #: The printer model this one is, sold under another name; see :func:`rebadged`.
+    rebadge_of: ClassVar[type[PrinterModel] | None] = None
+
     @classmethod
     def _kind(cls) -> str:
         return "model"
@@ -102,3 +106,42 @@ class PrinterModel(Extension):
         accepts only that one, so this reports the configured printer, not
         every language its model can speak.
         """
+
+
+def rebadged(base: type[PrinterModel], *, manufacturer: str, model: str) -> type[PrinterModel]:
+    """A printer model that is *base* sold under another maker's or model's name.
+
+    Many printers were made once and sold under several badges. The
+    rebadged model prints exactly as *base* does and takes its options;
+    only its identity differs, so it names itself, in its printer name, its
+    announcement on the network and its jobs' records, by its own badge.
+    Its :attr:`~PrinterModel.rebadge_of` is *base*.
+
+    A printer sold under another name but with different firmware is not a
+    rebadge; it is a model of its own, built on the one it varies.
+
+    Raises:
+        ValueError: The badge cannot name a printer; see :class:`ModelIdentity`.
+    """
+    badge = ModelIdentity(manufacturer=manufacturer, model=model)
+    original = base(name=base.__name__).identity()
+
+    def identity(self) -> ModelIdentity:
+        return badge
+
+    return type(
+        "".join(
+            part[:1].upper() + part[1:].lower()
+            for part in re.findall(r"[A-Za-z0-9]+", badge.display_name)
+        ),
+        (base,),
+        {
+            "__doc__": (
+                f"{badge.display_name}: the {original.display_name} sold under another name.\n\n"
+                f"It prints exactly as the {original.display_name} does and takes its options."
+            ),
+            "__module__": base.__module__,
+            "rebadge_of": base,
+            "identity": identity,
+        },
+    )
