@@ -12,6 +12,7 @@ Papyrium transport (or a change to the emulator) would take them in.
 | b2 | [b2.md](b2.md) | in-memory buffer, saved by hand | no | read a saved file as one job; or patch b2 to stream |
 | B-em | [b-em.md](b-em.md) | appends to a file, or pipes to a command | yes, but buffered | follow the file; or fix B-em's command printing |
 | jsbeeb | [jsbeeb.md](jsbeeb.md) | a text area in a pop-up window | no | none; patch jsbeeb to send its `output` events on |
+| beebjit | [beebjit.md](beebjit.md) | truncates a fixed file, CR made LF | yes, but buffered | follow the file, text only; or patch beebjit |
 
 ## What the emulator owes Papyrium
 
@@ -29,13 +30,17 @@ translation. Each emulator note says whether its output is that.
   backpressure (B-em's command printing would, through a pipe, if it
   worked). A transport for the others needs no flow control, and the
   BBC prints at full speed.
-- **Output may lag.** BeebEm flushes every byte; B-em never flushes, so
-  a file it writes grows in blocks and the end of a job can stay in
-  B-em until printing is turned off. A follower must not assume the
-  file is complete when it stops growing.
+- **Output may lag.** BeebEm flushes every byte; B-em and beebjit never
+  flush, so a file they write grows in blocks and the end of a job can
+  stay in the emulator until printing is turned off or it exits. A
+  follower must not assume the file is complete when it stops growing.
 - **Text modes are no use.** Several emulators offer a "text" or
   clipboard destination that translates line endings and the pound
   sign. Papyrium needs the binary or raw destination every time.
+  beebjit has only a translating one (CR becomes LF).
+- **Files are appended to or truncated.** BeebEm and B-em append, so a
+  follower starts at the end; beebjit truncates at each run's first
+  byte, which a follower sees only as the file shrinking.
 - **No job boundaries in the stream.** Turning the emulated printer off
   and on leaves no mark in the bytes. Jobs end by the spooler's idle
   timeout and by the language's own boundaries (form feed), as the
