@@ -21,4 +21,12 @@ neighbours. Each glyph is keyed by its Unicode character, the Symbols for
 Legacy Computing among them; three characters Unicode encodes only from
 version 16 use U+E0EF, U+E0FC and U+E0FD in the Private Use Area.
 
-Registered as `glp-draft` and `glp-graphics` on the `papyrium.font` axis.
+glp-nlq is the Schneider NLQ401's near letter quality, Schneider's
+addition to the GLP: two passes of eight pins, the second 1/216 inch below
+the first, interleaved as 18 rows; 39 columns 1/360 inch apart, 36 to the
+pica cell, so a character may reach three columns into the next. The
+descenders sit a pin lower, as in draft. It covers ASCII and the German
+characters; the graphics print in draft.
+
+Registered as `glp-draft`, `glp-graphics` and `glp-nlq` on the
+`papyrium.font` axis.

@@ -73,3 +73,10 @@ def test_an_nlq_fonts_columns_span_its_cell():
 
 def test_a_draft_cell_is_twelve_columns_at_every_pitch():
     assert {GENERATOR.cell_columns(inches(1) // n) for n in (10, 12, 20)} == {12}
+
+
+def test_an_nlq_fonts_columns_span_its_cell_unless_the_printer_says_otherwise():
+    assert GENERATOR.nlq_columns(24) == 24
+    # The Centronics GLP's NLQ characters are 39 columns 1/360 inch apart,
+    # 36 to the pica cell, reaching into the next.
+    assert CharacterGenerator(nlq_cell_columns=36).nlq_columns(39) == 36

@@ -514,8 +514,9 @@ class EscpInterpreter(Interpreter):
         return self._generator.nlq_proportional_cell(glyph)
 
     def _nlq_columns(self) -> int:
-        """The dot columns across an NLQ character's cell: its font's."""
-        return self._nlq_font().columns
+        """The dot columns across an NLQ character's cell: its font's, unless
+        the character generator says how many of them span it."""
+        return self._generator.nlq_columns(self._nlq_font().columns)
 
     def _nlq_character(self, location: int, glyph: Glyph, italic: bool, columns: int) -> None:
         """Print an NLQ *glyph*, its *columns* spanning the cell."""

@@ -130,6 +130,9 @@ $ papyrium list-fonts
 │ glp-graphics                         │ The Centronics GLP's graphics         │
 │                                      │ characters, the Amstrad CPC's codes   │
 │                                      │ 129-255.                              │
+│ glp-nlq                              │ The Schneider NLQ401's near letter    │
+│                                      │ quality characters, from its          │
+│                                      │ firmware.                             │
 │ kx-p1080-draft                       │ The KX-P1080U's draft font, extracted │
 │                                      │ from its CPU's internal ROM.          │
 │ kx-p1080-draft-italic                │ The KX-P1080U's draft italics,        │
@@ -337,6 +340,7 @@ to it, its modules joining the `papyrium` namespace beside these:
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) |
 |  | `glp-draft` | The Centronics GLP's draft characters (Model 3101), from its firmware | [`papyrium.font.glp`](src/papyrium/font/glp/) |
 |  | `glp-graphics` | The Centronics GLP's graphics characters, the Amstrad CPC's codes 129-255 | [`papyrium.font.glp`](src/papyrium/font/glp/) |
+|  | `glp-nlq` | The Schneider NLQ401's near letter quality characters, from its firmware | [`papyrium.font.glp`](src/papyrium/font/glp/) |
 |  | `kx-p1080-draft` | The KX-P1080U's draft font, extracted from its CPU's internal ROM | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |
 |  | `kx-p1080-draft-italic` | The KX-P1080U's draft italics, extracted from its CPU's internal ROM | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |
 |  | `kx-p1080-nlq` | The KX-P1080U's near letter quality font, extracted from its EPROM | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |

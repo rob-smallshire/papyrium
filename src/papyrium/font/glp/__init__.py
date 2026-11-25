@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from papyrium.core.dotfont import DataDotFont
 
-__all__ = ["GlpDraftFont", "GlpGraphicsFont"]
+__all__ = ["GlpDraftFont", "GlpGraphicsFont", "GlpNlqFont"]
 
 
 class GlpDraftFont(DataDotFont):
@@ -29,3 +29,16 @@ class GlpGraphicsFont(DataDotFont):
     """
 
     font_filename = "graphics.txt"
+
+
+class GlpNlqFont(DataDotFont):
+    """The Schneider NLQ401's near letter quality characters, from its firmware.
+
+    Schneider's addition to the Centronics GLP. Two passes of eight pins,
+    the first's on even rows and the second's, 1/216 inch lower, on odd
+    rows: 18 rows by 39 columns 1/360 inch apart, 36 to the pica cell, so a
+    character may reach into the next. ; _ g p q y sit a pin lower, as the
+    firmware prints them. Covers ASCII and § Ä Ö Ü ä ö ü ß.
+    """
+
+    font_filename = "nlq.txt"

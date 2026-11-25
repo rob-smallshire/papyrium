@@ -29,6 +29,12 @@ FONT_DIRPATH = REPO_DIRPATH / "src/papyrium/font/glp"
 CHARACTER_BASE = 0x159D
 CHARACTER_BYTES = 11
 
+#: A near letter quality character is two passes of 39 columns, the
+#: second pass's at 39 bytes on, from this address plus 78 times its
+#: location ($143E), for locations 0x18-0x7E.
+NLQ_BASE = 0x194E
+NLQ_COLUMNS = 39
+
 #: Locations 0x18-0x1F hold character set 2's German characters, which
 #: replace @ [ \ ] { | } ~ (the conversion table at $15F4).
 GERMAN = "§ÄÖÜäöüß"
@@ -60,6 +66,17 @@ DRAFT_HEADER = """\
 # inch apart. The firmware prints ; _ g p q y a pin lower, on rows 1-8.
 """
 
+NLQ_HEADER = """\
+# glp-nlq: the Schneider NLQ401's near letter quality characters, which
+# Schneider added to the Centronics GLP's firmware.
+#
+# Extracted by tools/nlq401-rom/extract.py from the NLQ401's EPROM Rev 004.
+# Two passes of eight pins: even rows are the first pass's pins, odd rows
+# the second's, 1/216 inch lower. Columns are 1/360 inch apart, 36 to the
+# pica cell, so a character may reach three columns into the next. The
+# firmware prints ; _ g p q y a pin lower, on rows 2-17.
+"""
+
 GRAPHICS_HEADER = """\
 # glp-graphics: the Centronics GLP's graphics characters, the Amstrad CPC's
 # codes 129-255, which the Schneider NLQ401 prints after ESC =.
@@ -85,6 +102,18 @@ def draft_rows(rom: bytes, location: int, lowered: bool) -> list[str]:
     ]
     blank = "." * CHARACTER_BYTES
     return [blank, *rows] if lowered else [*rows, blank]
+
+
+def nlq_rows(rom: bytes, location: int, lowered: bool) -> list[str]:
+    start = NLQ_BASE + location * 2 * NLQ_COLUMNS
+    passes = (rom[start : start + NLQ_COLUMNS], rom[start + NLQ_COLUMNS : start + 2 * NLQ_COLUMNS])
+    rows = [
+        "".join("#" if column & (0x80 >> pin) else "." for column in passes[row % 2])
+        for pin in range(8)
+        for row in (2 * pin, 2 * pin + 1)
+    ]
+    blank = "." * NLQ_COLUMNS
+    return [blank, blank, *rows] if lowered else [*rows, blank, blank]
 
 
 def graphics_rows(rom: bytes, location: int) -> list[str]:
@@ -114,13 +143,19 @@ def main() -> int:
         draft.append(entry(chr(code), draft_rows(rom, code, chr(code) in DESCENDERS)))
     for index, german in enumerate(GERMAN):
         draft.append(entry(german, draft_rows(rom, 0x18 + index, False)))
+    nlq = [NLQ_HEADER, f"rows 18\ncolumns {NLQ_COLUMNS}\n"]
+    for code in range(0x20, 0x7F):
+        nlq.append(entry(chr(code), nlq_rows(rom, code, chr(code) in DESCENDERS)))
+    for index, german in enumerate(GERMAN):
+        nlq.append(entry(german, nlq_rows(rom, 0x18 + index, False)))
     graphics = [GRAPHICS_HEADER, "rows 8\ncolumns 11\n"]
     for index, text in enumerate(GRAPHICS):
         graphics.append(entry(text, graphics_rows(rom, 0x81 + index)))
     FONT_DIRPATH.mkdir(parents=True, exist_ok=True)
     (FONT_DIRPATH / "draft.txt").write_text("\n".join(draft))
     (FONT_DIRPATH / "graphics.txt").write_text("\n".join(graphics))
-    print(f"wrote {FONT_DIRPATH / 'draft.txt'} and {FONT_DIRPATH / 'graphics.txt'}")
+    (FONT_DIRPATH / "nlq.txt").write_text("\n".join(nlq))
+    print(f"wrote draft.txt, graphics.txt and nlq.txt in {FONT_DIRPATH}")
     return 0
 
 

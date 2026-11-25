@@ -66,7 +66,9 @@ class CharacterGenerator:
     of double-strike the second prints. *nlq_pass_offset*: how far below
     the first NLQ pass the second prints. *nlq_underline_second_pass*: NLQ
     underlines in its second pass, *nlq_pass_offset* below draft's
-    underline, rather than in its first.
+    underline, rather than in its first. *nlq_cell_columns*: how many of
+    an NLQ font's columns span a character's cell, where the font has more
+    that reach into the next; None for all of them.
     """
 
     prints_adjacent_dots_once: bool = False
@@ -74,6 +76,11 @@ class CharacterGenerator:
     double_strike_offset: int = DOUBLE_STRIKE_OFFSET
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
     nlq_underline_second_pass: bool = False
+    nlq_cell_columns: int | None = None
+
+    def nlq_columns(self, font_columns: int) -> int:
+        """The NLQ columns that span a character's cell, from a font of *font_columns*."""
+        return font_columns if self.nlq_cell_columns is None else self.nlq_cell_columns
 
     def user_proportional_cell(self, first: int, last: int) -> tuple[int, int]:
         """The columns a download character takes in proportional spacing,
