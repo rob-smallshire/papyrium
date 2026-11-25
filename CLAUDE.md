@@ -37,6 +37,10 @@ beside them: `docs/star-lc10-firmware.md` for the LC-10, and for the
 KX-P1080U, whose CPU's own ROM was read out by making the printer print
 it, `docs/panasonic-kx-p1080-rom-recovery.md`.
 
+How other BBC Micro emulators deliver printer output, read from their
+source, and how Papyrium might collect it, is in `docs/emulators/`, one
+note per emulator, with the patterns across them in its README.
+
 ## Architecture
 
 Independent, pluggable axes, each chosen by configuration:
