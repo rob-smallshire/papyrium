@@ -23,8 +23,8 @@ version 16 use U+E0EF, U+E0FC and U+E0FD in the Private Use Area.
 
 glp-nlq is the Schneider NLQ401's near letter quality, Schneider's
 addition to the GLP: two passes of eight pins, the second 1/216 inch below
-the first, interleaved as 18 rows; 39 columns 1/360 inch apart, 36 to the
-pica cell, so a character may reach three columns into the next. The
+the first, interleaved as 18 rows; 39 columns 1/480 inch apart, in a
+pica cell of 48. The
 descenders sit a pin lower, as in draft. It covers ASCII and the German
 characters; the graphics print in draft.
 

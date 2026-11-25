@@ -89,7 +89,8 @@ The options model the printers' DIP switches and paper. `centronics-glp`:
 | `graphics-font` | `glp-graphics` | The graphics characters, codes 129-255: a dot font's name or file |
 
 Near letter quality prints from the `nlq-font`, two passes 1/216 inch
-apart on a 1/360 inch grid, 36 columns to the pica cell. The graphics
+apart on a 1/480 inch grid, 48 columns to the pica cell, of which a
+character's 39 print; enlarged, it prints each pair of columns as one. The graphics
 print in draft, from the `graphics-font`, in any quality.
 
 ## Licence

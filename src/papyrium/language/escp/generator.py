@@ -66,9 +66,11 @@ class CharacterGenerator:
     of double-strike the second prints. *nlq_pass_offset*: how far below
     the first NLQ pass the second prints. *nlq_underline_second_pass*: NLQ
     underlines in its second pass, *nlq_pass_offset* below draft's
-    underline, rather than in its first. *nlq_cell_columns*: how many of
-    an NLQ font's columns span a character's cell, where the font has more
-    that reach into the next; None for all of them.
+    underline, rather than in its first. *nlq_cell_columns*: how many NLQ
+    columns span a character's cell, where it is not the font's columns,
+    which then leave some of the cell blank; None for the font's.
+    *nlq_double_width_pairs*: enlarged NLQ prints each pair of columns as
+    one, the even column's place, rather than striking every dot twice.
     """
 
     prints_adjacent_dots_once: bool = False
@@ -77,6 +79,7 @@ class CharacterGenerator:
     nlq_pass_offset: int = DOUBLE_STRIKE_OFFSET
     nlq_underline_second_pass: bool = False
     nlq_cell_columns: int | None = None
+    nlq_double_width_pairs: bool = False
 
     def nlq_columns(self, font_columns: int) -> int:
         """The NLQ columns that span a character's cell, from a font of *font_columns*."""
@@ -175,13 +178,16 @@ class CharacterGenerator:
         even rows, of the second, *nlq_pass_offset* lower, on odd rows."""
         step = width // columns
         result = []
-        for column, row in sorted(glyph.dots, key=lambda dot: (dot[1], dot[0])):
+        dots = glyph.dots
+        if style.double_width and self.nlq_double_width_pairs:
+            dots = frozenset((column - column % 2, row) for column, row in dots)
+        for column, row in sorted(dots, key=lambda dot: (dot[1], dot[0])):
             dx = (column + style.offset) * step
             if style.italic:
                 dx += self.nlq_italic_offset(glyph, row, step)
             dy = (row // 2) * pin_pitch + (row % 2) * self.nlq_pass_offset
             passes = [(dx, dy)]
-            if style.double_width:
+            if style.double_width and not self.nlq_double_width_pairs:
                 # Enlarged characters strike every dot twice, side by side.
                 passes.append((dx + step // 2, dy))
             if style.emphasized and self.nlq_emphasized:

@@ -28,8 +28,9 @@ _DRAFT_COMMANDS = _COMMANDS - {"I", "x"}
 #: in place of @ [ \ ] { | } ~, as Epson's German set does.
 _CHARACTER_SETS = {"1": CharacterSet.USA, "2": CharacterSet.GERMANY}
 
-#: Near letter quality columns are 1/360 inch apart, 36 to the pica cell.
-_GENERATOR = CharacterGenerator(nlq_cell_columns=36)
+#: Near letter quality columns are 1/480 inch apart, 48 to the pica cell,
+#: of which a character's 39 print; enlarged, each pair prints as one.
+_GENERATOR = CharacterGenerator(nlq_cell_columns=48, nlq_double_width_pairs=True)
 
 
 class CentronicsGlp(PrinterModel):

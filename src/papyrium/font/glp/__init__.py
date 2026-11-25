@@ -53,9 +53,8 @@ class GlpNlqFont(DataDotFont):
 
     Schneider's addition to the Centronics GLP. Two passes of eight pins,
     the first's on even rows and the second's, 1/216 inch lower, on odd
-    rows: 18 rows by 39 columns 1/360 inch apart, 36 to the pica cell, so a
-    character may reach into the next. ; _ g p q y sit a pin lower, as the
-    firmware prints them. Covers ASCII and § Ä Ö Ü ä ö ü ß.
+    rows: 18 rows by 39 columns 1/480 inch apart, in a cell of 48 columns.
+    ; _ g p q y sit a pin lower, as the firmware prints them. Covers ASCII and § Ä Ö Ü ä ö ü ß.
     """
 
     font_filename = "nlq.txt"

@@ -68,7 +68,7 @@ def demo(name: str, *, nlq: bool) -> bytes:
                     _heading("Near letter quality"),
                     nlq_on,
                     line("Two passes, the second 1/216 inch below the first, on a grid"),
-                    line("of 1/360 inch: The quick brown fox jumps over the lazy dog."),
+                    line("of 1/480 inch: The quick brown fox jumps over the lazy dog."),
                     nlq_off,
                 ]
                 if nlq

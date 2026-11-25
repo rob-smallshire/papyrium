@@ -144,8 +144,18 @@ travel runs from its first printing character to its last.
 - Graphics characters (codes 128 and up) set VV:00 bit 5 and print in
   one direction; under NLQ they print in draft, struck twice.
 
-Still to trace: how enlarged prints near letter quality, in the column
-scheduler from $0CB9; the self test and hex dump; the head timing.
+- Printing a line ($0CCB): each character is a run of slots, 1/120 inch
+  apart in draft and 1/480 in NLQ, through the print loops at $1000
+  (rightwards) and $0D9E (leftwards), which take a glyph's columns one a
+  slot. Enlarged (C bit 0, from VV:06) alternates the slots: in draft
+  ($10A3) a column prints, then the next slot repeats it, VV:20 keeping
+  its pins, so every dot is struck twice 1/120 inch apart; in NLQ
+  ($10C9) the OR of a pair of columns, read as one word, prints in place
+  of the even one and the slots between are blank, so enlarged NLQ is
+  each pair of columns as one, 1/120 inch apart. Graphics characters
+  print a column every other slot ($10F2), on the even ones.
+
+Still to trace: the self test and hex dump, and the head's timing.
 
 ## Draft characters
 
@@ -164,9 +174,11 @@ ones, full dots 1/60 inch apart that join their neighbours.
 
 Near letter quality characters, Schneider's, are two passes of 39
 columns, 78 bytes from $194E plus 78 times the location, for 0x18 to
-0x7E, ending at the ROM's last byte ($143E). The columns are 1/360 inch
-apart, 36 to the pica cell (6 to the carriage's 1/60 inch step, as draft
-has 2), so a character may reach 3 columns into the next; the second
+0x7E, ending at the ROM's last byte ($143E). The columns are 1/480 inch
+apart, 48 to the pica cell, as the print loops count them (`LXI DE,$3027`
+at $14F0: 48 slots, 39 columns; draft's are $0C0B, 12 and 11), eight to
+the carriage's 1/60 inch step, as the NLQ timing table at $1463 has
+eight phases; the second
 pass falls 1/216 inch below the first, one step of the paper feed. They
 are `glp-nlq`. Six characters print a pin lower: `;`, `_`, `g`, `p`, `q` and `y`,
 which the routine at $08FD tests for by code, marking the character in

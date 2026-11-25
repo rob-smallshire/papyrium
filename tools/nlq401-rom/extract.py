@@ -59,8 +59,8 @@ NLQ_HEADER = """\
 #
 # Extracted by tools/nlq401-rom/extract.py from the NLQ401's EPROM Rev 004.
 # Two passes of eight pins: even rows are the first pass's pins, odd rows
-# the second's, 1/216 inch lower. Columns are 1/360 inch apart, 36 to the
-# pica cell, so a character may reach three columns into the next. The
+# the second's, 1/216 inch lower. Columns are 1/480 inch apart, 48 to the
+# pica cell, of which a character's 39 print. The
 # firmware prints ; _ g p q y a pin lower, on rows 2-17.
 """
 

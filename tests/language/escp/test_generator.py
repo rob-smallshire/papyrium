@@ -77,6 +77,17 @@ def test_a_draft_cell_is_twelve_columns_at_every_pitch():
 
 def test_an_nlq_fonts_columns_span_its_cell_unless_the_printer_says_otherwise():
     assert GENERATOR.nlq_columns(24) == 24
-    # The Centronics GLP's NLQ characters are 39 columns 1/360 inch apart,
-    # 36 to the pica cell, reaching into the next.
-    assert CharacterGenerator(nlq_cell_columns=36).nlq_columns(39) == 36
+    # The Centronics GLP's NLQ characters are 39 columns 1/480 inch apart,
+    # in a cell of 48.
+    assert CharacterGenerator(nlq_cell_columns=48).nlq_columns(39) == 48
+
+
+def test_enlarged_nlq_can_merge_column_pairs():
+    # The Centronics GLP prints each pair of NLQ columns as one, at twice
+    # the pitch, rather than striking every dot twice.
+    generator = CharacterGenerator(nlq_double_width_pairs=True)
+    glyph = Glyph(frozenset({(0, 0), (1, 0), (3, 2)}))
+    width = 2 * inches(1) // 10
+    dots = generator.nlq_dots(glyph, 48, width, CharacterStyle(step=0, double_width=True), PIN)
+    step = width // 48
+    assert sorted(dots) == [(0, 0), (2 * step, PIN)]
