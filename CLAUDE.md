@@ -36,7 +36,9 @@ in the manual, before deciding it yourself, and record new findings there.
 Where a printer's firmware has been read, what it shows is written up
 beside them: `docs/star-lc10-firmware.md` for the LC-10, and for the
 KX-P1080U, whose CPU's own ROM was read out by making the printer print
-it, `docs/panasonic-kx-p1080-rom-recovery.md`.
+it, `docs/panasonic-kx-p1080-rom-recovery.md`; for the Schneider NLQ401,
+the first-edition Centronics GLP (Model 3101) with Schneider's NLQ,
+`docs/schneider-nlq401-firmware.md`.
 
 How other BBC Micro emulators deliver printer output, read from their
 source, and how Papyrium might collect it, is in `docs/emulators/`, one
@@ -191,8 +193,8 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   where two threads genuinely share state.
 - **No backward compatibility** before 1.0; change the API freely.
 - **Never silently discard a failure**; log why.
-- **No copyrighted material** without Rob's decision: no ROM images or
-  dumps, commercial software or its output, and no manuals. Test captures come from BASIC programs
+- **No copyrighted material** committed without Rob's decision: no ROM
+  images or dumps, commercial software or its output, and no manuals. Test captures come from BASIC programs
   this project writes itself. Fonts are kept as swappable data.
 - **Own implementations, others by licence.** Papyrium's languages are
   implemented from public documentation (printer manuals, specifications).
@@ -209,15 +211,16 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   a separately distributed package and needs Rob's licence decision.
 - Fonts (dot fonts, and outline fonts for daisywheel print wheels) are
   our own design, carry a licence that permits redistribution, or are
-  reconstructions of a printer's characters from its printed output, as
-  `m1109-draft` is from the M-1109 manual's pages (`tools/m1109-glyphs/`).
-  Whether a printer's ROM may be used, for its characters or otherwise,
-  is Rob's decision, case by case (yes for the LX-800's, which gives
-  `lx800-draft` and `lx800-nlq-roman` through `tools/lx800-rom/`, and for
-  the LC-10 Colour's, for everything needed to simulate the LC-10 and
-  LC-10 Colour, which gives `papyrium.font.lc10` through
-  `tools/lc10-rom/`, and for the Panasonic KX-P1080U's, for anything in
-  it); without it, a reconstruction never
-  comes from reading a ROM, and no ROM image is ever committed.
+  taken from the printer itself: reconstructed from its printed output,
+  as `m1109-draft` is from the M-1109 manual's pages
+  (`tools/m1109-glyphs/`), or extracted from its firmware.
+- **Legacy printers' ROMs may be read**: disassembled, reverse
+  engineered, and used for anything needed to simulate the printer, its
+  characters, its commands and its behaviour, as the LX-800's
+  (`tools/lx800-rom/`), the LC-10 Colour's (`tools/lc10-rom/`), the
+  KX-P1080U's (`tools/kx-p1080-rom/`) and the Schneider NLQ401's (the
+  Centronics GLP's) are. A ROM stays uncommitted in `docs/local/`, beside
+  the printer's manuals; what it shows is restated in our own words in a
+  committed note. No ROM image is ever committed.
 - Do not modify anything under `/Users/rjs/Code/beebium`; ask
   beebium-architect about Beebium's behaviour.

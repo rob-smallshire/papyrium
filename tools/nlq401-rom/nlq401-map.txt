@@ -1,0 +1,34 @@
+# Map of the Schneider NLQ401's firmware, EPROM Rev 004: the Centronics
+# GLP (Model 3101) hardware with Schneider's near letter quality. The CPU
+# is a NEC uPD7810 (a uPD7811 with its internal ROM disabled) and the 16K
+# EPROM fills its 14-bit external address space. Names and descriptions
+# are our own, from tracing the program.
+
+@rom docs/local/schneider-nlq401/schneider_nlq401_rev004.bin
+@listing docs/local/schneider-nlq401/schneider_nlq401_rev004.dis
+@arch upd7810
+@segment 0000-3FFF at 0000
+@vpage FF
+
+# -- Vectors -----------------------------------------------------------------
+
+$0000        code  reset             Power on: disable interrupts, set up the ports and mode registers
+$0008        code  int_timer         Timer interrupt (INTT0/INTT1): call the handler whose address is in $FF0E
+$0018        code  int_external      INTE0/INTE1: call the handler whose address is in $FF10
+$0294        code  control_code      Dispatch a byte below 0x20: codes 0x09-0x1B through control_codes, others to $02F3
+$044F        code  esc               ESC: note that a command byte follows
+$0454        code  esc_command       The byte after ESC: x to esc_x, - to Z through esc_commands
+$141B        code  esc_x             ESC x: near letter quality on or off
+
+# -- Data in the program -----------------------------------------------------
+
+$02A0-$02C5  jumps:09 control_codes  Handlers for control codes 0x09-0x1B
+$046A-$04C5  jumps:2D esc_commands  Handlers for ESC - to ESC Z; the top bit is a flag, masked off before the jump
+
+$16A5-$16FC  data  draft_low         Eight draft characters before the space; not yet known which codes
+$16FD-$1B3D  data  draft_characters  Draft characters 0x20-0x82, eleven columns each, the top pin in bit 7
+
+# -- RAM ---------------------------------------------------------------------
+
+$FF0E        ram   timer_handler     Address of the timer interrupt's current handler
+$FF10        ram   external_handler  Address of the external interrupt's current handler

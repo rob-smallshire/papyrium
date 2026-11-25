@@ -7,6 +7,8 @@
 # (default 300, the resolution most such scans were made at) as
 # <manual>-pages/p-NNN.png and OCRed with Tesseract to p-NNN.txt beside
 # it; pages already done are skipped, so an interrupted run can be resumed.
+# OCR_LANG chooses the language, such as deu (default eng), from Tesseract's
+# data or from TESSDATA_PREFIX.
 # The whole text is gathered into <manual>.txt, with a "=== page N ===" line
 # before each page. Manuals are copyrighted, so docs/local/ is never
 # committed.
@@ -24,7 +26,7 @@ ls "$pages_dirpath"/p-*.png | while read -r image_filepath; do
   base=${image_filepath%.png}
   [ -s "$base.txt" ] || echo "$image_filepath"
 done | xargs -P "$(sysctl -n hw.ncpu 2>/dev/null || nproc)" -I {} sh -c \
-  'tesseract "{}" "$(echo {} | sed "s/\.png$//")" --dpi '"$dpi"' -l eng --psm 4 >/dev/null 2>&1'
+  'tesseract "{}" "$(echo {} | sed "s/\.png$//")" --dpi '"$dpi"' -l '"${OCR_LANG:-eng}"' --psm 4 >/dev/null 2>&1'
 text_filepath="$stem.txt"
 : > "$text_filepath"
 for page_text_filepath in "$pages_dirpath"/p-*.txt; do

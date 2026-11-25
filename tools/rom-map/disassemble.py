@@ -30,7 +30,11 @@ repository and numbers in hexadecimal:
 
 Each entry is a CPU address or range, a kind (``data`` for bytes,
 ``commands`` for a command table of three-byte entries, a byte and its
-handler's address, ended by a zero; ``code`` for a routine or an entry
+handler's address, ended by a zero; ``jumps`` for a table of two-byte
+addresses, low byte first, such as a uPD7810's ``TABLE`` reads, and
+``jumps:NN`` for one indexed by codes from hexadecimal NN on, so each
+entry shows its code; an address with its top bit set, above the CPU's
+addresses, is shown without that bit, as a flag; ``code`` for a routine or an entry
 point within one; ``ram`` for a RAM location), a name and a description;
 ``#`` starts a comment.
 """
@@ -63,7 +67,7 @@ class Segment:
 
 @dataclass(frozen=True)
 class Region:
-    """Data in the program, by CPU address: *kind* is ``data`` or ``commands``."""
+    """Data in the program, by CPU address: *kind* is ``data``, ``commands`` or ``jumps``."""
 
     first: int
     last: int
@@ -145,7 +149,7 @@ def read_map(map_filepath: Path) -> RomMap:
         except ValueError as error:
             raise SystemExit(f"{where}: {line!r}") from error
         first, last = _span(span)
-        if kind in ("data", "commands"):
+        if kind in ("data", "commands", "jumps") or kind.startswith("jumps:"):
             rom_map.regions.append(Region(first, last, kind, name, rest[0] if rest else ""))
         elif kind not in ("code", "ram"):
             raise SystemExit(f"{where}: unknown kind {kind!r}")
@@ -195,6 +199,25 @@ def data_lines(rom: bytes, segment: Segment, region: Region, rom_map: RomMap) ->
         if address <= region.last:
             lines.append(f"{address:04x}: {at(address):02x}        end")
             address += 1
+    if region.kind == "jumps" or region.kind.startswith("jumps:"):
+        first_code = int(region.kind[6:], 16) if region.kind.startswith("jumps:") else None
+        while address + 1 <= region.last:
+            target = at(address) | at(address + 1) << 8
+            flag = ""
+            if target & 0x8000 and all(s.end <= 0x8000 for s in rom_map.segments):
+                target &= 0x7FFF
+                flag = " (top bit set)"
+            name = rom_map.name_for(target)
+            label = f"  {name.name}" if name else ""
+            index = (address - region.first) // 2
+            if first_code is None:
+                key = f"[{index:2d}]"
+            else:
+                code = first_code + index
+                key = repr(chr(code)) if 0x20 <= code < 0x7F else f"0x{code:02x}"
+            raw = f"{at(address):02x} {at(address + 1):02x}"
+            lines.append(f"{address:04x}: {raw}  {key:>6} -> ${target:04x}{label}{flag}")
+            address += 2
     while address <= region.last:
         row = range(address, min(address + 16, region.last + 1))
         lines.append(f"{address:04x}: " + " ".join(f"{at(a):02x}" for a in row))
@@ -208,6 +231,8 @@ def annotate(line: str, rom_map: RomMap) -> str:
     instruction = line.split("  ", 1)[-1]
     addresses = [int(match, 16) for match in _OPERAND.findall(instruction)]
     if rom_map.vpage is not None:
+        # A uPD7810 writes addresses with four digits; two are an immediate.
+        addresses = [int(match, 16) for match in _OPERAND.findall(instruction) if len(match) == 4]
         addresses += [
             rom_map.vpage << 8 | int(m, 16) for m in _WORKING_REGISTER.findall(instruction)
         ]
