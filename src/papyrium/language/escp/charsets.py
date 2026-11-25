@@ -47,6 +47,9 @@ ADDITIONAL_LOCATION = 0x300
 #: The low codes IBM character set #2 prints: the card suits and the section sign.
 SET_2_LOW_CODES = frozenset({3, 4, 5, 6, 21})
 
+#: Codes 128-255 of a printer's own upper half, at locations 0x400 on.
+HIGH_LOCATION = 0x400
+
 ADDITIONAL_CHARACTERS = ("0\u0338", *"☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
 
 

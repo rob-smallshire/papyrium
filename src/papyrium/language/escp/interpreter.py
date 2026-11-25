@@ -33,6 +33,7 @@ from papyrium.core.model import Interpreter
 from papyrium.core.page import Ink, InkDots, Page, TextMark, inches
 from papyrium.language.escp.charsets import (
     ADDITIONAL_LOCATION,
+    HIGH_LOCATION,
     IBM_LOCATION,
     SET_2_LOW_CODES,
     character_at,
@@ -150,6 +151,14 @@ class EscpInterpreter(Interpreter):
     def feed(self, data: bytes) -> list[Page]:
         send = self._machine.send
         for byte in data:
+            if self._mechanism.seven_bit_input:
+                byte &= 0x7F
+            if self._high_shift:
+                # Until a NUL, every byte counts as its code plus 128.
+                if byte == NUL:
+                    self._high_shift = False
+                    continue
+                byte |= 0x80
             # ESC = and ESC > force bit 7 of every byte received, arguments included.
             if self._msb == 0:
                 byte &= 0x7F
@@ -216,6 +225,8 @@ class EscpInterpreter(Interpreter):
         self._line_feed_scale = 1
         self._script: str | None = None
         self._msb: int | None = None
+        self._high_shift = False
+        self._stored_spacing = inches(1) // 6
         self._character_set = mechanism.character_set
         self._high_codes_printable = mechanism.high_codes_printable
         self._graphics_table = mechanism.graphics_table
@@ -415,6 +426,8 @@ class EscpInterpreter(Interpreter):
     def _location(self, byte: int) -> int:
         """The character location *byte* prints: the national sets redirect some codes."""
         code = byte & 0x7F
+        if byte & 0x80 and self._mechanism.high_characters is not None:
+            return HIGH_LOCATION + code
         if byte & 0x80 and self._graphics_table:
             return IBM_LOCATION + code
         if byte in SET_2_LOW_CODES and self._in_ibm_set_2():
@@ -537,9 +550,10 @@ class EscpInterpreter(Interpreter):
         if self._immediate:
             self._print_line()
 
-    @staticmethod
-    def _rom_character(location: int) -> str:
+    def _rom_character(self, location: int) -> str:
         """The character at a ROM location; the italics at 128-255 mirror 0-127."""
+        if location >= HIGH_LOCATION:
+            return self._mechanism.high_characters[location - HIGH_LOCATION]
         location &= ~ITALIC
         return " " if location == DEL else character_at(location)
 
@@ -1064,7 +1078,34 @@ class EscpInterpreter(Interpreter):
         if self._mechanism.ibm_character_sets:
             table["6"] = lambda: self._choose_ibm_set(2)
             table["7"] = lambda: self._choose_ibm_set(1)
+        if self._mechanism.high_shift_until_nul:
+            table["="] = setter("_high_shift", True)
+        if self._mechanism.esc_6_and_7_select is not None:
+            esc_6_set, esc_7_set = self._mechanism.esc_6_and_7_select
+            table["6"] = setter("_character_set", esc_6_set)
+            table["7"] = setter("_character_set", esc_7_set)
+        if self._mechanism.esc_i_selects_nlq:
+            table["I"] = self._esc_select_quality
+        if self._mechanism.esc_a_stores_for_esc_2:
+            table["A"] = self._esc_store_line_spacing_72
+            table["2"] = lambda: setattr(self, "_line_spacing", self._stored_spacing)
         return table
+
+    def _esc_select_quality(self) -> ArgumentReader:
+        """ESC I n: near letter quality for 3, draft for 1, nothing else."""
+        n = yield
+        if n in (1, 3):
+            self._nlq = n == 3
+        else:
+            logger.debug("ignoring ESC I %d", n)
+
+    def _esc_store_line_spacing_72(self) -> ArgumentReader:
+        """ESC A n: store n/72 inch, 1 to 85, for ESC 2 to select."""
+        n = yield
+        if 1 <= n <= 85:
+            self._stored_spacing = n * self._mechanism.pin_pitch
+        else:
+            logger.debug("ignoring line spacing of %d/72 inch", n)
 
     def _choose_ibm_set(self, ibm_set: int) -> None:
         """ESC 6 and ESC 7, which choose an IBM set only while the IBM table
@@ -1078,9 +1119,11 @@ class EscpInterpreter(Interpreter):
         """The commands after FS: none, FS and the byte after it being ignored."""
         return {}
 
-    @staticmethod
-    def _flag(value: int) -> bool:
-        """ESC/P accepts 0/1 or the ASCII digits '0'/'1' for on/off arguments."""
+    def _flag(self, value: int) -> bool:
+        """ESC/P accepts 0/1 or the ASCII digits '0'/'1' for on/off arguments;
+        some printers look only at the lowest bit."""
+        if self._mechanism.flags_by_lowest_bit:
+            return bool(value & 1)
         return value in (1, ord("1"))
 
     def _esc_master_select(self) -> ArgumentReader:
@@ -1211,7 +1254,11 @@ class EscpInterpreter(Interpreter):
         yield
 
     def _esc_line_spacing_216(self) -> ArgumentReader:
-        self._line_spacing = (yield) * FEED_STEP
+        n = yield
+        if n == 0 and self._mechanism.esc_3_ignores_zero:
+            logger.debug("ignoring line spacing of 0/216 inch")
+            return
+        self._line_spacing = n * FEED_STEP
 
     def _esc_line_spacing_72(self) -> ArgumentReader:
         n = yield

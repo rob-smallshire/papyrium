@@ -312,17 +312,16 @@ class KXP1080Interpreter(EscpInterpreter):
 
     # -- Italics ----------------------------------------------------------------
 
-    @staticmethod
-    def _rom_character(location: int) -> str:
+    def _rom_character(self, location: int) -> str:
         """The character at a ROM location: 127, which code 255 prints after
         ESC 6, is the slashed zero."""
         if location >= DOWNLOAD_LOCATION:
             # A download is recorded as the character it replaces.
             location = (location - DOWNLOAD_LOCATION) & ~ITALIC
-            return " " if location < 0x20 else EscpInterpreter._rom_character(location)
+            return " " if location < 0x20 else super()._rom_character(location)
         if location & ~ITALIC == DEL:
             return SLASHED_ZERO
-        return EscpInterpreter._rom_character(location)
+        return super()._rom_character(location)
 
     def _italic_glyph(self, font: DotFont, location: int) -> Glyph | None:
         character = self._rom_character(location)

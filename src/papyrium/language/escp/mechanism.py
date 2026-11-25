@@ -157,5 +157,27 @@ class EscpMechanism:
     skip_moves_to_column: bool = False
     #: ESC a justifies only near letter quality lines.
     justify_nlq_only: bool = False
+    #: Every byte received loses bit 7, as on the Schneider NLQ401, whose
+    #: Amstrad CPC sends seven bits.
+    seven_bit_input: bool = False
+    #: ESC = makes every byte received count as its code plus 128 until a
+    #: NUL, which ends it and prints nothing, rather than clearing bit 7.
+    high_shift_until_nul: bool = False
+    #: The characters codes 128-255 print, where the printer has its own
+    #: upper half; None for the italic table.
+    high_characters: str | None = None
+    #: ESC 6 and ESC 7 choose these character sets, rather than whether
+    #: codes 128-159 print.
+    esc_6_and_7_select: tuple[CharacterSet, CharacterSet] | None = None
+    #: ESC I n selects near letter quality (3) or draft (1), and ignores
+    #: other values, rather than choosing whether control codes print.
+    esc_i_selects_nlq: bool = False
+    #: ESC A n stores a spacing of n/72 inch for ESC 2 to select, rather than
+    #: selecting it, as on the Epson MX-80; ESC 2 alone selects 1/6 inch.
+    esc_a_stores_for_esc_2: bool = False
+    #: ESC 3 0 leaves the line spacing as it is, rather than setting none.
+    esc_3_ignores_zero: bool = False
+    #: An on/off argument is on when odd, rather than only for 1 or '1'.
+    flags_by_lowest_bit: bool = False
     #: The ESC command characters this model obeys; None for all that are implemented.
     commands: frozenset[str] | None = None
