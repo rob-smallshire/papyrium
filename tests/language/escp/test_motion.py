@@ -60,6 +60,17 @@ def test_form_length_sets_how_far_a_form_feed_moves_but_not_the_sheet():
     assert page.dots == ((LEFT + 36, 0), (LEFT + 36, 3 * 4320))
 
 
+def test_a_form_length_in_inches_beyond_1_to_22_changes_nothing():
+    # The form feed still goes to the next 11-inch form, the next sheet,
+    # where a valid length of 3 inches keeps the second A on this one.
+    (page,) = run(b"\n" + ESC + b"C\x00\x03A\x0cA")
+    assert page.dots == ((LEFT + 36, LINE), (LEFT + 36, LINE + 3 * 4320))
+    for n in (0, 23):
+        first, second = run(b"\n" + ESC + b"C\x00" + bytes([n]) + b"A\x0cA")
+        assert first.dots == ((LEFT + 36, LINE),)
+        assert second.dots == ((LEFT + 36, 0),)
+
+
 def test_a_line_printed_across_the_perforation_splits_between_pages():
     first, second = run(b"B", sheet_length=300)
     assert first.height == 300

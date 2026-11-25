@@ -1392,7 +1392,11 @@ class EscpInterpreter(Interpreter):
         n = yield
         form_length = n * self._line_spacing
         if n == 0:
-            form_length = inches((yield))
+            length_inches = yield
+            if not 1 <= length_inches <= 22:
+                logger.debug("ignoring a form length of %d inches", length_inches)
+                return
+            form_length = inches(length_inches)
         self._set_top_of_form()
         self._skip_perforation = 0
         if self._mechanism.form_length_clears_vertical_tabs:
