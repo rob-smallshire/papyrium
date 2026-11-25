@@ -46,6 +46,3 @@ On the BBC, as described in [the guides' introduction](README.md#on-the-bbc).
 
 MAME types an `-autoboot_command` at the emulated keyboard's speed, so a
 long command typed that way needs time to finish before printing starts.
-
-`docs/emulators/mame.md` describes how MAME's printer works, as read from
-its source and tried with MAME 0.289.

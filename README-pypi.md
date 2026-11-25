@@ -252,14 +252,17 @@ uv run papyrium serve -M auto-line-feed=yes
 Escape sequences go to the printer with `VDU 1`, so `VDU 1,27,1,69` turns
 on emphasized printing (`ESC E`).
 
-Other emulators reach Papyrium in their own ways: MAME over TCP too;
-BeebEm, B-em and beebjit through a file Papyrium follows (`-t
-file-follow`); b2 through a saved file, which `papyrium print` prints as a
-job or `papyrium send` sends to a running printer. There is a
-guide for each: [Beebium](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/beebium.md),
-[MAME](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/mame.md), [BeebEm](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/beebem.md),
-[B-em](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/b-em.md), [beebjit](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/beebjit.md),
-[b2](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/b2.md) and [jsbeeb](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/jsbeeb.md).
+Each emulator reaches Papyrium in its own way, and
+[a guide for each](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/README.md) takes you
+through it:
+
+- [Beebium](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/beebium.md): a Network Printer, over TCP
+- [MAME](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/mame.md): its printout as a TCP connection, or a file
+- [BeebEm](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/beebem.md): a printer file Papyrium follows
+- [B-em](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/b-em.md): a printer file Papyrium follows
+- [beebjit](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/beebjit.md): its `beebjit.printer` file
+- [b2](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/b2.md): a saved printer buffer, printed or sent
+- [jsbeeb](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/jsbeeb.md): not yet possible
 
 ## Finding Papyrium on the network
 

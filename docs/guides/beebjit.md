@@ -28,6 +28,3 @@ and every line would be followed by a blank one.
   until then: restart Papyrium after it to be sure.
 - Because CR becomes LF, a byte 13 in a bit image or in an escape
   sequence's argument is changed too: text prints well, graphics may not.
-
-`docs/emulators/beebjit.md` describes beebjit's printer as read from its
-source, and the changes that would make it a faithful printer port.

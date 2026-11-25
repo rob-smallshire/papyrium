@@ -36,6 +36,5 @@ then choose it again (the same file) for the next job. Quitting B-em
 writes it out too. Papyrium ends the job five seconds after the last
 bytes arrive.
 
-**Print to command** does not work in B-em as it stands (it cannot start
-the command); `docs/emulators/b-em.md` describes why, and the small
-changes to B-em that would make it print straight to Papyrium.
+**Print to command** does not work in B-em as it stands: B-em cannot
+start the command.

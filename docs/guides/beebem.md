@@ -35,6 +35,3 @@ once, so jobs appear promptly.
 - The BBC never waits for the printer: BeebEm accepts each byte at once.
 - The Clipboard destination changes line endings, and LPT1 to LPT4 are
   for real printer ports; only File gives Papyrium the BBC's bytes.
-
-`docs/emulators/beebem.md` describes BeebEm's printer as read from its
-source.

@@ -252,14 +252,17 @@ uv run papyrium serve -M auto-line-feed=yes
 Escape sequences go to the printer with `VDU 1`, so `VDU 1,27,1,69` turns
 on emphasized printing (`ESC E`).
 
-Other emulators reach Papyrium in their own ways: MAME over TCP too;
-BeebEm, B-em and beebjit through a file Papyrium follows (`-t
-file-follow`); b2 through a saved file, which `papyrium print` prints as a
-job or `papyrium send` sends to a running printer. There is a
-guide for each: [Beebium](docs/guides/beebium.md),
-[MAME](docs/guides/mame.md), [BeebEm](docs/guides/beebem.md),
-[B-em](docs/guides/b-em.md), [beebjit](docs/guides/beebjit.md),
-[b2](docs/guides/b2.md) and [jsbeeb](docs/guides/jsbeeb.md).
+Each emulator reaches Papyrium in its own way, and
+[a guide for each](docs/guides/README.md) takes you
+through it:
+
+- [Beebium](docs/guides/beebium.md): a Network Printer, over TCP
+- [MAME](docs/guides/mame.md): its printout as a TCP connection, or a file
+- [BeebEm](docs/guides/beebem.md): a printer file Papyrium follows
+- [B-em](docs/guides/b-em.md): a printer file Papyrium follows
+- [beebjit](docs/guides/beebjit.md): its `beebjit.printer` file
+- [b2](docs/guides/b2.md): a saved printer buffer, printed or sent
+- [jsbeeb](docs/guides/jsbeeb.md): not yet possible
 
 ## Finding Papyrium on the network
 

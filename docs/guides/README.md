@@ -12,9 +12,6 @@ How to print from a BBC Micro emulator to Papyrium, one guide for each:
 | b2 | a saved file, printed or sent | no | [b2.md](b2.md) |
 | jsbeeb | none yet | no | [jsbeeb.md](jsbeeb.md) |
 
-How each emulator handles printer output, read from its source, is in
-`docs/emulators/`.
-
 ## Papyrium
 
 Install Papyrium with `uv tool install papyrium` (or run it without
