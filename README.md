@@ -221,8 +221,9 @@ its own are to hand. Any font can be replaced by a dot font file, with
 
 ## Printing from a BBC Micro emulator
 
-In Beebium, add a Network Printer (`tcp-printer`) pointing at Papyrium,
-which listens on port 9100:
+In Beebium, give the machine a printer: File > New..., New Machine...,
+then under Peripherals, beside Printer Port, + Add a Network Printer. It
+reaches Papyrium on `localhost:9100` unless you set another host and port:
 
 ```sh
 uv run papyrium serve

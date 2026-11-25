@@ -17,9 +17,16 @@ switches with `-M`.
 
 ## Give Beebium a printer
 
-In Beebium, add a **Network Printer** (the `tcp-printer` peripheral) to
-the BBC Micro, with the host and port Papyrium listens on: `localhost`
-and `9100`. It attaches to the BBC's parallel port.
+In Beebium's window, when making the machine:
+
+1. **File > New...**, then **New Machine...**
+2. Under **Peripherals**, beside **Printer Port**, click **+ Add**.
+3. Choose **Network Printer** and click **Add**.
+4. Set its host and port if Papyrium is anywhere other than
+   `localhost:9100`, the default.
+
+The Network Printer is Beebium's `tcp-printer` peripheral, on the BBC's
+parallel port.
 
 From the command line, the same is:
 
