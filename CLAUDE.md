@@ -213,7 +213,8 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   our own design, carry a licence that permits redistribution, or are
   taken from the printer itself: reconstructed from its printed output,
   as `m1109-draft` is from the M-1109 manual's pages
-  (`tools/m1109-glyphs/`), or extracted from its firmware.
+  (`tools/m1109-glyphs/`, its dots since corrected from the GLP's
+  firmware), or extracted from its firmware.
 - **Legacy printers' ROMs may be read**: disassembled, reverse
   engineered, and used for anything needed to simulate the printer, its
   characters, its commands and its behaviour, as the LX-800's

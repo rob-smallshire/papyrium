@@ -1,12 +1,17 @@
 # papyrium.font.m1109
 
-m1109-draft is the Brother M-1109's draft character set, reconstructed for
-Papyrium from the printed pages of the printer's 1985 owner's manual: its
-character tables and the program listings it printed. No ROM was read.
-The dot patterns were fitted to scans in which neighbouring dots merge,
-so they are a close estimate rather than a verified copy; the slashed
-zero, which the manual never shows, is composed from the zero and the
-slash. `tools/m1109-glyphs/` holds the tools that made it.
+m1109-draft is the Brother M-1109's draft character set, the Centronics
+GLP II's, reconstructed for Papyrium from the printed pages of the
+printer's 1985 owner's manual: its character tables and the program
+listings it printed. The dot patterns were fitted to scans in which
+neighbouring dots merge; the printable ASCII characters' dots have since
+been taken from the first-edition Centronics GLP's firmware (the
+Schneider NLQ401's EPROM), which holds the same design, placed at the
+heights the M-1109 prints them, which corrected 15 characters
+(`tools/nlq401-rom/correct_m1109_draft.py`). The international characters
+are still the manual's estimates, and the slashed zero, which the manual
+never shows, is composed from the zero and the slash.
+`tools/m1109-glyphs/` holds the tools that made it.
 
 Glyphs are 11 columns by 9 rows: capitals 7 dots high, a lowercase
 x-height of 5 dots and 2 rows of descender. As on the real head, no pin

@@ -78,17 +78,28 @@ Epson names above are where the dispatch puts them.
 
 The draft characters are at $16FD, codes 0x20 to 0x82, eleven bytes
 each: one byte per column across the character's eleven half-dot
-columns, the top pin in bit 7 and eight pins in all. Eight more precede
-them at $16A5 (their codes not yet known), and patterned data, perhaps
-block graphics, follows at $1B3E. Characters with descenders (the comma, `:`, `;`, `_`, `j`, `p`,
-`y` and the like) are stored on the same eight rows and printed a pin
-lower; how the program marks them is still to be found.
+columns, the top pin in bit 7 and eight pins in all, so a character's
+address is $159D plus eleven times its code ($0925). Eight more precede
+them at $16A5, codes 0x18 to 0x1F, which the national character
+conversion at $01B5 (through a table at $15F4) maps characters to; and
+patterned data, perhaps block graphics, follows at $1B3E. Six characters print a pin lower: `;`, `_`, `g`, `p`, `q` and `y`,
+which the routine at $08FD tests for by code, marking the character in
+VV:05 bit 5. Every other character prints on the eight top pins as
+stored.
 
 Compared with `m1109-draft`, the second edition's draft characters as
 reconstructed from the M-1109 manual's printed pages: 73 of the 95
-printable characters are identical, 7 more are identical a pin lower, and
-15 differ. Most of the 15 (the apostrophe, full stop, `<`, grave accent, `f`, `h`,
-`l`, `s` and `u`) are the same shapes
-one column to the side, and in `g` and `q` the descenders differ; `$`,
-`4`, `N` and `t` differ by a dot or two. Whether these are errors in the
-reconstruction or real differences between the editions is not yet known.
+printable characters were identical, 7 more identical a pin lower, and
+15 differed. Most of the 15 (the apostrophe, full stop, `<`, grave accent,
+`f`, `h`, `l`, `s` and `u`) were the same shapes one column to the side,
+the descenders of `g` and `q` differed, and `$`, `4`, `N` and `t` by a dot
+or two: errors in fitting dots to scans in which they merge. The printable
+ASCII characters of `m1109-draft` now take their dots from this table
+(`tools/nlq401-rom/correct_m1109_draft.py`).
+
+The heights differ in three characters. The M-1109's printed output has
+`,`, `:` and `j` a pin lower, as descenders, where the NLQ401's firmware
+prints them as stored, leaving its colon above the baseline and out of
+line with its semicolon, and its `j`'s dot a row above its `i`'s: the
+NLQ401's list of characters to lower is the shorter. `m1109-draft` keeps
+the heights the M-1109 prints at.
