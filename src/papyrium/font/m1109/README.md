@@ -16,7 +16,7 @@ international characters of the ESC/P national sets and a slashed zero
 font text format.
 
 Registered as `m1109-draft` on the `papyrium.font` axis; the
-`brother-m1109` model prints with it by default, and with
+`centronics-glp-ii` model (and its badges, such as `brother-m1109`) prints with it by default, and with
 `m1109-nlq` in near letter quality.
 
 m1109-nlq is the Brother M-1109's near letter quality character set,
@@ -37,5 +37,5 @@ here, since the manual shows none; the printer prints those, as it does
 any character without an NLQ form, in draft struck twice.
 
 Registered as `m1109-nlq` on the `papyrium.font` axis; the
-`brother-m1109` model prints near letter quality with it by default.
+`centronics-glp-ii` model prints near letter quality with it by default.
 `tools/m1109-glyphs/` holds the tools that made it.

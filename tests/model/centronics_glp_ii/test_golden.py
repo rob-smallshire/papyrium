@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from papyrium.model.brother_m1109 import BrotherM1109
+from papyrium.model.centronics_glp_ii import CentronicsGlpIi
 from papyrium.output.png.golden import check_golden_pages
 
 GOLDEN_DIRPATH = Path(__file__).parent / "golden"
@@ -17,7 +17,7 @@ CAPTURE_FILEPATHS = sorted(GOLDEN_DIRPATH.glob("*.prn"))
 
 
 def _print(data):
-    interpreter = BrotherM1109(name="brother-m1109").create_interpreter()
+    interpreter = CentronicsGlpIi(name="centronics-glp-ii").create_interpreter()
     return interpreter.feed(data) + interpreter.finish()
 
 
@@ -27,7 +27,9 @@ def test_capture_prints_the_golden_pages(capture_filepath):
 
 
 def test_demo_prints_the_golden_pages():
-    check_golden_pages(_print(BrotherM1109(name="brother-m1109").demo()), GOLDEN_DIRPATH, "demo")
+    check_golden_pages(
+        _print(CentronicsGlpIi(name="centronics-glp-ii").demo()), GOLDEN_DIRPATH, "demo"
+    )
 
 
 def test_there_are_golden_captures():

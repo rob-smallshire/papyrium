@@ -43,10 +43,15 @@ which is the second edition. CPCWiki's page agrees on the first edition:
   NLQ401-compatible mode selected by DIP switch.
 
 The two editions are different printers, the second adding NLQ and a
-standard RS-232 interface: the M-1009 and the M-1109 are distinct models, and Papyrium models only the
-M-1109, under its four names (`brother-m1109`, `centronics-glp-ii`,
-`sony-prn-m09`, `rca-vp2100`). The NLQ401 would be a variant of an M-1009
-model, with Schneider's NLQ, not of the M-1109.
+standard RS-232 interface: the M-1009 and the M-1109 are distinct models. Papyrium models only the
+second edition, as `centronics-glp-ii`, with the M-1109, PRN-M09 and
+VP2100 as its other badges. The first would be `centronics-glp` (Model
+3101), with the M-1009 and the others as its badges; the NLQ401, with
+Schneider's own firmware, would be a variant of it rather than a badge.
+
+MAME's `nlq401` device takes this ROM. Its notes call the printer an OEM
+version of a Centronics product, with the M1009's hardware "but not the
+firmware", and the device is a skeleton: it does not yet print.
 
 ## Hardware
 

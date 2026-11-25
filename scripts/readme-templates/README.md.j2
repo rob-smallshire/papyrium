@@ -20,11 +20,12 @@ writes the pages as PNG images and PDF documents, dot for dot.
 <img src="{{ repo_url(page_image("ledger", "ledger", "epson-fx80", options={"stationery": "green-bar"}, crop=(0, 0, 9.5, 3.5)), raw=True) }}" alt="A condensed ledger report printed by the Epson FX-80 on green-bar listing paper" width="100%">
 </p>
 <p>
-<img src="{{ repo_url(page_image("letter", "letter", "brother-m1109", crop=(0.25, 0.25, 8.25, 3.5)), raw=True) }}" alt="A letter printed by the Brother M-1109 in near letter quality" width="100%">
+<img src="{{ repo_url(page_image("letter", "letter", "centronics-glp-ii", crop=(0.25, 0.25, 8.25, 3.5)), raw=True) }}" alt="A letter printed by the Centronics GLP II in near letter quality" width="100%">
 </p>
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
-and LX-800, the Brother M-1109 and the Star LC-10, speaking Epson's ESC/P, and
+and LX-800, the Centronics GLP II (also sold as the Brother M-1109) and the
+Star LC-10, speaking Epson's ESC/P, and
 the IBM Proprinter II, speaking IBM's Proprinter language. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
@@ -97,18 +98,18 @@ connection open for its whole life.
 
 Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
 `papyrium describe-model NAME` describes a model and its options, which
-set its DIP switches and its paper. For example, an M-1109 printing near
+set its DIP switches and its paper. For example, a GLP II printing near
 letter quality from power on, on blue-bar listing paper:
 
 ```sh
-uv run papyrium serve --model brother-m1109 -M near-letter-quality=yes -M stationery=blue-bar
+uv run papyrium serve --model centronics-glp-ii -M near-letter-quality=yes -M stationery=blue-bar
 ```
 
 The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
 strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
 `music-ruled`. A font stands in for each printer's character ROM:
-`draft-9`, the FX-80's, is an original design; the M-1109's are
-reconstructed from its printed output; and the LX-800's and LC-10's are
+`draft-9`, the FX-80's, is an original design; the GLP II's are
+reconstructed from the printed output in Brother's M-1109 manual; and the LX-800's and LC-10's are
 extracted from their firmware, the LC-10 making some of its typefaces from
 others as the printer does. The Proprinter II borrows the LC-10's until
 its own are to hand. Any font can be replaced by a dot font file, with
@@ -184,6 +185,10 @@ being given an address:
 ```sh
 uv run papyrium serve --model brother-m1109 --advertise --name "Desk M-1109"
 ```
+
+A printer sold under several names can be served under any of them:
+`brother-m1109` is the Centronics GLP II with Brother's badge, and names
+itself so.
 
 It appears as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
 record names it a Papyrium printer (`note=Papyrium virtual printer`, and

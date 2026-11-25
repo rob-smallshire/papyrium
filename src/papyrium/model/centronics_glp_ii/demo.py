@@ -1,4 +1,4 @@
-"""The M-1109's demonstration page: Papyrium's own ESC/P job."""
+"""The GLP II's demonstration page: Papyrium's own ESC/P job."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ def demo() -> bytes:
     return b"".join(
         [
             ESC + b"@" + ESC + b"x\x01",
-            line(ESC + b"W\x01", "Brother M-1109", ESC + b"W\x00"),
-            line("Papyrium's demonstration of the M-1109, Brother's 9-pin printer"),
+            line(ESC + b"W\x01", "Centronics GLP II", ESC + b"W\x00"),
+            line("Papyrium's demonstration of the GLP II, Centronics' 9-pin printer"),
             line("of 1985. This is near letter quality: each line is printed twice,"),
             line("the second pass a fraction of a dot lower, to fill in the strokes."),
             ESC + b"x\x00",

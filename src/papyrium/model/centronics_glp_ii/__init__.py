@@ -1,11 +1,11 @@
-"""The Brother M-1109 9-pin dot-matrix printer."""
+"""The Centronics GLP II (Model 3102) 9-pin dot-matrix printer, the Brother M-1109."""
 
 from __future__ import annotations
 
 from papyrium.core.model import Interpreter, ModelIdentity, PrinterModel, rebadged
 from papyrium.language.escp import EscpInterpreter, EscpMechanism, options
 from papyrium.language.escp.charsets import M1109_CHARACTER_SETS
-from papyrium.model.brother_m1109 import demo
+from papyrium.model.centronics_glp_ii import demo
 
 __all__ = ["BrotherM1109", "CentronicsGlpIi", "RcaVp2100", "SonyPrnM09"]
 
@@ -21,8 +21,12 @@ _CONTROLS = frozenset({8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 27})
 _COMMANDS = frozenset("!#=>%&:*KLYZ-/0123A J456I789<@BCDEFGHMNOQlRSTUWbpsx".replace(" ", ""))
 
 
-class BrotherM1109(PrinterModel):
-    """Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I.
+class CentronicsGlpIi(PrinterModel):
+    """Centronics GLP II (Model 3102): an 80-column, 9-pin dot-matrix printer in its Mode I.
+
+    The second edition of the Great Little Printer, made with Brother and
+    also sold as the Brother M-1109, the Sony PRN-M09 and the RCA VP2100.
+    Its behaviour follows Brother's M-1109 manual.
 
     Mode I (switch 2-2 on, the factory setting) is Epson FX-80 compatible,
     with near letter quality, condensed elite, three more national sets and
@@ -92,7 +96,7 @@ class BrotherM1109(PrinterModel):
         return self._mechanism
 
     def identity(self) -> ModelIdentity:
-        return ModelIdentity(manufacturer="Brother", model="M-1109")
+        return ModelIdentity(manufacturer="Centronics", model="GLP II")
 
     def languages(self) -> tuple[str, ...]:
         return ("escp",)
@@ -104,9 +108,8 @@ class BrotherM1109(PrinterModel):
         return EscpInterpreter(self._mechanism)
 
 
-# The M-1109 is the second edition of the Great Little Printer, the
-# Centronics GLP II (model 3102), sold under these names as well. The first
-# edition (Centronics 3101, the Brother M-1009) is a different printer.
-CentronicsGlpIi = rebadged(BrotherM1109, manufacturer="Centronics", model="GLP II")
-SonyPrnM09 = rebadged(BrotherM1109, manufacturer="Sony", model="PRN-M09")
-RcaVp2100 = rebadged(BrotherM1109, manufacturer="RCA", model="VP2100")
+# The GLP II under its other names. The first edition, the Centronics GLP
+# (Model 3101), sold as the Brother M-1009, is a different printer.
+BrotherM1109 = rebadged(CentronicsGlpIi, manufacturer="Brother", model="M-1109")
+SonyPrnM09 = rebadged(CentronicsGlpIi, manufacturer="Sony", model="PRN-M09")
+RcaVp2100 = rebadged(CentronicsGlpIi, manufacturer="RCA", model="VP2100")

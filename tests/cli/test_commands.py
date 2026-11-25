@@ -201,7 +201,7 @@ def test_demo_prints_a_models_demonstration_page(run, tmp_path):
 
 def test_demo_takes_model_and_output_options(run, tmp_path):
     result = run(
-        "demo", "brother-m1109", "-M", "stationery=green-bar", "-o", "png",
+        "demo", "centronics-glp-ii", "-M", "stationery=green-bar", "-o", "png",
         "-O", "png.dpi=60", "--output-dir", str(tmp_path), "--as", "json",
     )  # fmt: skip
     assert result.exit_code == 0

@@ -1,4 +1,4 @@
-"""The Brother M-1109 model: conformance, its switches and its Mode I differences."""
+"""The Centronics GLP II, the Brother M-1109: conformance, switches, Mode I differences."""
 
 import pytest
 
@@ -7,7 +7,7 @@ from papyrium.exception import ConfigurationError
 from papyrium.extension import create_extension, namespace_for
 from papyrium.language.escp import CharacterSet
 from papyrium.language.escp.charsets import M1109_CHARACTER_SETS
-from papyrium.model.brother_m1109 import BrotherM1109
+from papyrium.model.centronics_glp_ii import CentronicsGlpIi
 
 ESC = b"\x1b"
 
@@ -33,21 +33,21 @@ SAMPLE_JOB = (
 )
 
 
-class TestBrotherM1109Conformance(PrinterModelConformance):
+class TestCentronicsGlpIiConformance(PrinterModelConformance):
     def make_model(self):
-        return BrotherM1109(name="brother-m1109")
+        return CentronicsGlpIi(name="centronics-glp-ii")
 
     def sample_job(self):
         return SAMPLE_JOB
 
 
 def _mechanism(**options):
-    return BrotherM1109(name="brother-m1109", **options).mechanism
+    return CentronicsGlpIi(name="centronics-glp-ii", **options).mechanism
 
 
 def test_is_registered_on_the_model_axis():
-    model = create_extension("model", namespace_for("model"), "brother-m1109")
-    assert isinstance(model, BrotherM1109)
+    model = create_extension("model", namespace_for("model"), "centronics-glp-ii")
+    assert isinstance(model, CentronicsGlpIi)
 
 
 def test_defaults_match_the_factory_switch_settings():
@@ -71,7 +71,7 @@ def test_paper_is_a_letter_cut_sheet_with_the_line_centred():
 
 
 def test_fanfold_is_9_5_inches_wide_by_default():
-    mechanism = BrotherM1109(name="brother-m1109", stationery="green-bar").mechanism
+    mechanism = CentronicsGlpIi(name="centronics-glp-ii", stationery="green-bar").mechanism
     assert mechanism.paper_width == 9 * 4320 + 2160
     assert mechanism.left_offset == 3 * 4320 // 4
 
@@ -96,8 +96,8 @@ def test_mode_i_differs_from_the_fx80():
 
 
 def test_options_from_strings():
-    mechanism = BrotherM1109.from_config(
-        name="brother-m1109",
+    mechanism = CentronicsGlpIi.from_config(
+        name="centronics-glp-ii",
         config={
             "auto-line-feed": "yes",
             "character-set": "norway",
@@ -131,13 +131,13 @@ def test_options_from_strings():
 )
 def test_bad_options_are_configuration_errors(options, message):
     with pytest.raises(ConfigurationError, match=message):
-        BrotherM1109(name="brother-m1109", **options)
+        CentronicsGlpIi(name="centronics-glp-ii", **options)
 
 
 def test_three_lines_sit_centred_in_the_first_band_of_listing_paper():
     from papyrium.core.stationery import BAND_HEIGHT
 
-    model = BrotherM1109(name="brother-m1109", stationery="green-bar")
+    model = CentronicsGlpIi(name="centronics-glp-ii", stationery="green-bar")
     interpreter = model.create_interpreter()
     (page,) = interpreter.feed(b"Hg\r\n" * 3 + b"\x0c")
     radius = page.dot_diameter // 2
@@ -148,6 +148,6 @@ def test_three_lines_sit_centred_in_the_first_band_of_listing_paper():
 
 
 def test_identity_and_language():
-    model = BrotherM1109(name="brother-m1109")
-    assert model.identity().display_name == "Brother M-1109"
+    model = CentronicsGlpIi(name="centronics-glp-ii")
+    assert model.identity().display_name == "Centronics GLP II"
     assert model.languages() == ("escp",)

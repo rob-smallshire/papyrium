@@ -18,10 +18,11 @@ Printer"). Most of these notes are about Mode I, compared against
 ## Other names
 
 The M-1109 is the second edition of the Great Little Printer, made by
-Brother with Centronics: the Centronics GLP II (model 3102), also sold as
-the Sony PRN-M09 and the RCA VP2100, which Papyrium offers as
-`centronics-glp-ii`, `sony-prn-m09` and `rca-vp2100`, printing exactly as
-the M-1109 does. The first edition (Centronics model 3101, the Brother
+Brother with Centronics: the Centronics GLP II (Model 3102), also sold as
+the Sony PRN-M09 and the RCA VP2100. Papyrium's model is
+`centronics-glp-ii` (`papyrium.model.centronics_glp_ii`), built from
+these notes; `brother-m1109`, `sony-prn-m09` and `rca-vp2100` are the same
+printer under its other badges. The first edition (Centronics model 3101, the Brother
 M-1009, and with Schneider's NLQ firmware the Schneider NLQ401) is a
 different printer; see `docs/schneider-nlq401.md`.
 

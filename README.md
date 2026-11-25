@@ -13,11 +13,12 @@ writes the pages as PNG images and PDF documents, dot for dot.
 <img src="docs/images/ledger.png" alt="A condensed ledger report printed by the Epson FX-80 on green-bar listing paper" width="100%">
 </p>
 <p>
-<img src="docs/images/letter.png" alt="A letter printed by the Brother M-1109 in near letter quality" width="100%">
+<img src="docs/images/letter.png" alt="A letter printed by the Centronics GLP II in near letter quality" width="100%">
 </p>
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
-and LX-800, the Brother M-1109 and the Star LC-10, speaking Epson's ESC/P, and
+and LX-800, the Centronics GLP II (also sold as the Brother M-1109) and the
+Star LC-10, speaking Epson's ESC/P, and
 the IBM Proprinter II, speaking IBM's Proprinter language. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
@@ -30,7 +31,7 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="src/papyrium/model/brother_m1109/"><img src="docs/images/demo-top-brother-m1109.png" alt="The top of the brother-m1109 demonstration page" width="100%"></a><br><code>brother-m1109</code></td>
+<td width="25%" valign="top"><a href="src/papyrium/model/centronics_glp_ii/"><img src="docs/images/demo-top-centronics-glp-ii.png" alt="The top of the centronics-glp-ii demonstration page" width="100%"></a><br><code>centronics-glp-ii</code></td>
 <td width="25%" valign="top"><a href="src/papyrium/model/epson_fx80/"><img src="docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
 <td width="25%" valign="top"><a href="src/papyrium/model/epson_lx800/"><img src="docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
 <td width="25%" valign="top"><a href="src/papyrium/model/ibm_proprinter_ii/"><img src="docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
@@ -93,10 +94,10 @@ $ papyrium list-models
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Name                ┃ Description                                            ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ brother-m1109       │ Brother M-1109: an 80-column, 9-pin dot-matrix printer │
-│                     │ in its Mode I.                                         │
-│ centronics-glp-ii   │ Centronics GLP II: the Brother M-1109 sold under       │
+│ brother-m1109       │ Brother M-1109: the Centronics GLP II sold under       │
 │                     │ another name.                                          │
+│ centronics-glp-ii   │ Centronics GLP II (Model 3102): an 80-column, 9-pin    │
+│                     │ dot-matrix printer in its Mode I.                      │
 │ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
 │                     │ speaking ESC/P.                                        │
 │ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
@@ -107,9 +108,9 @@ $ papyrium list-models
 │                     │ printer speaking ESC/P.                                │
 │ panasonic-kx-p1080u │ Panasonic KX-P1080U: the KX-P1080 for the UK, its      │
 │                     │ firmware Papyrium's source.                            │
-│ rca-vp2100          │ RCA VP2100: the Brother M-1109 sold under another      │
+│ rca-vp2100          │ RCA VP2100: the Centronics GLP II sold under another   │
 │                     │ name.                                                  │
-│ sony-prn-m09        │ Sony PRN-M09: the Brother M-1109 sold under another    │
+│ sony-prn-m09        │ Sony PRN-M09: the Centronics GLP II sold under another │
 │                     │ name.                                                  │
 │ star-lc10           │ Star LC-10: an 80-column, 9-pin dot-matrix printer     │
 │                     │ speaking ESC/P or,                                     │
@@ -175,18 +176,18 @@ $ papyrium list-fonts
 
 Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
 `papyrium describe-model NAME` describes a model and its options, which
-set its DIP switches and its paper. For example, an M-1109 printing near
+set its DIP switches and its paper. For example, a GLP II printing near
 letter quality from power on, on blue-bar listing paper:
 
 ```sh
-uv run papyrium serve --model brother-m1109 -M near-letter-quality=yes -M stationery=blue-bar
+uv run papyrium serve --model centronics-glp-ii -M near-letter-quality=yes -M stationery=blue-bar
 ```
 
 The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
 strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
 `music-ruled`. A font stands in for each printer's character ROM:
-`draft-9`, the FX-80's, is an original design; the M-1109's are
-reconstructed from its printed output; and the LX-800's and LC-10's are
+`draft-9`, the FX-80's, is an original design; the GLP II's are
+reconstructed from the printed output in Brother's M-1109 manual; and the LX-800's and LC-10's are
 extracted from their firmware, the LC-10 making some of its typefaces from
 others as the printer does. The Proprinter II borrows the LC-10's until
 its own are to hand. Any font can be replaced by a dot font file, with
@@ -263,6 +264,10 @@ being given an address:
 uv run papyrium serve --model brother-m1109 --advertise --name "Desk M-1109"
 ```
 
+A printer sold under several names can be served under any of them:
+`brother-m1109` is the Centronics GLP II with Brother's badge, and names
+itself so.
+
 It appears as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
 record names it a Papyrium printer (`note=Papyrium virtual printer`, and
 `ty=Brother M-1109 (Papyrium)`), so a client can tell it from a real
@@ -313,15 +318,15 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) |
 | Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](src/papyrium/language/escp/) |
 |  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) |
-| Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
-|  | `centronics-glp-ii` | Centronics GLP II: the Brother M-1109 sold under another name | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
+| Printer models are what the user chooses | `brother-m1109` | Brother M-1109: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
+|  | `centronics-glp-ii` | Centronics GLP II (Model 3102): an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) |
 |  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) |
 |  | `panasonic-kx-p1080` | Panasonic KX-P1080: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) |
 |  | `panasonic-kx-p1080u` | Panasonic KX-P1080U: the KX-P1080 for the UK, its firmware Papyrium's source | [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) |
-|  | `rca-vp2100` | RCA VP2100: the Brother M-1109 sold under another name | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
-|  | `sony-prn-m09` | Sony PRN-M09: the Brother M-1109 sold under another name | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
+|  | `rca-vp2100` | RCA VP2100: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
+|  | `sony-prn-m09` | Sony PRN-M09: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) |
@@ -360,7 +365,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
 | [`papyrium.language.escp`](src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
 | [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) | The IBM Proprinter's printer language, for its 9-wire printers |
-| [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) | The Brother M-1109 9-pin dot-matrix printer |
+| [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) | The Centronics GLP II (Model 3102) 9-pin dot-matrix printer, the Brother M-1109 |
 | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
 | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |
 | [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) | The IBM Proprinter II 9-wire dot-matrix printer |
