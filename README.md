@@ -219,14 +219,16 @@ others as the printer does. The Proprinter II borrows the LC-10's until
 its own are to hand. Any font can be replaced by a dot font file, with
 `-M font=PATH`.
 
-## Printing from a BBC Micro in Beebium
+## Printing from a BBC Micro emulator
+
+In Beebium, add a Network Printer (`tcp-printer`) pointing at Papyrium,
+which listens on port 9100:
 
 ```sh
 uv run papyrium serve
-/path/to/beebium/build/src/server/beebium-model-b --tcp-printer host=localhost:port=9100
 ```
 
-On the BBC:
+Then, on the BBC:
 
 ```
 *FX6,0
@@ -249,35 +251,14 @@ uv run papyrium serve -M auto-line-feed=yes
 Escape sequences go to the printer with `VDU 1`, so `VDU 1,27,1,69` turns
 on emphasized printing (`ESC E`).
 
-## Printing from other BBC Micro emulators
-
-Emulators that print to a file can be followed as they print. Point
-BeebEm's Comms > Printer Destination > File... (or B-em's Print to file
-(binary)) at a file, and serve from it:
-
-```sh
-uv run papyrium serve -t file-follow -T filepath=~/beebem-printer.prn
-```
-
-Output an emulator saves all at once, such as b2's Printer > Save printer
-buffer..., prints as one job with `print`, or goes to a running printer
-with `send`; either reads standard input given `-`:
-
-```sh
-uv run papyrium print b2-printer.dat
-uv run papyrium send b2-printer.dat --port 9100
-```
-
-MAME connects its printer port straight to a running printer, started
-first:
-
-```sh
-uv run papyrium serve
-mame bbcb -prin socket.127.0.0.1:9100
-```
-
-`docs/emulators/` describes what each emulator does with its printer
-output, and what is lost on the way.
+Other emulators reach Papyrium in their own ways: MAME over TCP too;
+BeebEm, B-em and beebjit through a file Papyrium follows (`-t
+file-follow`); b2 through a saved file, which `papyrium print` prints as a
+job or `papyrium send` sends to a running printer. There is a
+guide for each: [Beebium](docs/guides/beebium.md),
+[MAME](docs/guides/mame.md), [BeebEm](docs/guides/beebem.md),
+[B-em](docs/guides/b-em.md), [beebjit](docs/guides/beebjit.md),
+[b2](docs/guides/b2.md) and [jsbeeb](docs/guides/jsbeeb.md).
 
 ## Finding Papyrium on the network
 

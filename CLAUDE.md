@@ -49,7 +49,9 @@ add to it when one is found.
 
 How other BBC Micro emulators deliver printer output, read from their
 source, and how Papyrium might collect it, is in `docs/emulators/`, one
-note per emulator, with the patterns across them in its README.
+note per emulator, with the patterns across them in its README. How to
+print from each to Papyrium, for its users, is in `docs/guides/`; keep
+the guides in step with the notes and with Papyrium's commands.
 
 ## Architecture
 
