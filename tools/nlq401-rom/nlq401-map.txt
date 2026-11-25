@@ -15,6 +15,9 @@
 $0000        code  reset             Power on: disable interrupts, set up the ports and mode registers
 $0008        code  int_timer         Timer interrupt (INTT0/INTT1): call the handler whose address is in $FF0E
 $0018        code  int_external      INTE0/INTE1: call the handler whose address is in $FF10
+$0110        code  main_loop         Wait for a byte (receive_byte) while keeping the mechanism going, then interpret it
+$0122        code  interpret         A byte received: inside ESC to $041B, below 0x20 to control_code, else printable
+$083E        code  receive_byte      If INT1 has latched a byte, read it from port A (inverted) and return skipping; bit 7 per VV:01 bit 3
 $0294        code  control_code      Dispatch a byte below 0x20: codes 0x09-0x1B through control_codes, others to $02F3
 $044F        code  esc               ESC: note that a command byte follows
 $0454        code  esc_command       The byte after ESC: x to esc_x, - to Z through esc_commands
