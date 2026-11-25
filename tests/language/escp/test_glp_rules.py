@@ -155,3 +155,10 @@ def test_a_bit_image_that_does_not_fit_can_wrap_whole():
 def test_a_bit_image_count_can_take_three_bits_of_its_high_byte():
     image = ESC + b"K\x01\x08" + b"\x80"
     assert dots(image + b"A", graphics_count_high_bits=3) == [(LEFT, 0), (LEFT + 72 + 36, 0)]
+
+
+def test_control_codes_can_be_ignored_outright():
+    # The GLP obeys no BS, and ignores DEL rather than deleting.
+    ignored = {"ignored_controls": frozenset({0x08, 0x7F})}
+    assert dots(b"A\x08A", **ignored) == dots(b"AA")
+    assert dots(b"A\x7fA", **ignored) == dots(b"AA")

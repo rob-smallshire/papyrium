@@ -21,6 +21,9 @@ _SKIP_PERFORATION_LINES = 6
 #: ESC @ among them, it ignores.
 _COMMANDS = frozenset("-0123 6789<=ACDEFGHIJKLNOSTUWYZx".replace(" ", ""))
 
+#: Codes the firmware ignores: below HT ($0294), so BS too, and DEL ($0134).
+_IGNORED_CONTROLS = frozenset({*range(0x09), 0x7F})
+
 #: The commands without near letter quality.
 _DRAFT_COMMANDS = _COMMANDS - {"I", "x"}
 
@@ -277,5 +280,6 @@ def _glp_mechanism(
         horizontal_tab_stops=28,
         graphics_wrap_whole=True,
         graphics_count_high_bits=3,
+        ignored_controls=_IGNORED_CONTROLS,
         commands=_COMMANDS if nlq else _DRAFT_COMMANDS,
     )

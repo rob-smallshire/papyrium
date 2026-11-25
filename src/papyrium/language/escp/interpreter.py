@@ -373,6 +373,8 @@ class EscpInterpreter(Interpreter):
         return self._mechanism.ibm_character_sets and self._graphics_table and self._ibm_set == 2
 
     def _control(self, code: int) -> ArgumentReader:
+        if code in self._mechanism.ignored_controls:
+            return
         if code == ESC:
             command = yield
             yield from self._escape(command & 0x7F)

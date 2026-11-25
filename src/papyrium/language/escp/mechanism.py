@@ -157,6 +157,9 @@ class EscpMechanism:
     skip_moves_to_column: bool = False
     #: ESC a justifies only near letter quality lines.
     justify_nlq_only: bool = False
+    #: Control codes the printer ignores outright, such as BS and DEL on the
+    #: Centronics GLP, rather than obeying as Epson's printers do.
+    ignored_controls: frozenset[int] = frozenset()
     #: The line spacing at power on.
     power_on_line_spacing: int = inches(1) // 6
     #: Every byte received loses bit 7, as on the Schneider NLQ401, whose
