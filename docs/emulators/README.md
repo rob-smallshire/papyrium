@@ -10,6 +10,7 @@ Papyrium transport (or a change to the emulator) would take them in.
 | Beebium | (Beebium's repository) | raw TCP to a print server | yes | `raw-tcp` transport |
 | BeebEm | [beebem.md](beebem.md) | appends to a chosen file | yes | follow the file (proposed) |
 | b2 | [b2.md](b2.md) | in-memory buffer, saved by hand | no | read a saved file as one job; or patch b2 to stream |
+| B-em | [b-em.md](b-em.md) | appends to a file, or pipes to a command | yes, but buffered | follow the file; or fix B-em's command printing |
 
 ## What the emulator owes Papyrium
 
@@ -22,14 +23,28 @@ translation. Each emulator note says whether its output is that.
 
 - **Nothing pushes back.** No emulator yet lets the reader stall the
   BBC. BeebEm acknowledges each byte immediately; b2 emulates the
-  handshake but its printer is never busy for longer than a few cycles.
-  Only Beebium, over TCP, has real backpressure. A transport for the
-  others needs no flow control, and the BBC prints at full speed.
+  handshake but its printer is never busy for longer than a few cycles;
+  B-em acknowledges at once. Only Beebium, over TCP, has real
+  backpressure (B-em's command printing would, through a pipe, if it
+  worked). A transport for the others needs no flow control, and the
+  BBC prints at full speed.
+- **Output may lag.** BeebEm flushes every byte; B-em never flushes, so
+  a file it writes grows in blocks and the end of a job can stay in
+  B-em until printing is turned off. A follower must not assume the
+  file is complete when it stops growing.
+- **Text modes are no use.** Several emulators offer a "text" or
+  clipboard destination that translates line endings and the pound
+  sign. Papyrium needs the binary or raw destination every time.
 - **No job boundaries in the stream.** Turning the emulated printer off
   and on leaves no mark in the bytes. Jobs end by the spooler's idle
   timeout and by the language's own boundaries (form feed), as the
   domain rules already say.
 - **Files are the common denominator.** An emulator without a network
   printer still writes bytes to a file, either continuously (BeebEm) or
-  on request (b2). Two file transports cover these: one that follows a
-  growing file, one that reads a finished file as a single job.
+  on request (b2), or both (B-em). Two file transports cover these: one
+  that follows a growing file, one that reads a finished file as a
+  single job.
+- **A command's standard input is the next best thing to a socket.**
+  B-em can pipe printer output to a command (once fixed). A Papyrium
+  command that forwards its standard input to a running Papyrium would
+  serve any emulator that can do this, on every platform.
