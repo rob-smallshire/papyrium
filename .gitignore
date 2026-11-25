@@ -8,3 +8,4 @@ dist/
 
 # Local reference material, such as copyrighted printer manuals: never committed.
 docs/local/
+cups-print-output/

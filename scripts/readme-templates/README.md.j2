@@ -184,8 +184,17 @@ It then appears among the printers a computer offers to add, such as
 in macOS's Printers & Scanners settings, under its name: here "Desk
 M-1109", or by default the model's name with "(Papyrium)". It is a
 printer of the 1980s, so a document must reach it in the printer's own
-language, not PostScript or PCL: for a model speaking ESC/P, add it with
-an Epson 9-pin printer's driver.
+language, not PostScript or PCL. CUPS, in macOS and Linux, has a driver
+for Epson 9-pin printers, but it needs a later printer than the FX-80:
+serve the Star LC-10 for it, and add the printer with
+
+```sh
+uv run papyrium serve --model star-lc10 -M stationery=sheet
+sudo lpadmin -p LC10 -D "Star LC-10" -E -v socket://localhost:9100 -m drv:///sample.drv/epson9.ppd
+```
+
+[`tools/cups-print/`]({{ repo_url("tools/cups-print/README.md") }})
+prints a test page through such a driver, and says what the driver sends.
 {#- Screenshots of adding the printer in macOS's settings go here. #}
 
 A printer sold under several names can be served under any of them:
