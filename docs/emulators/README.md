@@ -13,6 +13,7 @@ Papyrium transport (or a change to the emulator) would take them in.
 | B-em | [b-em.md](b-em.md) | appends to a file, or pipes to a command | yes, but buffered | `file-follow`; or fix B-em's command printing |
 | jsbeeb | [jsbeeb.md](jsbeeb.md) | a text area in a pop-up window | no | set aside: browser-based, a poor fit for Papyrium |
 | beebjit | [beebjit.md](beebjit.md) | truncates a fixed file, CR made LF | yes, but buffered | `file-follow`, text only; or patch beebjit |
+| MAME | [mame.md](mame.md) | a file, or a TCP connection (`-prin socket.HOST:PORT`) | yes | `raw-tcp`, unchanged; or `file-follow` |
 
 ## What the emulator owes Papyrium
 
@@ -23,10 +24,10 @@ translation. Each emulator note says whether its output is that.
 
 ## Patterns so far
 
-- **Nothing pushes back.** No emulator yet lets the reader stall the
+- **Few push back.** Most emulators never let the reader stall the
   BBC. BeebEm acknowledges each byte immediately; b2 emulates the
   handshake but its printer is never busy for longer than a few cycles;
-  B-em acknowledges at once. Only Beebium, over TCP, has real
+  B-em acknowledges at once. Only Beebium and MAME, over TCP, have real
   backpressure (B-em's command printing would, through a pipe, if it
   worked). A transport for the others needs no flow control, and the
   BBC prints at full speed.

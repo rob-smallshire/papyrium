@@ -163,6 +163,14 @@ uv run papyrium print b2-printer.dat
 uv run papyrium send b2-printer.dat --port 9100
 ```
 
+MAME connects its printer port straight to a running printer, started
+first:
+
+```sh
+uv run papyrium serve
+mame bbcb -prin socket.127.0.0.1:9100
+```
+
 `docs/emulators/` describes what each emulator does with its printer
 output, and what is lost on the way.
 
