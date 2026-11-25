@@ -994,9 +994,23 @@ class EscpInterpreter(Interpreter):
         following = [
             self._left_margin + tab for tab in self._tabs if self._left_margin + tab > self._x
         ]
+        if self._mechanism.tab_inserts_spaces:
+            self._tab_with_spaces(following)
+            return
         self._print_line()
         if following and following[0] <= self._right_limit(text=True):
             self._x = following[0]
+
+    def _tab_with_spaces(self, following: list[int]) -> None:
+        """HT as the Centronics GLP has it ($02F6): spaces up to the next
+        stop, or a new line for a stop past the end of the line."""
+        if not following:
+            return
+        if following[0] > self._right_limit(text=True):
+            self._line_feed()
+            return
+        for _ in range((following[0] - self._x) // self._tab_unit()):
+            self._character(0x20)
 
     def _backspace(self) -> None:
         width = self._tab_unit()
@@ -1361,12 +1375,20 @@ class EscpInterpreter(Interpreter):
 
     def _read_stops(self, limit: int) -> Generator[None, int, list[int]]:
         stops = []
+        skip_out_of_order = self._mechanism.tab_stops_skip_out_of_order
         while True:
             n = yield
-            if n == 0 or (stops and n <= stops[-1]):
+            if n == 0:
+                return stops
+            if stops and n <= stops[-1]:
+                if skip_out_of_order:
+                    logger.debug("skipping a tab stop out of order: %d", n)
+                    continue
                 return stops
             if len(stops) < limit:
                 stops.append(n)
+            if skip_out_of_order and len(stops) == limit:
+                return stops
 
     def _esc_vertical_tabs(self) -> ArgumentReader:
         yield from self._store_vertical_tabs(0)

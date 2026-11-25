@@ -69,6 +69,11 @@ class CharacterGenerator:
     underline, rather than in its first. *nlq_cell_columns*: how many NLQ
     columns span a character's cell, where it is not the font's columns,
     which then leave some of the cell blank; None for the font's.
+    *emphasized_offset*: how far right emphasized repeats a draft dot;
+    None for half a column. *script_rows_by_pass*: super- and subscript
+    rows fall on two passes, the even rows on the first at the pins' pitch
+    and the odd ones on the second, *double_strike_offset* lower, each
+    struck once, rather than at half the pins' pitch, struck twice.
     *nlq_double_width_pairs*: enlarged NLQ prints each pair of columns as
     one, the even column's place, rather than striking every dot twice.
     """
@@ -80,6 +85,8 @@ class CharacterGenerator:
     nlq_underline_second_pass: bool = False
     nlq_cell_columns: int | None = None
     nlq_double_width_pairs: bool = False
+    emphasized_offset: int | None = None
+    script_rows_by_pass: bool = False
 
     def nlq_columns(self, font_columns: int) -> int:
         """The NLQ columns that span a character's cell, from a font of *font_columns*."""
@@ -154,7 +161,11 @@ class CharacterGenerator:
             dx = (column + style.offset) * step
             if style.italic:
                 dx += self.italic_offset(glyph, row, step)
-            if style.script == "superscript":
+            scripted = style.script is not None
+            if scripted and self.script_rows_by_pass:
+                base = 4 * pin_pitch if style.script == "subscript" else 0
+                dy = base + (row // 2) * pin_pitch + (row % 2) * self.double_strike_offset
+            elif style.script == "superscript":
                 dy = row * SCRIPT_ROW_PITCH
             elif style.script == "subscript":
                 dy = 4 * pin_pitch + row * SCRIPT_ROW_PITCH
@@ -165,8 +176,9 @@ class CharacterGenerator:
                 # Enlarged characters strike every dot twice, side by side.
                 passes.append((dx + step // 2, dy))
             if style.emphasized:
-                passes.extend([(x + step // 2, y) for x, y in passes])
-            if style.double_strike:
+                offset = step // 2 if self.emphasized_offset is None else self.emphasized_offset
+                passes.extend([(x + offset, y) for x, y in passes])
+            if style.double_strike and not (scripted and self.script_rows_by_pass):
                 passes.extend([(x, y + self.double_strike_offset) for x, y in passes])
             yield from passes
 

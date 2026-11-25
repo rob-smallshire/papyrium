@@ -160,6 +160,12 @@ class EscpMechanism:
     #: Control codes the printer ignores outright, such as BS and DEL on the
     #: Centronics GLP, rather than obeying as Epson's printers do.
     ignored_controls: frozenset[int] = frozenset()
+    #: ESC D skips a stop not beyond the one before, and ends with the
+    #: last it may take, rather than ending at the stop out of order.
+    tab_stops_skip_out_of_order: bool = False
+    #: HT prints spaces up to the next stop, which underline, and starts a
+    #: new line for a stop past the end of the line, rather than moving.
+    tab_inserts_spaces: bool = False
     #: The line spacing at power on.
     power_on_line_spacing: int = inches(1) // 6
     #: Every byte received loses bit 7, as on the Schneider NLQ401, whose

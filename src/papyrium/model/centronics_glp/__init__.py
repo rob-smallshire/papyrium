@@ -33,7 +33,14 @@ _CHARACTER_SETS = {"1": CharacterSet.USA, "2": CharacterSet.GERMANY}
 
 #: Near letter quality columns are 1/480 inch apart, 48 to the pica cell,
 #: of which a character's 39 print; enlarged, each pair prints as one.
-_GENERATOR = CharacterGenerator(nlq_cell_columns=48, nlq_double_width_pairs=True)
+#: Emphasized repeats a dot one slot, 1/120 inch, right ($1033); scripts
+#: print their even and odd rows on two passes 1/216 inch apart ($0934).
+_GENERATOR = CharacterGenerator(
+    nlq_cell_columns=48,
+    nlq_double_width_pairs=True,
+    emphasized_offset=inches(1) // 120,
+    script_rows_by_pass=True,
+)
 
 
 class CentronicsGlp(PrinterModel):
@@ -281,5 +288,7 @@ def _glp_mechanism(
         graphics_wrap_whole=True,
         graphics_count_high_bits=3,
         ignored_controls=_IGNORED_CONTROLS,
+        tab_stops_skip_out_of_order=True,
+        tab_inserts_spaces=True,
         commands=_COMMANDS if nlq else _DRAFT_COMMANDS,
     )

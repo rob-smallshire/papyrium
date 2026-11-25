@@ -162,3 +162,36 @@ def test_control_codes_can_be_ignored_outright():
     ignored = {"ignored_controls": frozenset({0x08, 0x7F})}
     assert dots(b"A\x08A", **ignored) == dots(b"AA")
     assert dots(b"A\x7fA", **ignored) == dots(b"AA")
+
+
+def test_emphasized_can_repeat_a_dot_a_whole_column_right():
+    from papyrium.core.page import inches
+    from papyrium.language.escp.generator import CharacterGenerator
+
+    generator = CharacterGenerator(emphasized_offset=inches(1) // 120)
+    assert dots(ESC + b"EA", generator=generator) == [(LEFT + 36, 0), (LEFT + 72, 0)]
+
+
+def test_script_rows_can_fall_on_two_passes():
+    from papyrium.language.escp.generator import CharacterGenerator
+
+    generator = CharacterGenerator(script_rows_by_pass=True)
+    # B: column 1 row 0 and column 3 row 6; row 6 is the third even row.
+    assert dots(ESC + b"S\x00B", generator=generator) == [(LEFT + 36, 0), (LEFT + 108, 180)]
+    assert dots(ESC + b"S\x01B", generator=generator) == [(LEFT + 36, 240), (LEFT + 108, 420)]
+
+
+def test_tab_stops_out_of_order_can_be_skipped():
+    data = ESC + b"D\x05\x03\x07\x00\t\tA"
+    assert dots(data, tab_stops_skip_out_of_order=True) == [(LEFT + 7 * PICA + 36, 0)]
+
+
+def test_a_tab_can_insert_spaces_that_underline():
+    data = ESC + b"-\x01A\tA" + ESC + b"-\x00"
+    underline = [x for x, y in dots(data, tab_inserts_spaces=True) if y == 8 * 60]
+    assert len(underline) == 9 * PICA // 36
+
+
+def test_a_tab_past_the_line_can_start_the_next():
+    data = ESC + b"D\x64\x00A\tA"
+    assert dots(data, tab_inserts_spaces=True)[-1] == (LEFT + 36, LINE)
