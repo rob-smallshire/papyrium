@@ -7,6 +7,8 @@ description of the papyrium distribution, with links made absolute for
 PyPI. A module whose README states facts the code also holds, such as a
 printer model's options and their defaults, keeps a template beside it,
 src/papyrium/<module>/README.md.j2, rendered to README.md there.
+docs/architecture.md, for Papyrium's developers, is rendered from
+scripts/readme-templates/architecture.md.j2, with links relative to docs/.
 
 Templates see Papyrium's modules (each described by the first line of its
 docstring), the installed plug-ins on each axis, and these functions:
@@ -72,6 +74,7 @@ REPOSITORY_URL = "https://github.com/rob-smallshire/papyrium/blob/master/"
 RAW_REPOSITORY_URL = "https://raw.githubusercontent.com/rob-smallshire/papyrium/master/"
 
 README_TEMPLATE_FILENAME = "README.md.j2"
+ARCHITECTURE_TEMPLATE_FILENAME = "architecture.md.j2"
 
 #: The plug-in axes, in the order bytes flow through a printer.
 AXES = ("transport", "language", "model", "font", "output", "advertiser")
@@ -329,6 +332,10 @@ def _relative_url(path: str, raw: bool = False) -> str:
     return path
 
 
+def _relative_url_from_docs(path: str, raw: bool = False) -> str:
+    return "../" + path
+
+
 def _repository_url(path: str, raw: bool = False) -> str:
     return (RAW_REPOSITORY_URL if raw else REPOSITORY_URL) + path
 
@@ -337,10 +344,11 @@ def _render(
     template_dirpath: Path,
     images: ImageSet,
     *,
+    template_filename: str = README_TEMPLATE_FILENAME,
     repo_url: Callable[..., str] = _relative_url,
     **context: object,
 ) -> str:
-    template = _jinja_environment(template_dirpath).get_template(README_TEMPLATE_FILENAME)
+    template = _jinja_environment(template_dirpath).get_template(template_filename)
     return template.render(
         repo_url=repo_url,
         modules=load_modules(),
@@ -365,6 +373,15 @@ def _targets() -> list[RenderTarget]:
         RenderTarget(
             REPO_DIRPATH / "README-pypi.md",
             partial(_render, TEMPLATE_DIRPATH, repo_url=_repository_url),
+        ),
+        RenderTarget(
+            REPO_DIRPATH / "docs" / "architecture.md",
+            partial(
+                _render,
+                TEMPLATE_DIRPATH,
+                template_filename=ARCHITECTURE_TEMPLATE_FILENAME,
+                repo_url=_relative_url_from_docs,
+            ),
         ),
     ]
     for template_filepath in sorted(SOURCE_DIRPATH.glob(f"papyrium/**/{README_TEMPLATE_FILENAME}")):

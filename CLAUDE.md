@@ -159,8 +159,8 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   its best. The conformance suite checks it prints without warnings, each
   model pins it as golden pages, its README and the root README's
   gallery show it, and `papyrium demo MODEL` prints it.
-- **Generated READMEs.** `README.md`, the printer models' READMEs and
-  `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
+- **Generated READMEs.** `README.md`, the printer models' READMEs,
+  `docs/architecture.md` and `docs/images/` are rendered by `scripts/render_readme.py` from Jinja2
   templates (`scripts/readme-templates/`, and `README.md.j2` beside a
   module), running `scripts/readme-examples/` against Papyrium. Edit the templates,
   never the READMEs; the pre-commit hook (`uv run pre-commit install`)

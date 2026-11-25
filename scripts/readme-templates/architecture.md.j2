@@ -1,0 +1,96 @@
+{#-
+  docs/architecture.md template, rendered by scripts/render_readme.py with
+  the README. Edit this file, not docs/architecture.md.
+-#}
+{% import "package.md.j2" as common -%}
+{{ common.generated_notice() }}
+# Papyrium's architecture
+
+Papyrium receives the bytes a computer sends to its printer, interprets
+them as a chosen period printer would, lays the result out on emulated
+paper, and delivers the pages. It knows nothing about the computer on the
+other end.
+
+## Plug-in axes
+
+Papyrium is a framework of independent, pluggable axes, each chosen by
+configuration:
+
+- **Transports** deliver bytes and know no printer language: raw TCP on
+  port 9100, and a file followed as it grows.
+- **Languages** are interpreters: ESC/P and its relatives, the IBM
+  Proprinter's, Commodore's.
+- **Printer models** are what the user chooses. A language is not a
+  model: the Epson FX-80 and the Star LC-10 share the ESC/P interpreter
+  but differ in characters, commands, printable area and mechanics.
+- **Fonts** stand in for each printer's character ROM, as swappable data.
+- **Outputs** write pages from an intermediate page model: PNG and PDF.
+  Dot-matrix output keeps its dots.
+- **Advertisers** announce a running printer on the network.
+
+Each axis is an entry-point extension point, so a separately distributed
+package can add to it, its modules joining the `papyrium` namespace
+beside these. Each has a conformance suite that plug-ins subclass in their
+tests.
+
+| Axis | Plug-in | Description | Module |
+|---|---|---|---|
+{%- for kind, label in [("transport", "Transports deliver bytes"), ("language", "Languages interpret them"), ("model", "Printer models are what the user chooses"), ("font", "Fonts stand in for character ROMs"), ("output", "Outputs write pages"), ("advertiser", "Advertisers announce printers")] %}
+{%- for plugin in plugins[kind] %}
+| {{ label if loop.first else "" }} | `{{ plugin.name }}` | {{ plugin.description }} | [`{{ plugin.module.name }}`]({{ repo_url(plugin.module.dirpath) }}) |
+{%- endfor %}
+{%- endfor %}
+
+The modules live under `src/papyrium/`, an implicit namespace package,
+and their tests under `tests/`, in the same arrangement:
+
+| Module | Contents |
+|---|---|
+{%- for module in modules %}
+| [`{{ module.name }}`]({{ repo_url(module.dirpath) }}) | {{ module.description }} |
+{%- endfor %}
+
+
+## Rules the design keeps
+
+- Every byte is appended to the job's capture, `capture.prn`, before it
+  is interpreted, and a capture replayed with the same printer setup
+  gives identical pages. Languages, models and outputs are synchronous,
+  deterministic functions of the captured bytes, run off the event loop.
+- Connection lifetime is not job lifetime: a disconnect never ends a job.
+  The spooler owns only the language-independent rules, the idle timeout
+  and an explicit end of job; page and job boundaries a language defines,
+  such as a form feed, come back from the model.
+- The sender can stop and resume at any time; nothing is timed but the
+  optional idle timeout.
+- Positions on the page are whole units of 1/4320 inch
+  (`papyrium.core.page`).
+- Where a printer emulates another, the emulated printer is modelled
+  first, from its own manual, and the emulating printer built on it.
+
+## Printers' behaviour
+
+What Papyrium does for each printer comes from the manufacturers' manuals
+and, where it has been read, the printer's firmware, restated in notes
+with page references:
+
+| Printer | Behaviour | Firmware |
+|---|---|---|
+| Epson FX-80 | [epson-fx80.md]({{ repo_url("docs/epson-fx80.md") }}) | |
+| Epson LX-800 | [epson-lx800.md]({{ repo_url("docs/epson-lx800.md") }}) | |
+| Centronics GLP II (Brother M-1109) | [brother-m1109.md]({{ repo_url("docs/brother-m1109.md") }}) | |
+| Centronics GLP and Schneider NLQ401 | [schneider-nlq401.md]({{ repo_url("docs/schneider-nlq401.md") }}) | [schneider-nlq401-firmware.md]({{ repo_url("docs/schneider-nlq401-firmware.md") }}) |
+| Star LC-10 and LC-10 Colour | [star-lc-10.md]({{ repo_url("docs/star-lc-10.md") }}) | [star-lc10-firmware.md]({{ repo_url("docs/star-lc10-firmware.md") }}) |
+| IBM Proprinter II | [ibm-proprinter-ii.md]({{ repo_url("docs/ibm-proprinter-ii.md") }}) | |
+| Panasonic KX-P1080 family | [panasonic-kx-p1080.md]({{ repo_url("docs/panasonic-kx-p1080.md") }}), [panasonic-kx-p1080i.md]({{ repo_url("docs/panasonic-kx-p1080i.md") }}) | [panasonic-kx-p1080-rom-recovery.md]({{ repo_url("docs/panasonic-kx-p1080-rom-recovery.md") }}) |
+| Commodore MPS-803 | [commodore-mps-803.md]({{ repo_url("docs/commodore-mps-803.md") }}) | [commodore-mps-803-firmware.md]({{ repo_url("docs/commodore-mps-803-firmware.md") }}) |
+
+[character-generation.md]({{ repo_url("docs/character-generation.md") }})
+describes how characters become dots.
+[research-resources.md]({{ repo_url("docs/research-resources.md") }})
+lists outside sources: manuals, firmware and other emulations.
+[emulators/]({{ repo_url("docs/emulators/README.md") }}) describes how
+BBC Micro emulators deliver their printer output, read from their source.
+[specification.md]({{ repo_url("docs/specification.md") }}) is the design
+as first handed over from Beebium, and `CLAUDE.md` records the working
+practices.

@@ -275,101 +275,6 @@ pages; `render` on a job directory uses the setup recorded in its
 them, and needs no printer model installed: each job records the model and
 options asked for, so it can be printed later on a machine that has it.
 
-## How it is built
-
-Papyrium is a framework of independent, pluggable axes. Each is an
-entry-point extension point, so a separately distributed package can add
-to it, its modules joining the `papyrium` namespace beside these:
-
-| Axis | Plug-in | Description | Module |
-|---|---|---|---|
-| Transports deliver bytes | `file-follow` | Follows a file as a sender writes to it, as ``tail -f`` does | [`papyrium.transport.file_follow`](src/papyrium/transport/file_follow/) |
-|  | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) |
-| Languages interpret them | `cbm` | The language of Commodore's serial bus printers, as the MPS-803 speaks it | [`papyrium.language.cbm`](src/papyrium/language/cbm/) |
-|  | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](src/papyrium/language/escp/) |
-|  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) |
-| Printer models are what the user chooses | `brother-m1009` | Brother M-1009: the Centronics GLP under Brother's badge, without NLQ | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
-|  | `brother-m1109` | Brother M-1109: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `centronics-glp` | Centronics GLP (Model 3101): the first Great Little Printer, of 1984 | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
-|  | `centronics-glp-ii` | Centronics GLP II (Model 3102): the second Great Little Printer, of 1985 | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `commodore-mps-803` | Commodore MPS-803: a 7-wire dot-matrix printer for Commodore's serial bus | [`papyrium.model.commodore_mps803`](src/papyrium/model/commodore_mps803/) |
-|  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) |
-|  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) |
-|  | `ibm-proprinter-ii` | IBM Proprinter II: a 9-wire dot-matrix printer speaking its own language | [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) |
-|  | `panasonic-kx-p1080` | Panasonic KX-P1080: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) |
-|  | `panasonic-kx-p1080u` | Panasonic KX-P1080U: the KX-P1080 for the UK, its firmware Papyrium's source | [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) |
-|  | `rca-vp2100` | RCA VP2100: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `schneider-nlq401` | Schneider NLQ401: the Centronics GLP with Schneider's NLQ, for the CPC | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
-|  | `sony-prn-m09` | Sony PRN-M09: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `star-lc10` | Star LC-10: a 9-pin dot-matrix printer with Epson and IBM Proprinter modes | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
-|  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
-| Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) |
-|  | `glp-draft` | The Centronics GLP's draft characters (Model 3101), from its firmware | [`papyrium.font.glp`](src/papyrium/font/glp/) |
-|  | `glp-graphics` | The Centronics GLP's graphics characters, the Amstrad CPC's codes 129-255 | [`papyrium.font.glp`](src/papyrium/font/glp/) |
-|  | `glp-nlq` | The Schneider NLQ401's near letter quality characters, from its firmware | [`papyrium.font.glp`](src/papyrium/font/glp/) |
-|  | `kx-p1080-draft` | The KX-P1080U's draft font, extracted from its CPU's internal ROM | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |
-|  | `kx-p1080-draft-italic` | The KX-P1080U's draft italics, extracted from its CPU's internal ROM | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |
-|  | `kx-p1080-nlq` | The KX-P1080U's near letter quality font, extracted from its EPROM | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |
-|  | `kx-p1080-nlq-italic` | The KX-P1080U's NLQ italics, slanted as the printer slants them | [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) |
-|  | `lc10-block-graphics` | The Star LC-10's IBM block graphics, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-draft` | The Star LC-10's pica draft font, made as the printer makes it | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-draft-elite` | The Star LC-10's elite draft font, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-courier` | The Star LC-10's NLQ Courier in pica, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-courier-elite` | The Star LC-10's NLQ Courier in elite, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-orator` | The Star LC-10's NLQ Orator with lower case in pica, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-orator-elite` | The Star LC-10's NLQ Orator with lower case in elite, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-orator-small-capitals` | The Star LC-10's NLQ Orator with small capitals in pica, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-orator-small-capitals-elite` | The Star LC-10's NLQ Orator with small capitals in elite, from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-sanserif` | The Star LC-10's NLQ Sanserif in pica, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lc10-nlq-sanserif-elite` | The Star LC-10's NLQ Sanserif in elite, extracted from its firmware ROM | [`papyrium.font.lc10`](src/papyrium/font/lc10/) |
-|  | `lx800-draft` | The Epson LX-800's draft font, extracted from its firmware ROM | [`papyrium.font.lx800`](src/papyrium/font/lx800/) |
-|  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium.font.lx800`](src/papyrium/font/lx800/) |
-|  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium.font.m1109`](src/papyrium/font/m1109/) |
-|  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium.font.m1109`](src/papyrium/font/m1109/) |
-|  | `mps803` | The Commodore MPS-803's characters, extracted from its firmware ROM | [`papyrium.font.mps803`](src/papyrium/font/mps803/) |
-| Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium.output.pdf`](src/papyrium/output/pdf/) |
-|  | `png` | PNG images, one per page, with each struck dot drawn as a dot | [`papyrium.output.png`](src/papyrium/output/png/) |
-| Advertisers announce printers | `mdns` | Announces printers with multicast DNS, as Bonjour and Avahi do | [`papyrium.advertiser.mdns`](src/papyrium/advertiser/mdns/) |
-
-The modules live under `src/papyrium/`, an implicit namespace package,
-and their tests under `tests/`, in the same arrangement:
-
-| Module | Contents |
-|---|---|
-| [`papyrium.exception`](src/papyrium/exception/) | Categorised exceptions and CLI error-reporting boundary for Papyrium |
-| [`papyrium.extension`](src/papyrium/extension/) | Generic entry-point plug-in machinery shared by every Papyrium extension axis |
-| [`papyrium.core`](src/papyrium/core/) | Papyrium's core: the page model, printer models, jobs, spooling and the plug-in axes |
-| [`papyrium.transport.file_follow`](src/papyrium/transport/file_follow/) | File-follow transport: the bytes an emulator appends to a printer file |
-| [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
-| [`papyrium.language.cbm`](src/papyrium/language/cbm/) | The Commodore printers' language, as the MPS-803 speaks it over the serial bus |
-| [`papyrium.language.escp`](src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
-| [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) | The IBM Proprinter's printer language, for its 9-wire printers |
-| [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) | The Centronics GLP (Model 3101) and the printers made from it |
-| [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) | The Centronics GLP II (Model 3102) 9-pin dot-matrix printer, the Brother M-1109 |
-| [`papyrium.model.commodore_mps803`](src/papyrium/model/commodore_mps803/) | The Commodore MPS-803 dot-matrix printer |
-| [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
-| [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |
-| [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) | The IBM Proprinter II 9-wire dot-matrix printer |
-| [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) | The Panasonic KX-P1080 and KX-P1080U 9-pin dot-matrix printers |
-| [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) | The Star LC-10 and LC-10 Colour 9-pin dot-matrix printers |
-| [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) | draft-9: a 9-pin dot-matrix font designed for Papyrium |
-| [`papyrium.font.glp`](src/papyrium/font/glp/) | The Centronics GLP's draft and graphics fonts, from its firmware |
-| [`papyrium.font.kx_p1080`](src/papyrium/font/kx_p1080/) | The Panasonic KX-P1080U's draft and near letter quality fonts, from its firmware |
-| [`papyrium.font.lc10`](src/papyrium/font/lc10/) | The Star LC-10's draft and near letter quality fonts, from its firmware |
-| [`papyrium.font.lx800`](src/papyrium/font/lx800/) | The Epson LX-800's draft and near letter quality Roman fonts, from its firmware |
-| [`papyrium.font.m1109`](src/papyrium/font/m1109/) | The Brother M-1109's draft and NLQ fonts, reconstructed from its printed output |
-| [`papyrium.font.mps803`](src/papyrium/font/mps803/) | The Commodore MPS-803's characters, from its firmware |
-| [`papyrium.output.pdf`](src/papyrium/output/pdf/) | PDF output: each job as one document, each dot as a vector dot |
-| [`papyrium.output.png`](src/papyrium/output/png/) | PNG output: one greyscale raster image per page |
-| [`papyrium.advertiser.mdns`](src/papyrium/advertiser/mdns/) | Announcing Papyrium printers on the local network with multicast DNS |
-| [`papyrium.cli`](src/papyrium/cli/) | The ``papyrium`` command: run a virtual vintage printer and inspect its jobs |
-
-`docs/specification.md` is the design as handed over from Beebium.
-`docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md`,
-`docs/star-lc-10.md`, `docs/ibm-proprinter-ii.md` and
-`docs/panasonic-kx-p1080.md` record the behaviour Papyrium follows, from
-the manufacturers' manuals and firmware, and `CLAUDE.md` records the working practices.
-
 ## Development
 
 ```sh
@@ -377,6 +282,10 @@ uv sync
 uv run pytest
 uv run pre-commit install
 ```
+
+[The architecture](docs/architecture.md) describes how
+Papyrium is built: its plug-in axes, its modules, and the notes recording
+each printer's behaviour.
 
 The golden tests replay the captures in each printer model's tests'
 `golden/` directory and compare every page with a pinned image. The end-to-end

@@ -239,35 +239,6 @@ pages; `render` on a job directory uses the setup recorded in its
 them, and needs no printer model installed: each job records the model and
 options asked for, so it can be printed later on a machine that has it.
 
-## How it is built
-
-Papyrium is a framework of independent, pluggable axes. Each is an
-entry-point extension point, so a separately distributed package can add
-to it, its modules joining the `papyrium` namespace beside these:
-
-| Axis | Plug-in | Description | Module |
-|---|---|---|---|
-{%- for kind, label in [("transport", "Transports deliver bytes"), ("language", "Languages interpret them"), ("model", "Printer models are what the user chooses"), ("font", "Fonts stand in for character ROMs"), ("output", "Outputs write pages"), ("advertiser", "Advertisers announce printers")] %}
-{%- for plugin in plugins[kind] %}
-| {{ label if loop.first else "" }} | `{{ plugin.name }}` | {{ plugin.description }} | [`{{ plugin.module.name }}`]({{ repo_url(plugin.module.dirpath) }}) |
-{%- endfor %}
-{%- endfor %}
-
-The modules live under `src/papyrium/`, an implicit namespace package,
-and their tests under `tests/`, in the same arrangement:
-
-| Module | Contents |
-|---|---|
-{%- for module in modules %}
-| [`{{ module.name }}`]({{ repo_url(module.dirpath) }}) | {{ module.description }} |
-{%- endfor %}
-
-`docs/specification.md` is the design as handed over from Beebium.
-`docs/epson-fx80.md`, `docs/epson-lx800.md`, `docs/brother-m1109.md`,
-`docs/star-lc-10.md`, `docs/ibm-proprinter-ii.md` and
-`docs/panasonic-kx-p1080.md` record the behaviour Papyrium follows, from
-the manufacturers' manuals and firmware, and `CLAUDE.md` records the working practices.
-
 ## Development
 
 ```sh
@@ -275,6 +246,10 @@ uv sync
 uv run pytest
 uv run pre-commit install
 ```
+
+[The architecture]({{ repo_url("docs/architecture.md") }}) describes how
+Papyrium is built: its plug-in axes, its modules, and the notes recording
+each printer's behaviour.
 
 The golden tests replay the captures in each printer model's tests'
 `golden/` directory and compare every page with a pinned image. The end-to-end
