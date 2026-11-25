@@ -40,7 +40,8 @@ beside them: `docs/star-lc10-firmware.md` for the LC-10, and for the
 KX-P1080U, whose CPU's own ROM was read out by making the printer print
 it, `docs/panasonic-kx-p1080-rom-recovery.md`; for the Schneider NLQ401,
 the first-edition Centronics GLP (Model 3101) with Schneider's NLQ,
-`docs/schneider-nlq401-firmware.md`.
+`docs/schneider-nlq401-firmware.md`; for the Commodore MPS-803,
+`docs/commodore-mps-803-firmware.md`.
 
 External sources for printers modelled or to be modelled (manuals,
 firmware, other emulations) are listed in `docs/research-resources.md`;
