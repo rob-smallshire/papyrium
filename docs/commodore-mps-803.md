@@ -749,8 +749,6 @@ and from the file itself:
 - That is **row-major**. A print-head character generator for a vertical
   7-wire head would naturally be stored **column-major**, one byte per dot
   column.
-- Its '0' is unslashed, but the manuals' tables show a slashed zero.
-
   Together these suggest mps803.bin is **not a dump of a chip on the
   printer**. It looks like a software emulator's character file, laid out
   for screen-style rendering; VICE's MPS-803 emulation uses a 7 × 512
@@ -760,8 +758,10 @@ and from the file itself:
   `U*U*U*`; the last is $55/$2A alternating, a checkerboard drawn column by
   column. That matches the SM: the real CG is in the internal ROM.
 
-  This is from a quick look at the bytes only; the firmware analysis should
-  confirm it.
+  The firmware analysis confirms it (`docs/commodore-mps-803-firmware.md`):
+  for all 384 printable codes of both sets, mps803.bin holds exactly the
+  internal ROM's glyphs turned on their side into rows, slashed zero and
+  all.
 
 ### 7.9 Power supply and electrical details (SM p. 1-3, 3-16)
 

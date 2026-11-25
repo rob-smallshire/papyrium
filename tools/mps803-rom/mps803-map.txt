@@ -1,0 +1,212 @@
+# Map of the Commodore MPS-803's firmware: the 4K internal mask ROM of its
+# NEC uPD78C11 (the service manual says uPD7811), which holds both the
+# program and the character generator. The 7811 family runs the uPD7810's
+# instruction set, so unidasm's upd7810 is the architecture. Names and
+# descriptions are our own, from tracing the program; what they show is
+# written up in docs/commodore-mps-803-firmware.md.
+#
+# Conventions in the descriptions: "skips" means the routine returns with
+# RETS, so the instruction after the call is skipped. VV:17 is the print
+# mode (bit 0 double width, 1 bit image, 2 reverse, 3 business set,
+# 6 quote mode). Positions are in dots of 1/60 inch, which are also
+# carriage steps.
+
+@rom docs/local/commodore-mps-803/mps803_78c11.bin
+@listing docs/local/commodore-mps-803/mps803_78c11.dis
+@arch upd7810
+@segment 0000-0FFF at 0000
+@vpage FF
+
+# -- Vectors and start-up ----------------------------------------------------
+
+$0000        code  reset              Power on: stack at the top of RAM, then to init_ports
+$0008        code  int_timer          INTT0/INTT1: call the handler whose address is in $FF09 (the motors' coroutines)
+$0018        code  int_external       INTE0/INTE1: call the handler whose address is in $FF0B (head firing, lamp flashing)
+$0035        code  init_ports         Ports A, B outputs; port C control mode for RxD, SCK, INT2, CO1; PF5 output; V=$FF; timers; serial receiver clocked by bus CLK
+$006A        code  rom_checksum       Sum $0000-$0FFF must be zero, else error_flash
+$0078        code  ram_test           Write and check $FF, then $00, through $FF00-$FFFF; leaves RAM zeroed
+$0088        code  init_switches      Phase patterns $33; device number from AN2 (VV:08 = $24, $25 if AN2 >= $7F); LF button held gives self test
+$00A3        code  home_carriage      Step left (step_left) with an eight-step ramp until the home switch (PF6) closes; 600 steps without it is a motor error
+$00C4        code  motor_error        Set VV:07 bit 6 and stop
+$00C9        code  home_found         Decelerate, then step right up to 28 steps until the home switch opens, else motor error
+$00EE        code  park_carriage      Move right 248 steps (8 ramp, 232, 8 ramp) towards mid-line; position $FF02 = $00F8
+$00FD        code  init_done          Carriage to holding current; on a motor error flash the lamp for ever
+$0109        code  error_flash        Toggle the lamp (PC4) every nine waits of $8F ticks, for ever (ROM, RAM or motor error)
+$0115        code  power_on_paper     No paper at power on: VV:28 = $6D, so the first print or feed raises paper empty
+$011B        code  start_self_test    Self test requested: to self_test
+
+# -- Serial bus ---------------------------------------------------------------
+
+$0121        code  bus_idle           Clear the ATN edge flag
+$0124        code  bus_wait_attention Start the idle poll if the timer is stopped, then wait for ATN to fall (INTF2)
+$012D        code  attention          Pull DATA low, wait 3.3 ms, receive the byte sent under ATN
+$013D        code  listened           Our LISTEN: receive the next byte
+$014A        code  data_without_sa    Data straight after LISTEN: graphic set (sa_graphic), then interpret
+$014F        code  data_byte          Interpret a data byte unless VV:07 bit 0 (a secondary address other than 0 or 7) says ignore
+$0156        code  next_byte          Release DATA when ready, receive a byte; data to data_byte, ATN bytes below
+$0161        code  attention_byte     Under ATN: our LISTEN again resets VV:07; UNLISTEN ($3F) to unlisten; any other ignored
+$0171        code  secondary_address  $60: graphic set; $67: business set; anything else: ignore data until the next LISTEN or UNLISTEN
+$0189        code  eoi_first          EOI on the first byte after LISTEN: graphic set
+$018C        code  eoi_acknowledge    EOI: pull DATA low about 60 us, then receive the byte
+$0199        code  not_our_address    Another device's LISTEN: hold DATA a moment, release it, go idle
+$01A2        code  unlisten           Wait for CLK released, release DATA, clear VV:07, go idle (the line buffer is kept)
+$01AF        code  delay_3ms          About 3.3 ms of loop
+$01B9        code  ready_for_byte     Wait for CLK released (after 3.3 ms if ATN fell meanwhile)
+$01C3        code  receive_byte       Release DATA, take eight bits through the serial receiver; skips with C = byte and A = ATN (PC3); returns plainly on an EOI timeout
+$01E4        code  byte_arriving      Wait for RxB full, read it, wait for CLK low, pull DATA low (busy) and skip
+
+# -- Idle polling and the LF button --------------------------------------------
+
+$01FC        code  idle_poll          Timer handler while idle: LF button down feeds lines, cancels paper empty
+$0212        code  manual_feed        Debounce, feed one line, then after about 0.5 s feed lines while the button is held
+$0245        code  button_released    Clear VV:1D bit 4
+$0248        code  arm_idle_poll      Timer handler = idle_poll, $FF ticks
+$0250        code  save_continuation  Keep the caller's return address in $FF14, run when a feed ends
+
+# -- Interpreter -----------------------------------------------------------------
+
+$0256        code  interpret          A received byte (C): parameters, bit image, CR, quote mode, $91/$92, controls, printables
+$0280        code  printable          Advance 6 (12 double) dots, toggle quote mode on '"', convert to a glyph index and buffer it
+$029F        code  buffer_glyph       glyph_index for the current set; reverse forces a unidirectional line
+$02B1        code  quoted_control     In quote mode: $00-$1F stored as $C0-$DF, $80-$9F as $E0-$FF (reverse glyphs)
+$02B6        code  bit_image_byte     Bit image: bit 7 set is a column (advance 1 dot, buffer the byte); $00-$1F to control_code; else ignored
+$02CA        code  parameter_byte     A byte for SUB ($20), POS ($40) or ESC ($80) in VV:1B; low two bits count them
+$02DD        code  sub_data           SUB's data byte: below $80 cancels; else advance n dots (0 = 256) and buffer $0A n d $0A
+$0303        code  end_parameters     VV:1B = 0
+$0307        code  esc_parameter      After ESC: only $10 continues; any other byte is swallowed
+$0310        code  esc_pos_high       nH: only bit 0 kept
+$0318        code  esc_pos_low        Dot position (nH bit 0, nL): 480 or more ignored
+$031D        code  set_position       Target dot DE: pending move = target - current, or none if the target is behind
+$033B        code  position_at_line_end  The line is exactly full (480): print it and feed first
+$034D        code  pos_parameter      POS digits, low four bits each: column = 10 d1 + d2, times 6 dots, to set_position
+$0367        code  control_code       Dispatch $00-$1F through control_codes
+$036C-$03AB  jumps:00 control_codes  Handlers for control codes $00-$1F
+$03AC        code  ctl_bs             BS $08: cancel a pending move; enter bit image (toggle entry 2)
+$03B2        code  ctl_ignore         Codes with no function
+$03BB        code  ctl_rvs_on         RVS ON $12: reverse (toggle entry 4); ignored in bit image
+$03C7        code  ctl_rvs_off        RVS OFF $92: end reverse
+$03D3        code  ctl_business       $11: business set, marked as changed within the line (VV:1D bit 5)
+$03D7        code  sa_business        Secondary address 7: business set unless the line's set was changed by $11/$91 under the same address
+$03E6        code  select_business    Business set (toggle entry 8), not while in bit image
+$03F2        code  ctl_graphic        $91: graphic set, marked as changed within the line
+$03F6        code  sa_graphic         Secondary address 0 (or none): graphic set, with the same rule as sa_business
+$0405        code  select_graphic     Graphic set (toggle entry 8)
+$0411        code  ctl_sub            SUB $1A: only in bit image, expect n and d
+$0419        code  ctl_pos            POS $10: expect two digits
+$041D        code  ctl_esc            ESC $1B: expect $10 nH nL
+$0421        code  ctl_cr             CR $0D and LF $0A: print the line, feed by the mode, new line; end reverse and quote mode, back to the secondary address's set
+$043D        code  end_of_line        Clear the unidirectional flag
+$0440        code  head_cooling       AN1 (head thermistor) above $7F: pause 62 waits of $E5 ticks (about 0.5 s)
+$044C        code  line_feed          Feed 21 steps (7/72 in) if the line ended in bit image, else text_line_feed
+$0450        code  text_line_feed     AN3 above $7F: 27 steps (1/8 in), else 36 (1/6 in); uses the MVI A overlay rule
+$045D        code  ctl_so             SO $0E: cancel a pending move; double width; leave bit image
+$046A        code  ctl_si             SI $0F: cancel a pending move; standard width; leave bit image
+$0478        code  leave_bit_image    Clear bit image and buffer the combined toggle entry
+$0488        code  new_line           Positions to 0, buffer empty, no pending move or parameters
+$0496        code  cancel_position    Forget a pending POS/ESC POS move and parameter state
+$049D        code  print_buffer       Check paper, wait out errors, note the end-of-line mode (VV:25, VV:26), print if anything shows
+$04B8        code  print_line         Choose a direction by the shortest path, move, print (entered by line_extent's skip)
+$04CC        code  choose_direction   Unidirectional lines (reverse, bit image, SUB) always print left to right
+$04E9        code  move_right_of_line Carriage right of mid-line: go 16 past the right end first
+$0513        code  print_right_to_left Ramp, run, then feed columns right to left
+$054A        code  rtl_entry          One buffer entry backwards: glyph columns 5..0, doubled for double width
+$05C1        code  motor_error_print  Home switch made while printing: motor error
+$05C7        code  rtl_step           Timer handler while printing leftwards: step, position - 1, fire the head after $0684 counts
+$05D5        code  move_left_of_line  Go 16 before the left end first
+$0601        code  print_left_to_right Ramp, run, then feed columns left to right
+$063C        code  ltr_entry          One buffer entry: glyph columns 0..5, doubled for double width; inverted unless reverse
+$06AC        code  ltr_step           Timer handler while printing rightwards: step, position + 1, fire the head
+$06BA        code  fire_head          INTE0: column VV:1A to port B with bit 7 forced high (wire 8 never fires); pulse /HPLS on CO1 for a time set by AN0 (+24 V)
+$06E5        code  line_extent        Find the first and last entries that print (spaces, $80 glyphs, blank columns and leading/trailing moves do not); skips if any
+$07C7        code  advance            Apply a pending move (buffer 9 hi lo 9), then advance DE dots; past 480 the line is printed and fed first
+$07FA        code  advance_check      Fits if the new position is 480 or less
+$0808        code  overflow           SUB past the margin: the part that fits ends this line, the rest starts the next
+$0831        code  wrap_line          Print, feed, cool, start a new line, and try again
+$0849        code  check_paper        More than $6C (108, three 1/6 in lines) steps fed without paper: paper empty, flash the lamp
+$0863        code  flash_paper_empty  INTE0 handler: flash the lamp until paper is loaded and LF pressed
+$0891        code  head_off           INTE0 handler: all head wires off
+$0895        code  self_test          Rolling pattern: 80 characters a line from codes $20-$7F and $A0-$FF, each line one code on, sets alternating on each wrap
+$08DC        code  self_test_next     Next self-test code: $80 becomes $A0; after $FF buffer a set toggle and go to $20
+$08EC        code  glyph_index        PETSCII code A to glyph index, graphic set (C bit 3 clear)
+$090B        code  glyph_index_business  The business set
+$093C        code  toggle_mode        Buffer a mode toggle C, or remove the last entry if it is the same toggle; nothing if the buffer is empty
+$094C        code  append_byte        Buffer C; the first entry records the mode (VV:24); the 152nd byte prints the buffer
+$0962        code  buffer_full        Print without a line feed; the next buffer starts at the current position
+$0976        code  append_raw         Buffer C without the full check (parameters of entries 9 and $0A)
+$0989        code  settle             Two waits of $E5 ticks
+$0995        code  wait_e5            Wait $E5 ticks of timer 1
+$0997        code  wait_ticks         Wait A ticks of timer 1 (about 35 us each)
+$09A5        code  count_step         Decrement the step count $FF05; skips when it reaches zero
+$09B4        code  position_inc       $FF02 + 1
+$09BA        code  position_dec       $FF02 - 1
+$09C0        code  fetch_entry        Buffer entry A: a glyph's address in HL (skips), a column (skips), or a control entry handled here
+$09CF        code  glyph_address      $0B7F + 6 x index, the glyph's six columns
+$09DA        code  quoted_glyph       Entries $C0-$FF: the glyph of $40-$5F or $C0-$DF, reversed
+$09E7        code  control_entry      Entries 1-8 toggle the mode; 9 hi lo 9 is a blank run; $0A n d $0A a repeated column
+$0A05        code  blank_run          Hand over hi*256+lo empty columns
+$0A1A        code  repeat_run         Hand over n copies of column d (0 = 256)
+$0A2D        code  control_entry_back The same, reading the entry backwards
+$0A3F        code  ramp_up_right      Eight steps right, accelerating through ramp_table
+$0A50        code  wait_motion        Wait until a motion coroutine has finished (MKL bit 2 set)
+$0A55        code  ramp_tick          Timer handler of the ramps
+$0A6A        code  motion_done        Timer handler ending a motion: mask timer 1
+$0A6E        code  ramp_up_left       Eight steps left, accelerating
+$0A96        code  ramp_down_right    Eight steps right, decelerating
+$0AA6        code  ramp_down_left     Eight steps left, decelerating
+$0AB6        code  run_right          $FF05 steps right at $4F ticks a step (about 360 steps a second)
+$0AE0        code  run_left           $FF05 steps left
+$0B01        code  ramp_value_next    VV:04 + 1, then ramp_value
+$0B03        code  ramp_value         A = ramp_table[VV:04]
+$0B0A        code  set_timer_handler  Timer 1 handler = HL, period A, start it
+$0B17        code  set_external_handler  INTE0 handler = HL, after BC event-counter counts
+$0B28        code  feed_paper         Feed A steps of 1/216 in: ramp up 7, run at $8E ticks, ramp down 7, release; counts steps fed without paper
+$0B85        code  resume_continuation Run the continuation in $FF14 after a manual feed
+$0B8A        code  yield_feed         Wait $AB ticks
+$0B8C        code  yield              Make the rest of the caller the timer handler, A ticks on, and return to the caller's caller
+$0B90        code  step_right         Rotate the carriage phases (VV:00) left: one step right
+$0B97        code  step_left          Rotate them right: one step left
+$0BA6        code  hold_carriage      Output the carriage phases
+$0BA9        code  step_paper         Rotate the paper feed phases (VV:01), port A's high half
+$0BBF        code  hold_paper         Output the paper feed phases
+
+# -- Data in the program -----------------------------------------------------
+
+$0024-$0034  data  ramp_table         Timer 1 periods: carriage ramp $0024-$002C ($4F fastest .. $AA), paper feed ramp $002E-$0034 ($91 .. $AA)
+$0BC2-$0C3E  data  unused             $FF filler
+$0C3F-$0FFE  data  glyphs             Character generator: glyph indices $20-$BF, six column bytes each, top dot in bit 0, bit 7 unused
+$0FFF        data  checksum_byte      Makes the ROM's byte sum zero
+
+# -- RAM -----------------------------------------------------------------------
+
+$FF00        ram   carriage_phases    Carriage stepper phase pattern (port A low half)
+$FF01        ram   feed_phases        Paper feed stepper phase pattern (port A high half)
+$FF02        ram   carriage_position  Carriage position in steps from where the home switch opens (word); dot x prints at 24 + x
+$FF04        ram   ramp_index         Index into ramp_table
+$FF05        ram   step_count         Steps left in a motion (word)
+$FF07        ram   bus_flags          Bit 0 ignore data (bad secondary address), 1 self test, 6 motor error; the rolling code in the self test
+$FF08        ram   listen_address     $24 or $25, by SW1 on AN2
+$FF09        ram   timer_handler      Address of the timer interrupt's current handler
+$FF0B        ram   external_handler   Address of the external interrupt's current handler
+$FF0D        ram   print_start        Carriage position of the line's first printed column (word)
+$FF0F        ram   print_end          Carriage position after its last (word)
+$FF11        ram   first_entry        Buffer index of the first entry that prints
+$FF12        ram   last_entry         Buffer index of the last entry that prints
+$FF13        ram   buffer_count       Bytes in the line buffer
+$FF14        ram   feed_continuation  Where a manual feed carries on (word)
+$FF16        ram   last_byte          The byte being interpreted
+$FF17        ram   print_mode         Bit 0 double width, 1 bit image, 2 reverse, 3 business set, 6 quote mode
+$FF18        ram   wait_count         Counter for waits
+$FF19        ram   column_full        Bit 7: a column waits in column_byte for the head
+$FF1A        ram   column_byte        The next column, active low
+$FF1B        ram   parameter_state    $20 SUB, $40 POS, $80 ESC, plus a count of parameter bytes
+$FF1C        ram   parameter          The first parameter
+$FF1D        ram   line_flags         Bit 0 unidirectional, 1 paper empty, 2 manual feed, 3 paper empty from printing, 4 button press used, 5 set changed by $11/$91, 6-7 flash count
+$FF1E        ram   pending_move       Dots to skip before the next printed item (word)
+$FF20        ram   dot_position       Next dot position on the line, 0-480 (word)
+$FF22        ram   buffer_start       Dot position at the start of the buffer (word)
+$FF24        ram   start_mode         print_mode at the buffer's first (printed) entry
+$FF25        ram   end_mode           print_mode at its last
+$FF26        ram   feed_mode          print_mode when the line was printed, which picks the line feed
+$FF27        ram   address_set        1 business (secondary address 7), 2 graphic (0)
+$FF28        ram   steps_without_paper Steps fed since the paper-empty switch opened
+$FF29-$FFC8  ram   line_buffer        The line buffer, 152 bytes and a little overflow for multi-byte entries
