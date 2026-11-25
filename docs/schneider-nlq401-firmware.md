@@ -155,7 +155,33 @@ travel runs from its first printing character to its last.
   each pair of columns as one, 1/120 inch apart. Graphics characters
   print a column every other slot ($10F2), on the even ones.
 
-Still to trace: the self test and hex dump, and the head's timing.
+- Emphasized ($102C-$1037) fires each slot with the column before it ORed
+  in (`ANAW VV:21`, the pins active low), so a dot repeats one slot, 1/120
+  inch, to the right; the last column's repeat falls in the cell's twelfth
+  slot. Condensed takes the same 12 slots a character, shorter ones
+  (VV:0C, $1079): 42/720 inch divided in twelve.
+- Double strike prints the line twice, the paper fed one step, 1/216 inch,
+  between the passes ($0CCB, $0C55). Super- and subscripts take the same
+  two passes, each printing half the glyph's rows on four adjacent pins
+  ($0934): the first pass rows 0, 2, 4 and 6, the second rows 1, 3, 5 and
+  7, packed by the table at $1650, whose bytes hold the packed nibble
+  twice; a superscript keeps the high nibble (pins 1-4) and a subscript
+  the low (pins 5-8). So row r falls at (r // 2) / 72 + (r % 2) / 216 inch,
+  4/72 inch lower for a subscript, each dot struck once. NLQ skips the
+  transform ($0934 returns), so it masks scripts.
+- HT ($02F6) counts stops in the current pitch's widths and takes the first
+  beyond the position; with none it is ignored, for one past the end of
+  the line it takes the LF path ($038B) and starts a new line, and
+  otherwise it puts spaces into the line ($0360) up to the stop, which an
+  underline covers.
+- ESC D ($0529) compares each stop with the one stored before it: one not
+  above it is skipped, the list going on; a zero, or the 28th stop, ends
+  it.
+- Control codes below HT, BS among them, and DEL are ignored ($0294,
+  $0134).
+
+Not modelled, as no computer can ask for them: the self test and the hex
+dump, which the front panel starts at power on.
 
 ## Draft characters
 

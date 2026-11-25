@@ -400,3 +400,11 @@ Numbered as in `docs/commodore-mps-803.md` §8:
 - Which physical switch positions the A/D thresholds correspond to.
 - Bus timing details beyond the handshake order (loop lengths were
   estimated, not counted in clock states).
+
+## Settled since
+
+- A quote-mode control prints reversed whether or not RVS is on: a column
+  goes to the head uninverted (so reversed, the pins being active low) if
+  either reverse (C bit 2) or the quoted-entry flag (C bit 6, set at
+  $09E3 and cleared after the entry at $066E) is set (`ONI C,$44` at
+  $0657), an OR, not an exclusive OR.
