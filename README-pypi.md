@@ -26,32 +26,6 @@ Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
 
-## Printers
-
-Each printer model has a demonstration page, printed here by Papyrium
-itself; `papyrium demo MODEL` prints one.
-
-<table>
-<tr>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1009.png" alt="The top of the brother-m1009 demonstration page" width="100%"></a><br><code>brother-m1009</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp.png" alt="The top of the centronics-glp demonstration page" width="100%"></a><br><code>centronics-glp</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp-ii.png" alt="The top of the centronics-glp-ii demonstration page" width="100%"></a><br><code>centronics-glp-ii</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/commodore_mps803/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-commodore-mps-803.png" alt="The top of the commodore-mps-803 demonstration page" width="100%"></a><br><code>commodore-mps-803</code></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
-</tr>
-<tr>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-schneider-nlq401.png" alt="The top of the schneider-nlq401 demonstration page" width="100%"></a><br><code>schneider-nlq401</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
-</tr>
-</table>
-
 ## Quick start
 
 With [uv](https://docs.astral.sh/uv/), run it straight from PyPI:
@@ -84,140 +58,9 @@ Epson FX-80, and writes each job into `papyrium-jobs/job-NNNN/`:
 | `page-0001.png`, ... | Each page, written as the paper is ejected |
 | `job.pdf` | The whole job, written when the job ends |
 
-Print something to it:
-
-```sh
-printf 'HELLO FROM PAPYRIUM\r\n\x0c' | nc localhost 9100
-```
-
 A job ends after five seconds without bytes (`--idle-timeout`), or when
 the service stops. A disconnect never ends a job: an emulator may hold one
 connection open for its whole life.
-
-## Printers, paper and fonts
-
-```
-$ papyrium list-models
-                                     Models                                     
-┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name                ┃ Description                                            ┃
-┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ brother-m1009       │ Brother M-1009: the Centronics GLP under Brother's     │
-│                     │ badge, without NLQ.                                    │
-│ brother-m1109       │ Brother M-1109: the Centronics GLP II sold under       │
-│                     │ another name.                                          │
-│ centronics-glp      │ Centronics GLP (Model 3101): the first Great Little    │
-│                     │ Printer, of 1984.                                      │
-│ centronics-glp-ii   │ Centronics GLP II (Model 3102): the second Great       │
-│                     │ Little Printer, of 1985.                               │
-│ commodore-mps-803   │ Commodore MPS-803: a 7-wire dot-matrix printer for     │
-│                     │ Commodore's serial bus.                                │
-│ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
-│                     │ speaking ESC/P.                                        │
-│ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
-│                     │ speaking ESC/P.                                        │
-│ ibm-proprinter-ii   │ IBM Proprinter II: a 9-wire dot-matrix printer         │
-│                     │ speaking its own language.                             │
-│ panasonic-kx-p1080  │ Panasonic KX-P1080: an 80-column, 9-pin dot-matrix     │
-│                     │ printer speaking ESC/P.                                │
-│ panasonic-kx-p1080u │ Panasonic KX-P1080U: the KX-P1080 for the UK, its      │
-│                     │ firmware Papyrium's source.                            │
-│ rca-vp2100          │ RCA VP2100: the Centronics GLP II sold under another   │
-│                     │ name.                                                  │
-│ schneider-nlq401    │ Schneider NLQ401: the Centronics GLP with Schneider's  │
-│                     │ NLQ, for the CPC.                                      │
-│ sony-prn-m09        │ Sony PRN-M09: the Centronics GLP II sold under another │
-│                     │ name.                                                  │
-│ star-lc10           │ Star LC-10: a 9-pin dot-matrix printer with Epson and  │
-│                     │ IBM Proprinter modes.                                  │
-│ star-lc10-colour    │ Star LC-10 Colour: the LC-10 with a four-colour        │
-│                     │ ribbon.                                                │
-└─────────────────────┴────────────────────────────────────────────────────────┘
-
-$ papyrium list-fonts
-                                     Fonts                                      
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Name                                 ┃ Description                           ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ draft-9                              │ An original 9-pin draft font in the   │
-│                                      │ style of 1980s dot-matrix printers.   │
-│ glp-draft                            │ The Centronics GLP's draft characters │
-│                                      │ (Model 3101), from its firmware.      │
-│ glp-graphics                         │ The Centronics GLP's graphics         │
-│                                      │ characters, the Amstrad CPC's codes   │
-│                                      │ 129-255.                              │
-│ glp-nlq                              │ The Schneider NLQ401's near letter    │
-│                                      │ quality characters, from its          │
-│                                      │ firmware.                             │
-│ kx-p1080-draft                       │ The KX-P1080U's draft font, extracted │
-│                                      │ from its CPU's internal ROM.          │
-│ kx-p1080-draft-italic                │ The KX-P1080U's draft italics,        │
-│                                      │ extracted from its CPU's internal     │
-│                                      │ ROM.                                  │
-│ kx-p1080-nlq                         │ The KX-P1080U's near letter quality   │
-│                                      │ font, extracted from its EPROM.       │
-│ kx-p1080-nlq-italic                  │ The KX-P1080U's NLQ italics, slanted  │
-│                                      │ as the printer slants them.           │
-│ lc10-block-graphics                  │ The Star LC-10's IBM block graphics,  │
-│                                      │ extracted from its firmware ROM.      │
-│ lc10-draft                           │ The Star LC-10's pica draft font,     │
-│                                      │ made as the printer makes it.         │
-│ lc10-draft-elite                     │ The Star LC-10's elite draft font,    │
-│                                      │ extracted from its firmware ROM.      │
-│ lc10-nlq-courier                     │ The Star LC-10's NLQ Courier in pica, │
-│                                      │ extracted from its firmware ROM.      │
-│ lc10-nlq-courier-elite               │ The Star LC-10's NLQ Courier in       │
-│                                      │ elite, extracted from its firmware    │
-│                                      │ ROM.                                  │
-│ lc10-nlq-orator                      │ The Star LC-10's NLQ Orator with      │
-│                                      │ lower case in pica, from its firmware │
-│                                      │ ROM.                                  │
-│ lc10-nlq-orator-elite                │ The Star LC-10's NLQ Orator with      │
-│                                      │ lower case in elite, from its         │
-│                                      │ firmware ROM.                         │
-│ lc10-nlq-orator-small-capitals       │ The Star LC-10's NLQ Orator with      │
-│                                      │ small capitals in pica, from its      │
-│                                      │ firmware ROM.                         │
-│ lc10-nlq-orator-small-capitals-elite │ The Star LC-10's NLQ Orator with      │
-│                                      │ small capitals in elite, from its     │
-│                                      │ firmware ROM.                         │
-│ lc10-nlq-sanserif                    │ The Star LC-10's NLQ Sanserif in      │
-│                                      │ pica, extracted from its firmware     │
-│                                      │ ROM.                                  │
-│ lc10-nlq-sanserif-elite              │ The Star LC-10's NLQ Sanserif in      │
-│                                      │ elite, extracted from its firmware    │
-│                                      │ ROM.                                  │
-│ lx800-draft                          │ The Epson LX-800's draft font,        │
-│                                      │ extracted from its firmware ROM.      │
-│ lx800-nlq-roman                      │ The Epson LX-800's NLQ Roman font,    │
-│                                      │ extracted from its firmware ROM.      │
-│ m1109-draft                          │ The Brother M-1109's draft font,      │
-│                                      │ reconstructed from printed output.    │
-│ m1109-nlq                            │ The Brother M-1109's NLQ font,        │
-│                                      │ reconstructed from printed output.    │
-│ mps803                               │ The Commodore MPS-803's characters,   │
-│                                      │ extracted from its firmware ROM.      │
-└──────────────────────────────────────┴───────────────────────────────────────┘
-```
-
-Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
-`papyrium describe-model NAME` describes a model and its options, which
-set its DIP switches and its paper. For example, a GLP II printing near
-letter quality from power on, on blue-bar listing paper:
-
-```sh
-uv run papyrium serve --model centronics-glp-ii -M near-letter-quality=yes -M stationery=blue-bar
-```
-
-The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
-strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
-`music-ruled`. A font stands in for each printer's character ROM:
-`draft-9`, the FX-80's, is an original design; the GLP II's are
-reconstructed from the printed output in Brother's M-1109 manual; and the LX-800's and LC-10's are
-extracted from their firmware, the LC-10 making some of its typefaces from
-others as the printer does. The Proprinter II borrows the LC-10's until
-its own are to hand. Any font can be replaced by a dot font file, with
-`-M font=PATH`.
 
 ## Printing from a BBC Micro emulator
 
@@ -264,33 +107,139 @@ through it:
 - [b2](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/b2.md): a saved printer buffer, printed or sent
 - [jsbeeb](https://github.com/rob-smallshire/papyrium/blob/master/docs/guides/jsbeeb.md): not yet possible
 
-## Finding Papyrium on the network
+## Printers
 
-`--advertise` announces the printer on the local network with multicast
-DNS, as Bonjour and Avahi announce network printers, so that a sender,
-such as a bridge from a real computer's printer port, can find it without
-being given an address:
+Each printer model has a demonstration page, printed here by Papyrium
+itself; `papyrium demo MODEL` prints one.
+
+<table>
+<tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1009.png" alt="The top of the brother-m1009 demonstration page" width="100%"></a><br><code>brother-m1009</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp.png" alt="The top of the centronics-glp demonstration page" width="100%"></a><br><code>centronics-glp</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp-ii.png" alt="The top of the centronics-glp-ii demonstration page" width="100%"></a><br><code>centronics-glp-ii</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/commodore_mps803/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-commodore-mps-803.png" alt="The top of the commodore-mps-803 demonstration page" width="100%"></a><br><code>commodore-mps-803</code></td>
+</tr>
+<tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
+</tr>
+<tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-schneider-nlq401.png" alt="The top of the schneider-nlq401 demonstration page" width="100%"></a><br><code>schneider-nlq401</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
+</tr>
+</table>
+
+## Printers, paper and fonts
+
+```
+$ papyrium list-models
+                                     Models                                     
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Name                ┃ Description                                            ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ brother-m1009       │ Brother M-1009: the Centronics GLP under Brother's     │
+│                     │ badge, without NLQ.                                    │
+│ brother-m1109       │ Brother M-1109: the Centronics GLP II sold under       │
+│                     │ another name.                                          │
+│ centronics-glp      │ Centronics GLP (Model 3101): the first Great Little    │
+│                     │ Printer, of 1984.                                      │
+│ centronics-glp-ii   │ Centronics GLP II (Model 3102): the second Great       │
+│                     │ Little Printer, of 1985.                               │
+│ commodore-mps-803   │ Commodore MPS-803: a 7-wire dot-matrix printer for     │
+│                     │ Commodore's serial bus.                                │
+│ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
+│                     │ speaking ESC/P.                                        │
+│ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
+│                     │ speaking ESC/P.                                        │
+│ ibm-proprinter-ii   │ IBM Proprinter II: a 9-wire dot-matrix printer         │
+│                     │ speaking its own language.                             │
+│ panasonic-kx-p1080  │ Panasonic KX-P1080: an 80-column, 9-pin dot-matrix     │
+│                     │ printer speaking ESC/P.                                │
+│ panasonic-kx-p1080u │ Panasonic KX-P1080U: the KX-P1080 for the UK, its      │
+│                     │ firmware Papyrium's source.                            │
+│ rca-vp2100          │ RCA VP2100: the Centronics GLP II sold under another   │
+│                     │ name.                                                  │
+│ schneider-nlq401    │ Schneider NLQ401: the Centronics GLP with Schneider's  │
+│                     │ NLQ, for the CPC.                                      │
+│ sony-prn-m09        │ Sony PRN-M09: the Centronics GLP II sold under another │
+│                     │ name.                                                  │
+│ star-lc10           │ Star LC-10: a 9-pin dot-matrix printer with Epson and  │
+│                     │ IBM Proprinter modes.                                  │
+│ star-lc10-colour    │ Star LC-10 Colour: the LC-10 with a four-colour        │
+│                     │ ribbon.                                                │
+└─────────────────────┴────────────────────────────────────────────────────────┘
+```
+
+Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
+`papyrium describe-model NAME` describes a model and its options, which
+set its DIP switches and its paper. For example, a GLP II printing near
+letter quality from power on, on blue-bar listing paper:
+
+```sh
+uv run papyrium serve --model centronics-glp-ii -M near-letter-quality=yes -M stationery=blue-bar
+```
+
+The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
+strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
+`music-ruled`. A font stands in for each printer's character ROM:
+`draft-9`, the FX-80's, is an original design; the GLP II's are
+reconstructed from the printed output in Brother's M-1109 manual; and the LX-800's and LC-10's are
+extracted from their firmware, the LC-10 making some of its typefaces from
+others as the printer does. The Proprinter II borrows the LC-10's until
+its own are to hand. Any font can be replaced by a dot font file, with
+`-M font=PATH`.
+
+## Printing from anything on the network
+
+Anything that can open a TCP connection can print to Papyrium: it is a
+raw TCP printer, like a JetDirect network printer on port 9100. For
+example:
+
+```sh
+printf 'HELLO FROM PAPYRIUM\r\n\x0c' | nc localhost 9100
+```
+
+`papyrium send FILE` sends a file, or standard input given `-`, to a
+running printer, from any machine; `papyrium print FILE` prints it as a
+job without one. `papyrium serve` listens only on this machine unless
+given `-T host=` (every interface) or `--advertise`.
+
+## Printing from your computer
+
+Papyrium can announce itself on the local network, as network printers
+do, so that computers find it without being told its address:
 
 ```sh
 uv run papyrium serve --model brother-m1109 --advertise --name "Desk M-1109"
 ```
 
+It then appears among the printers a computer offers to add, such as
+in macOS's Printers & Scanners settings, under its name: here "Desk
+M-1109", or by default the model's name with "(Papyrium)". It is a
+printer of the 1980s, so a document must reach it in the printer's own
+language, not PostScript or PCL: for a model speaking ESC/P, add it with
+an Epson 9-pin printer's driver.
+
 A printer sold under several names can be served under any of them:
 `brother-m1109` is the Centronics GLP II with Brother's badge, and names
 itself so.
 
-It appears as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
+Advertising makes the printer listen on every interface unless a host is
+given with `-T host=`. Anyone on the network can then send it jobs, as with
+any network printer. A printer only this machine can reach is not
+advertised, and says so.
+
+It is announced with multicast DNS, as Bonjour and Avahi announce network
+printers, as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
 record names it a Papyrium printer (`note=Papyrium virtual printer`, and
 `ty=Brother M-1109 (Papyrium)`), so a client can tell it from a real
 printer, and carries the printer's `uuid`, which stays the same across
 restarts and renames. The UUID is kept in `printer.json` in the output
-directory; `--name` defaults to the model's name with "(Papyrium)".
-
-Advertising makes the printer listen on every interface unless a host is
-given with `-T host=`. Anyone on the network can then send it jobs, as with
-any network printer. A printer only this machine can reach is not
-advertised, and says so. A desktop that adds the printer from its printer
-dialog must print to it in ESC/P, not PostScript or PCL.
+directory.
 
 ## Commands
 

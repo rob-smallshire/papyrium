@@ -33,25 +33,6 @@ Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
 network adapter, can drive it.
 
-## Printers
-
-Each printer model has a demonstration page, printed here by Papyrium
-itself; `papyrium demo MODEL` prints one.
-
-<table>
-{%- for row in plugins["model"]|rejectattr("rebadge_of")|batch(4, none) %}
-<tr>
-{%- for model in row %}
-{%- if model %}
-<td width="25%" valign="top"><a href="{{ repo_url(model.module.dirpath) }}"><img src="{{ repo_url(demo_image("demo-top-" ~ model.name, model.name, height=3.35), raw=True) }}" alt="The top of the {{ model.name }} demonstration page" width="100%"></a><br><code>{{ model.name }}</code></td>
-{%- else %}
-<td width="25%"></td>
-{%- endif %}
-{%- endfor %}
-</tr>
-{%- endfor %}
-</table>
-
 ## Quick start
 
 With [uv](https://docs.astral.sh/uv/), run it straight from PyPI:
@@ -84,38 +65,9 @@ Epson FX-80, and writes each job into `papyrium-jobs/job-NNNN/`:
 | `page-0001.png`, ... | Each page, written as the paper is ejected |
 | `job.pdf` | The whole job, written when the job ends |
 
-Print something to it:
-
-```sh
-printf 'HELLO FROM PAPYRIUM\r\n\x0c' | nc localhost 9100
-```
-
 A job ends after five seconds without bytes (`--idle-timeout`), or when
 the service stops. A disconnect never ends a job: an emulator may hold one
 connection open for its whole life.
-
-## Printers, paper and fonts
-
-{{ transcript("plugins") }}
-
-Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
-`papyrium describe-model NAME` describes a model and its options, which
-set its DIP switches and its paper. For example, a GLP II printing near
-letter quality from power on, on blue-bar listing paper:
-
-```sh
-uv run papyrium serve --model centronics-glp-ii -M near-letter-quality=yes -M stationery=blue-bar
-```
-
-The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
-strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
-`music-ruled`. A font stands in for each printer's character ROM:
-`draft-9`, the FX-80's, is an original design; the GLP II's are
-reconstructed from the printed output in Brother's M-1109 manual; and the LX-800's and LC-10's are
-extracted from their firmware, the LC-10 making some of its typefaces from
-others as the printer does. The Proprinter II borrows the LC-10's until
-its own are to hand. Any font can be replaced by a dot font file, with
-`-M font=PATH`.
 
 ## Printing from a BBC Micro emulator
 
@@ -162,33 +114,96 @@ through it:
 - [b2]({{ repo_url("docs/guides/b2.md") }}): a saved printer buffer, printed or sent
 - [jsbeeb]({{ repo_url("docs/guides/jsbeeb.md") }}): not yet possible
 
-## Finding Papyrium on the network
+## Printers
 
-`--advertise` announces the printer on the local network with multicast
-DNS, as Bonjour and Avahi announce network printers, so that a sender,
-such as a bridge from a real computer's printer port, can find it without
-being given an address:
+Each printer model has a demonstration page, printed here by Papyrium
+itself; `papyrium demo MODEL` prints one.
+
+<table>
+{%- for row in plugins["model"]|rejectattr("rebadge_of")|batch(4, none) %}
+<tr>
+{%- for model in row %}
+{%- if model %}
+<td width="25%" valign="top"><a href="{{ repo_url(model.module.dirpath) }}"><img src="{{ repo_url(demo_image("demo-top-" ~ model.name, model.name, height=3.35), raw=True) }}" alt="The top of the {{ model.name }} demonstration page" width="100%"></a><br><code>{{ model.name }}</code></td>
+{%- else %}
+<td width="25%"></td>
+{%- endif %}
+{%- endfor %}
+</tr>
+{%- endfor %}
+</table>
+
+## Printers, paper and fonts
+
+{{ transcript("plugins") }}
+
+Choose a printer with `--model` and set its options with `-M KEY=VALUE`;
+`papyrium describe-model NAME` describes a model and its options, which
+set its DIP switches and its paper. For example, a GLP II printing near
+letter quality from power on, on blue-bar listing paper:
+
+```sh
+uv run papyrium serve --model centronics-glp-ii -M near-letter-quality=yes -M stationery=blue-bar
+```
+
+The paper can be a plain `sheet`, continuous `fanfold` with its tear-off
+strips and feed holes, or listing paper: `green-bar`, `blue-bar` or
+`music-ruled`. A font stands in for each printer's character ROM:
+`draft-9`, the FX-80's, is an original design; the GLP II's are
+reconstructed from the printed output in Brother's M-1109 manual; and the LX-800's and LC-10's are
+extracted from their firmware, the LC-10 making some of its typefaces from
+others as the printer does. The Proprinter II borrows the LC-10's until
+its own are to hand. Any font can be replaced by a dot font file, with
+`-M font=PATH`.
+
+## Printing from anything on the network
+
+Anything that can open a TCP connection can print to Papyrium: it is a
+raw TCP printer, like a JetDirect network printer on port 9100. For
+example:
+
+```sh
+printf 'HELLO FROM PAPYRIUM\r\n\x0c' | nc localhost 9100
+```
+
+`papyrium send FILE` sends a file, or standard input given `-`, to a
+running printer, from any machine; `papyrium print FILE` prints it as a
+job without one. `papyrium serve` listens only on this machine unless
+given `-T host=` (every interface) or `--advertise`.
+
+## Printing from your computer
+
+Papyrium can announce itself on the local network, as network printers
+do, so that computers find it without being told its address:
 
 ```sh
 uv run papyrium serve --model brother-m1109 --advertise --name "Desk M-1109"
 ```
 
+It then appears among the printers a computer offers to add, such as
+in macOS's Printers & Scanners settings, under its name: here "Desk
+M-1109", or by default the model's name with "(Papyrium)". It is a
+printer of the 1980s, so a document must reach it in the printer's own
+language, not PostScript or PCL: for a model speaking ESC/P, add it with
+an Epson 9-pin printer's driver.
+{#- Screenshots of adding the printer in macOS's settings go here. #}
+
 A printer sold under several names can be served under any of them:
 `brother-m1109` is the Centronics GLP II with Brother's badge, and names
 itself so.
 
-It appears as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
+Advertising makes the printer listen on every interface unless a host is
+given with `-T host=`. Anyone on the network can then send it jobs, as with
+any network printer. A printer only this machine can reach is not
+advertised, and says so.
+
+It is announced with multicast DNS, as Bonjour and Avahi announce network
+printers, as a raw TCP printer, a `_pdl-datastream._tcp` service. Its TXT
 record names it a Papyrium printer (`note=Papyrium virtual printer`, and
 `ty=Brother M-1109 (Papyrium)`), so a client can tell it from a real
 printer, and carries the printer's `uuid`, which stays the same across
 restarts and renames. The UUID is kept in `printer.json` in the output
-directory; `--name` defaults to the model's name with "(Papyrium)".
-
-Advertising makes the printer listen on every interface unless a host is
-given with `-T host=`. Anyone on the network can then send it jobs, as with
-any network printer. A printer only this machine can reach is not
-advertised, and says so. A desktop that adds the printer from its printer
-dialog must print to it in ESC/P, not PostScript or PCL.
+directory.
 
 ## Commands
 
