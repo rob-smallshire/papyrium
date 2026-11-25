@@ -39,7 +39,7 @@ import stevedore.exception
 import stevedore.extension
 
 from papyrium.exception import ConfigurationError
-from papyrium.extension._text import first_line, normalize_name, strip_lines
+from papyrium.extension._text import first_paragraph, normalize_name, strip_lines
 
 #: Entry-point namespaces are formed as ``"<NAMESPACE_PREFIX>.<kind>"``.
 NAMESPACE_PREFIX = "papyrium"
@@ -110,25 +110,26 @@ class Extension(ABC):
         return importlib.metadata.version("papyrium")
 
     @classmethod
-    def describe(cls, *, single_line: bool = False) -> str:
+    def describe(cls, *, summary: bool = False) -> str:
         """A human-readable description of the extension.
 
-        By default this is the extension class's docstring. Override it
-        if you want something different.
+        By default this is the extension class's docstring, whose first
+        paragraph is a one-sentence summary. Override it if you want
+        something different.
 
         Args:
-            single_line: If True, return only the first non-empty line of
-                the description. Defaults to False for the full text.
+            summary: If True, return only the summary, the first paragraph
+                as one line. Defaults to False for the full text.
 
         Returns:
-            The description. If *single_line* is True, only the first
-            non-empty line; otherwise the complete (de-indented) docstring.
+            The description: the summary, or the complete (de-indented)
+            docstring.
         """
         if cls.__doc__ is None:
             return "No description available."
         full_description = strip_lines(inspect.cleandoc(cls.__doc__))
-        if single_line:
-            return first_line(full_description)
+        if summary:
+            return first_paragraph(full_description)
         return full_description
 
     @classmethod
@@ -220,7 +221,7 @@ def describe_extension(
     name: str,
     exception_type: Optional[type[BaseException]] = None,
     *,
-    single_line: bool = False,
+    summary: bool = False,
 ) -> str:
     """Return the description of an extension by name.
 
@@ -229,13 +230,13 @@ def describe_extension(
         namespace: The entry-point namespace to search.
         name: The name of the extension.
         exception_type: Exception raised if the extension cannot be loaded.
-        single_line: If True, return only the first non-empty line.
+        summary: If True, return only the summary, the first paragraph.
 
     Returns:
         The extension's description string.
     """
     driver = extension(kind, namespace, name, exception_type)
-    return driver.describe(single_line=single_line)
+    return driver.describe(summary=summary)
 
 
 def list_extensions(namespace: str) -> list[str]:

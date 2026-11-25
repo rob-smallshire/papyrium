@@ -103,21 +103,21 @@ $ papyrium list-models
 ┃ Name                ┃ Description                                            ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ brother-m1009       │ Brother M-1009: the Centronics GLP under Brother's     │
-│                     │ badge, without near letter quality.                    │
+│                     │ badge, without NLQ.                                    │
 │ brother-m1109       │ Brother M-1109: the Centronics GLP II sold under       │
 │                     │ another name.                                          │
-│ centronics-glp      │ Centronics GLP (Model 3101): the Great Little Printer, │
-│                     │ a 9-pin dot-matrix printer of 1984.                    │
-│ centronics-glp-ii   │ Centronics GLP II (Model 3102): an 80-column, 9-pin    │
-│                     │ dot-matrix printer in its Mode I.                      │
-│ commodore-mps-803   │ Commodore MPS-803: a 7-wire dot-matrix printer for the │
-│                     │ Commodore serial bus, of 1984.                         │
+│ centronics-glp      │ Centronics GLP (Model 3101): the first Great Little    │
+│                     │ Printer, of 1984.                                      │
+│ centronics-glp-ii   │ Centronics GLP II (Model 3102): the second Great       │
+│                     │ Little Printer, of 1985.                               │
+│ commodore-mps-803   │ Commodore MPS-803: a 7-wire dot-matrix printer for     │
+│                     │ Commodore's serial bus.                                │
 │ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
 │                     │ speaking ESC/P.                                        │
 │ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
 │                     │ speaking ESC/P.                                        │
-│ ibm-proprinter-ii   │ IBM Proprinter II: an 80-column, 9-wire dot-matrix     │
-│                     │ printer speaking                                       │
+│ ibm-proprinter-ii   │ IBM Proprinter II: a 9-wire dot-matrix printer         │
+│                     │ speaking its own language.                             │
 │ panasonic-kx-p1080  │ Panasonic KX-P1080: an 80-column, 9-pin dot-matrix     │
 │                     │ printer speaking ESC/P.                                │
 │ panasonic-kx-p1080u │ Panasonic KX-P1080U: the KX-P1080 for the UK, its      │
@@ -125,11 +125,11 @@ $ papyrium list-models
 │ rca-vp2100          │ RCA VP2100: the Centronics GLP II sold under another   │
 │                     │ name.                                                  │
 │ schneider-nlq401    │ Schneider NLQ401: the Centronics GLP with Schneider's  │
-│                     │ near letter quality, for the CPC.                      │
+│                     │ NLQ, for the CPC.                                      │
 │ sony-prn-m09        │ Sony PRN-M09: the Centronics GLP II sold under another │
 │                     │ name.                                                  │
-│ star-lc10           │ Star LC-10: an 80-column, 9-pin dot-matrix printer     │
-│                     │ speaking ESC/P or,                                     │
+│ star-lc10           │ Star LC-10: a 9-pin dot-matrix printer with Epson and  │
+│                     │ IBM Proprinter modes.                                  │
 │ star-lc10-colour    │ Star LC-10 Colour: the LC-10 with a four-colour        │
 │                     │ ribbon.                                                │
 └─────────────────────┴────────────────────────────────────────────────────────┘
@@ -345,20 +345,20 @@ to it, its modules joining the `papyrium` namespace beside these:
 | Languages interpret them | `cbm` | The language of Commodore's serial bus printers, as the MPS-803 speaks it | [`papyrium.language.cbm`](src/papyrium/language/cbm/) |
 |  | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](src/papyrium/language/escp/) |
 |  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) |
-| Printer models are what the user chooses | `brother-m1009` | Brother M-1009: the Centronics GLP under Brother's badge, without near letter quality | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
+| Printer models are what the user chooses | `brother-m1009` | Brother M-1009: the Centronics GLP under Brother's badge, without NLQ | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
 |  | `brother-m1109` | Brother M-1109: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `centronics-glp` | Centronics GLP (Model 3101): the Great Little Printer, a 9-pin dot-matrix printer of 1984 | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
-|  | `centronics-glp-ii` | Centronics GLP II (Model 3102): an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `commodore-mps-803` | Commodore MPS-803: a 7-wire dot-matrix printer for the Commodore serial bus, of 1984 | [`papyrium.model.commodore_mps803`](src/papyrium/model/commodore_mps803/) |
+|  | `centronics-glp` | Centronics GLP (Model 3101): the first Great Little Printer, of 1984 | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
+|  | `centronics-glp-ii` | Centronics GLP II (Model 3102): the second Great Little Printer, of 1985 | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
+|  | `commodore-mps-803` | Commodore MPS-803: a 7-wire dot-matrix printer for Commodore's serial bus | [`papyrium.model.commodore_mps803`](src/papyrium/model/commodore_mps803/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](src/papyrium/model/epson_lx800/) |
-|  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) |
+|  | `ibm-proprinter-ii` | IBM Proprinter II: a 9-wire dot-matrix printer speaking its own language | [`papyrium.model.ibm_proprinter_ii`](src/papyrium/model/ibm_proprinter_ii/) |
 |  | `panasonic-kx-p1080` | Panasonic KX-P1080: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) |
 |  | `panasonic-kx-p1080u` | Panasonic KX-P1080U: the KX-P1080 for the UK, its firmware Papyrium's source | [`papyrium.model.panasonic_kx_p1080`](src/papyrium/model/panasonic_kx_p1080/) |
 |  | `rca-vp2100` | RCA VP2100: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `schneider-nlq401` | Schneider NLQ401: the Centronics GLP with Schneider's near letter quality, for the CPC | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
+|  | `schneider-nlq401` | Schneider NLQ401: the Centronics GLP with Schneider's NLQ, for the CPC | [`papyrium.model.centronics_glp`](src/papyrium/model/centronics_glp/) |
 |  | `sony-prn-m09` | Sony PRN-M09: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](src/papyrium/model/centronics_glp_ii/) |
-|  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
+|  | `star-lc10` | Star LC-10: a 9-pin dot-matrix printer with Epson and IBM Proprinter modes | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](src/papyrium/model/star_lc10/) |
 | Fonts stand in for character ROMs | `draft-9` | An original 9-pin draft font in the style of 1980s dot-matrix printers | [`papyrium.font.draft_9`](src/papyrium/font/draft_9/) |
 |  | `glp-draft` | The Centronics GLP's draft characters (Model 3101), from its firmware | [`papyrium.font.glp`](src/papyrium/font/glp/) |

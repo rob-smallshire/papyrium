@@ -28,8 +28,7 @@ def _font(name: str) -> DotFont:
 
 
 class StarLC10(PrinterModel):
-    """Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or,
-    in IBM mode, the IBM Proprinter's language.
+    """Star LC-10: a 9-pin dot-matrix printer with Epson and IBM Proprinter modes.
 
     Standard mode, in which the LC-10 follows the Epson LX-800, with the
     LC-10's own characters and character generator, from its firmware:

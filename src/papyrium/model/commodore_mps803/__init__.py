@@ -18,7 +18,7 @@ _LINE_LENGTH = inches(8)
 
 
 class CommodoreMps803(PrinterModel):
-    """Commodore MPS-803: a 7-wire dot-matrix printer for the Commodore serial bus, of 1984.
+    """Commodore MPS-803: a 7-wire dot-matrix printer for Commodore's serial bus.
 
     Made by Brother on the mechanism of the first Great Little Printer.
     It prints PETSCII in its graphic set (upper case and graphics) or its

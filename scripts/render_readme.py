@@ -132,7 +132,7 @@ def load_plugins() -> dict[str, list[Plugin]]:
         plugins[kind] = [
             Plugin(
                 point.name,
-                describe_extension(kind, namespace, point.name, single_line=True).rstrip("."),
+                describe_extension(kind, namespace, point.name, summary=True).rstrip("."),
                 _module_meta(point.value.split(":")[0]),
                 _rebadge_of(point.load(), names_by_class),
             )

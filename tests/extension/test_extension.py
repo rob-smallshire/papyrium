@@ -15,7 +15,19 @@ from papyrium.extension import (
     extension,
     namespace_for,
 )
-from papyrium.extension._text import first_line, normalize_name, strip_lines
+from papyrium.extension._text import first_paragraph, normalize_name, strip_lines
+
+
+class _Wrapped(Extension):
+    """A widget whose summary wraps
+    onto a second line.
+
+    More about it.
+    """
+
+    @classmethod
+    def _kind(cls) -> str:
+        return "widget"
 
 
 class _Widget(Extension):
@@ -60,8 +72,11 @@ class TestDescribe:
         assert "A test widget extension." in description
         assert "Second paragraph" in description
 
-    def test_describe_single_line_is_first_line_only(self):
-        assert _Widget.describe(single_line=True) == "A test widget extension."
+    def test_describe_summary_is_the_first_paragraph(self):
+        assert _Widget.describe(summary=True) == "A test widget extension."
+
+    def test_a_summary_may_wrap_across_lines(self):
+        assert _Wrapped.describe(summary=True) == "A widget whose summary wraps onto a second line."
 
     def test_describe_handles_missing_docstring(self):
         assert _Undocumented.describe() == "No description available."
@@ -84,11 +99,11 @@ class TestTextHelpers:
     def test_strip_lines_trims_blank_edges_but_keeps_interior(self):
         assert strip_lines("\n\n a \n\n b \n\n") == " a \n\n b "
 
-    def test_first_line_skips_leading_blanks(self):
-        assert first_line("\n\n  hello  \nworld") == "hello"
+    def test_first_paragraph_skips_leading_blanks_and_joins_its_lines(self):
+        assert first_paragraph("\n\n  hello  \nworld\n\nmore") == "hello world"
 
-    def test_first_line_of_empty_is_empty(self):
-        assert first_line("   ") == ""
+    def test_first_paragraph_of_empty_is_empty(self):
+        assert first_paragraph("   ") == ""
 
     def test_normalize_name_preserves_hyphens(self):
         assert normalize_name("  raw-tcp  ") == "raw-tcp"

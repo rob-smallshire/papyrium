@@ -22,7 +22,7 @@ _COMMANDS = frozenset("!#=>%&:*KLYZ-/0123A J456I789<@BCDEFGHMNOQlRSTUWbpsx".repl
 
 
 class CentronicsGlpIi(PrinterModel):
-    """Centronics GLP II (Model 3102): an 80-column, 9-pin dot-matrix printer in its Mode I.
+    """Centronics GLP II (Model 3102): the second Great Little Printer, of 1985.
 
     The second edition of the Great Little Printer, made with Brother and
     also sold as the Brother M-1109, the Sony PRN-M09 and the RCA VP2100.

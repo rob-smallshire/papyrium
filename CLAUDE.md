@@ -195,6 +195,10 @@ tests are in `integration/beebium/` and are not part of `uv run pytest`.
   never `_file` or `_dir`.
 - **Ubiquitous language**: transport, language, printer model, output,
   job, page, capture, used identically in code, CLI, API and docs.
+- **A plug-in's docstring opens with a one-sentence summary**, its whole
+  first paragraph, of at most 80 characters, which listings such as
+  `papyrium list-models` show alone (`tests/extension/test_summaries.py`
+  holds every installed plug-in to it).
 - **Comments describe the present**, not the history of the code.
 - **No defensive locking**; design ownership so a mutex is needed only
   where two threads genuinely share state.

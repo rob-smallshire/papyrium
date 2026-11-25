@@ -578,7 +578,7 @@ def _list_command(axis: Axis) -> click.Command:
         for name in axis.names():
             table.add_row(
                 name=name,
-                description=describe_extension(axis.kind, axis.namespace, name, single_line=True),
+                description=describe_extension(axis.kind, axis.namespace, name, summary=True),
             )
         return Reports(**{axis.plural: Report(data=table)})
 

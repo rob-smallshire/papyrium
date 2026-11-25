@@ -44,7 +44,7 @@ _GENERATOR = CharacterGenerator(
 
 
 class CentronicsGlp(PrinterModel):
-    """Centronics GLP (Model 3101): the Great Little Printer, a 9-pin dot-matrix printer of 1984.
+    """Centronics GLP (Model 3101): the first Great Little Printer, of 1984.
 
     Made with Brother, also sold as the Brother M-1009 and, with
     Schneider's near letter quality, as the Schneider NLQ401. Its
@@ -124,7 +124,7 @@ class CentronicsGlp(PrinterModel):
 
 
 class SchneiderNlq401(CentronicsGlp):
-    """Schneider NLQ401: the Centronics GLP with Schneider's near letter quality, for the CPC.
+    """Schneider NLQ401: the Centronics GLP with Schneider's NLQ, for the CPC.
 
     Sold with the Schneider CPC computers, whose printer port sends seven
     bits: the printer keeps seven bits of every byte, and prints codes
@@ -179,7 +179,7 @@ class SchneiderNlq401(CentronicsGlp):
 
 
 class BrotherM1009(CentronicsGlp):
-    """Brother M-1009: the Centronics GLP under Brother's badge, without near letter quality.
+    """Brother M-1009: the Centronics GLP under Brother's badge, without NLQ.
 
     Brother's firmware for the GLP has no NLQ; otherwise it is modelled as
     the GLP's, an assumption until its own firmware or manual is read.

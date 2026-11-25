@@ -28,8 +28,7 @@ def _nine_row_font_of_columns(name: str, columns: int) -> DotFont:
 
 
 class IBMProprinterII(PrinterModel):
-    """IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking
-    the Proprinter's language.
+    """IBM Proprinter II: a 9-wire dot-matrix printer speaking its own language.
 
     Draft, Fastfont at 12 cpi, NLQ made from the draft characters, and
     NLQ II; character sets 1 and 2 of the IBM PC characters; block

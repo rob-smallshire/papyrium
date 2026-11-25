@@ -42,17 +42,19 @@ def normalize_name(name: str) -> str:
     return name.strip()
 
 
-def first_line(text: str) -> str:
-    """Extract the first non-empty line from *text*.
+def first_paragraph(text: str) -> str:
+    """The first paragraph of *text*, its lines joined into one.
 
-    Useful for one-line summaries in tables where multi-line text wraps
-    awkwardly. Returns the empty string if *text* is empty or all
-    whitespace.
+    A description's first paragraph is its summary, a single sentence, for
+    listings where a whole description would not fit. Returns the empty
+    string if *text* is empty or all whitespace.
     """
-    if not text:
-        return ""
+    lines = []
     for line in text.splitlines():
         stripped = line.strip()
-        if stripped:
-            return stripped
-    return ""
+        if not stripped:
+            if lines:
+                break
+            continue
+        lines.append(stripped)
+    return " ".join(lines)
