@@ -68,7 +68,9 @@ file of that name in BeebEm's current directory.
 ## Collecting the output
 
 Point BeebEm's File destination at a file and have Papyrium follow it,
-as `tail -f` does:
+as `tail -f` does, with the `file-follow` transport
+(`papyrium serve -t file-follow -T filepath=FILE`), which works like
+this:
 
 - Start at the file's current end by default, since it holds earlier
   sessions' output; optionally from the start, to replay it.

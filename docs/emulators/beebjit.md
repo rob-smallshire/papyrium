@@ -39,18 +39,20 @@ irrecoverably.
 ## Collecting the output
 
 **As beebjit stands:** follow `beebjit.printer` in beebjit's working
-directory, as for BeebEm ([beebem.md](beebem.md)), reading from the
-start whenever the file is truncated. Two hazards:
+directory with the `file-follow` transport, as for BeebEm
+([beebem.md](beebem.md)), which reads the file from its start whenever
+it is truncated. Two hazards:
 
 - Truncation keeps the file's identity, so it is seen only as the size
   falling below the follower's offset. If a new run prints more than
   the old file held between two polls, the truncation is missed and the
   start of the new run is lost. The modification time going backwards
-  is no help either; a follower would need to keep, and compare, the
-  first bytes it read.
-- Text prints recognisably if LF is read as CR (a transport option, or
-  the printer model's auto line feed), but graphics are lost, so this
-  route suits text only.
+  is no help either. The `file-follow` transport keeps the file's first
+  bytes and reads it again from the start when they change, which
+  catches a new run unless it begins with the same bytes as the last.
+- Text prints as the BBC meant only if each LF is taken back to CR,
+  which Papyrium does not yet offer; graphics are lost either way, so
+  this route suits text only.
 
 **With a change to beebjit**, the printer would be useful as is:
 

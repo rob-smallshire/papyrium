@@ -95,6 +95,7 @@ pdf = "papyrium.output.pdf:PdfOutput"
 png = "papyrium.output.png:PngOutput"
 
 [project.entry-points."papyrium.transport"]
+file-follow = "papyrium.transport.file_follow:FileFollowTransport"
 raw-tcp = "papyrium.transport.raw_tcp:RawTcpTransport"
 
 [tool.setuptools.packages.find]
@@ -159,6 +160,7 @@ testpaths = [
     "tests/exception",
     "tests/extension",
     "tests/core",
+    "tests/transport/file_follow",
     "tests/transport/raw_tcp",
     "tests/cli",
     "tests/output/png",

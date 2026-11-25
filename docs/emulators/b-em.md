@@ -95,7 +95,7 @@ waits. But as written, command printing cannot start:
 ## Collecting the output
 
 **As B-em stands:** choose Print to file (binary) and have Papyrium
-follow the file, with the transport proposed for BeebEm
+follow the file with the `file-follow` transport
 ([beebem.md](beebem.md)). Bytes arrive in buffer-sized blocks rather
 than one at a time, and the end of each job arrives only when the user
 turns printing off and on again (or quits B-em). The idle timeout should

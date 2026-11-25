@@ -271,7 +271,8 @@ to it, its modules joining the `papyrium` namespace beside these:
 
 | Axis | Plug-in | Description | Module |
 |---|---|---|---|
-| Transports deliver bytes | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) |
+| Transports deliver bytes | `file-follow` | Follows a file as a sender writes to it, as ``tail -f`` does | [`papyrium.transport.file_follow`](src/papyrium/transport/file_follow/) |
+|  | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) |
 | Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](src/papyrium/language/escp/) |
 |  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) |
 | Printer models are what the user chooses | `brother-m1109` | Brother M-1109: an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.brother_m1109`](src/papyrium/model/brother_m1109/) |
@@ -314,6 +315,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.exception`](src/papyrium/exception/) | Categorised exceptions and CLI error-reporting boundary for Papyrium |
 | [`papyrium.extension`](src/papyrium/extension/) | Generic entry-point plug-in machinery shared by every Papyrium extension axis |
 | [`papyrium.core`](src/papyrium/core/) | Papyrium's core: the page model, printer models, jobs, spooling and the plug-in axes |
+| [`papyrium.transport.file_follow`](src/papyrium/transport/file_follow/) | File-follow transport: the bytes an emulator appends to a printer file |
 | [`papyrium.transport.raw_tcp`](src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
 | [`papyrium.language.escp`](src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
 | [`papyrium.language.proprinter`](src/papyrium/language/proprinter/) | The IBM Proprinter's printer language, for its 9-wire printers |

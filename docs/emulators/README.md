@@ -8,11 +8,11 @@ Papyrium transport (or a change to the emulator) would take them in.
 | Emulator | Note | Output | Live? | Papyrium route |
 |---|---|---|---|---|
 | Beebium | (Beebium's repository) | raw TCP to a print server | yes | `raw-tcp` transport |
-| BeebEm | [beebem.md](beebem.md) | appends to a chosen file | yes | follow the file (proposed) |
+| BeebEm | [beebem.md](beebem.md) | appends to a chosen file | yes | `file-follow` transport |
 | b2 | [b2.md](b2.md) | in-memory buffer, saved by hand | no | read a saved file as one job; or patch b2 to stream |
-| B-em | [b-em.md](b-em.md) | appends to a file, or pipes to a command | yes, but buffered | follow the file; or fix B-em's command printing |
-| jsbeeb | [jsbeeb.md](jsbeeb.md) | a text area in a pop-up window | no | none; patch jsbeeb to send its `output` events on |
-| beebjit | [beebjit.md](beebjit.md) | truncates a fixed file, CR made LF | yes, but buffered | follow the file, text only; or patch beebjit |
+| B-em | [b-em.md](b-em.md) | appends to a file, or pipes to a command | yes, but buffered | `file-follow`; or fix B-em's command printing |
+| jsbeeb | [jsbeeb.md](jsbeeb.md) | a text area in a pop-up window | no | set aside: browser-based, a poor fit for Papyrium |
+| beebjit | [beebjit.md](beebjit.md) | truncates a fixed file, CR made LF | yes, but buffered | `file-follow`, text only; or patch beebjit |
 
 ## What the emulator owes Papyrium
 
@@ -47,9 +47,8 @@ translation. Each emulator note says whether its output is that.
   domain rules already say.
 - **Files are the common denominator.** An emulator without a network
   printer still writes bytes to a file, either continuously (BeebEm) or
-  on request (b2), or both (B-em). Two file transports cover these: one
-  that follows a growing file, one that reads a finished file as a
-  single job.
+  on request (b2), or both (B-em). The `file-follow` transport follows
+  a growing file; a finished file is printed as a single job.
 - **A command's standard input is the next best thing to a socket.**
   B-em can pipe printer output to a command (once fixed). A Papyrium
   command that forwards its standard input to a running Papyrium would
