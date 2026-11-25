@@ -157,6 +157,8 @@ class EscpMechanism:
     skip_moves_to_column: bool = False
     #: ESC a justifies only near letter quality lines.
     justify_nlq_only: bool = False
+    #: The line spacing at power on.
+    power_on_line_spacing: int = inches(1) // 6
     #: Every byte received loses bit 7, as on the Schneider NLQ401, whose
     #: Amstrad CPC sends seven bits.
     seven_bit_input: bool = False

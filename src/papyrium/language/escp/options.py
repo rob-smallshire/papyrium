@@ -53,6 +53,11 @@ def _dot_font(name: str) -> DotFont:
     return font
 
 
+def dot_font(name: str) -> DotFont:
+    """The installed dot font called *name*, or the dot font file at the path *name*."""
+    return _dot_font(name)
+
+
 def nine_row_font(name: str) -> DotFont:
     """The dot font *name* (see :func:`_dot_font`), which must be nine rows high."""
     font = _dot_font(name)
@@ -61,11 +66,11 @@ def nine_row_font(name: str) -> DotFont:
     return font
 
 
-def nlq_font(name: str) -> DotFont:
-    """The near letter quality font *name*: 18 rows (two passes) by 24 columns."""
+def nlq_font(name: str, columns: int = 24) -> DotFont:
+    """The near letter quality font *name*: 18 rows (two passes) by *columns* columns."""
     font = _dot_font(name)
-    if (font.rows, font.columns) != (18, 24):
-        raise ConfigurationError(f"font {name!r} is not an 18 x 24 NLQ font")
+    if (font.rows, font.columns) != (18, columns):
+        raise ConfigurationError(f"font {name!r} is not an 18 x {columns} NLQ font")
     return font
 
 

@@ -18,7 +18,8 @@ writes the pages as PNG images and PDF documents, dot for dot.
 
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
 and LX-800, the Centronics GLP II (also sold as the Brother M-1109) and the
-Star LC-10, speaking Epson's ESC/P, and
+Star LC-10, speaking Epson's ESC/P, the first Centronics GLP and the
+Schneider NLQ401 made from it, speaking their own near relative of it, and
 the IBM Proprinter II, speaking IBM's Proprinter language. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
@@ -31,14 +32,19 @@ itself; `papyrium demo MODEL` prints one.
 
 <table>
 <tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1009.png" alt="The top of the brother-m1009 demonstration page" width="100%"></a><br><code>brother-m1009</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp.png" alt="The top of the centronics-glp demonstration page" width="100%"></a><br><code>centronics-glp</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp-ii.png" alt="The top of the centronics-glp-ii demonstration page" width="100%"></a><br><code>centronics-glp-ii</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
 </tr>
 <tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
+</tr>
+<tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-schneider-nlq401.png" alt="The top of the schneider-nlq401 demonstration page" width="100%"></a><br><code>schneider-nlq401</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
 </tr>
@@ -94,8 +100,12 @@ $ papyrium list-models
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Name                ┃ Description                                            ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ brother-m1009       │ Brother M-1009: the Centronics GLP under Brother's     │
+│                     │ badge, without near letter quality.                    │
 │ brother-m1109       │ Brother M-1109: the Centronics GLP II sold under       │
 │                     │ another name.                                          │
+│ centronics-glp      │ Centronics GLP (Model 3101): the Great Little Printer, │
+│                     │ a 9-pin dot-matrix printer of 1984.                    │
 │ centronics-glp-ii   │ Centronics GLP II (Model 3102): an 80-column, 9-pin    │
 │                     │ dot-matrix printer in its Mode I.                      │
 │ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
@@ -110,6 +120,8 @@ $ papyrium list-models
 │                     │ firmware Papyrium's source.                            │
 │ rca-vp2100          │ RCA VP2100: the Centronics GLP II sold under another   │
 │                     │ name.                                                  │
+│ schneider-nlq401    │ Schneider NLQ401: the Centronics GLP with Schneider's  │
+│                     │ near letter quality, for the CPC.                      │
 │ sony-prn-m09        │ Sony PRN-M09: the Centronics GLP II sold under another │
 │                     │ name.                                                  │
 │ star-lc10           │ Star LC-10: an 80-column, 9-pin dot-matrix printer     │
@@ -326,7 +338,9 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/raw_tcp/) |
 | Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) |
 |  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) |
-| Printer models are what the user chooses | `brother-m1109` | Brother M-1109: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
+| Printer models are what the user chooses | `brother-m1009` | Brother M-1009: the Centronics GLP under Brother's badge, without near letter quality | [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) |
+|  | `brother-m1109` | Brother M-1109: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
+|  | `centronics-glp` | Centronics GLP (Model 3101): the Great Little Printer, a 9-pin dot-matrix printer of 1984 | [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) |
 |  | `centronics-glp-ii` | Centronics GLP II (Model 3102): an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) |
@@ -334,6 +348,7 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `panasonic-kx-p1080` | Panasonic KX-P1080: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) |
 |  | `panasonic-kx-p1080u` | Panasonic KX-P1080U: the KX-P1080 for the UK, its firmware Papyrium's source | [`papyrium.model.panasonic_kx_p1080`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/) |
 |  | `rca-vp2100` | RCA VP2100: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
+|  | `schneider-nlq401` | Schneider NLQ401: the Centronics GLP with Schneider's near letter quality, for the CPC | [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) |
 |  | `sony-prn-m09` | Sony PRN-M09: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
 |  | `star-lc10` | Star LC-10: an 80-column, 9-pin dot-matrix printer speaking ESC/P or, | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
 |  | `star-lc10-colour` | Star LC-10 Colour: the LC-10 with a four-colour ribbon | [`papyrium.model.star_lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/) |
@@ -376,6 +391,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.transport.raw_tcp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
 | [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) | The IBM Proprinter's printer language, for its 9-wire printers |
+| [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) | The Centronics GLP (Model 3101) and the printers made from it |
 | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) | The Centronics GLP II (Model 3102) 9-pin dot-matrix printer, the Brother M-1109 |
 | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
 | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |

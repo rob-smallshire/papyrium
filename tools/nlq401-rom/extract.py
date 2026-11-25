@@ -16,6 +16,8 @@ import hashlib
 import sys
 from pathlib import Path
 
+from papyrium.font.glp import UPPER_HALF
+
 REPO_DIRPATH = Path(__file__).resolve().parent.parent.parent
 ROM_FILEPATH = REPO_DIRPATH / "docs/local/schneider-nlq401/schneider_nlq401_rev004.bin"
 ROM_SHA1 = "b6374abaebb8e484e573caa21b1cc87f1554c8d6"
@@ -41,21 +43,6 @@ GERMAN = "§ÄÖÜäöüß"
 
 #: The locations the firmware prints a pin lower ($08FD).
 DESCENDERS = frozenset(";_gpqy")
-
-#: Codes 0x81-0xFF in character set 1 and 2 alike: the Amstrad CPC's
-#: graphics. Three have no code point before Unicode 16 and use the
-#: Private Use Area.
-GRAPHICS = (
-    "▘▝▀▖▌▞▛▗▚▐▜▄▙▟█"
-    "·╵╶└╷│┌├╴┘─┴┐┤┬┼"
-    "^´¨£©¶§‘¼½¾±÷¬¿¡"
-    "αβγδεθλμπσφψχωΣΩ"
-    "\U0001fba0\U0001fba1\U0001fba3\U0001fba2\U0001fba7\U0001fba5\U0001fba6\U0001fba4"
-    "\U0001fba8\U0001fba9\U0001fbae╳╱╲\U0001fb95▒"
-    "▔▕▁▏◤◥◢◣\U0001fb8e\U0001fb8d\U0001fb8f\U0001fb8c\U0001fb9c\U0001fb9d\U0001fb9e\U0001fb9f"
-    "☺☹♣♦♥♠○●□■♂♀♩♪☼"
-    "⭡⭣⭠⭢▲▼▶◀\U0001fbc6\U0001fbc5\U0001fbc7\U0001fbc8⭥⭤"
-)
 
 DRAFT_HEADER = """\
 # glp-draft: the Centronics GLP's draft characters (Model 3101).
@@ -137,7 +124,6 @@ def main() -> int:
     rom = rom_filepath.read_bytes()
     if hashlib.sha1(rom).hexdigest() != ROM_SHA1:
         raise SystemExit(f"{rom_filepath} is not the NLQ401's EPROM Rev 004")
-    assert len(GRAPHICS) == 127
     draft = [DRAFT_HEADER, "rows 9\ncolumns 11\n"]
     for code in range(0x20, 0x7F):
         draft.append(entry(chr(code), draft_rows(rom, code, chr(code) in DESCENDERS)))
@@ -149,7 +135,7 @@ def main() -> int:
     for index, german in enumerate(GERMAN):
         nlq.append(entry(german, nlq_rows(rom, 0x18 + index, False)))
     graphics = [GRAPHICS_HEADER, "rows 8\ncolumns 11\n"]
-    for index, text in enumerate(GRAPHICS):
+    for index, text in enumerate(UPPER_HALF[1:]):
         graphics.append(entry(text, graphics_rows(rom, 0x81 + index)))
     FONT_DIRPATH.mkdir(parents=True, exist_ok=True)
     (FONT_DIRPATH / "draft.txt").write_text("\n".join(draft))

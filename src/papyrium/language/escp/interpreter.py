@@ -235,7 +235,7 @@ class EscpInterpreter(Interpreter):
         self._nlq = mechanism.near_letter_quality
         self._typeface = 0
         self._justification = 0
-        self._line_spacing = inches(1) // 6
+        self._line_spacing = mechanism.power_on_line_spacing
         self._form_length = mechanism.sheet_length
         self._left_margin = 0
         # None until ESC Q sets one: the power-on margin depends on the pitch.
