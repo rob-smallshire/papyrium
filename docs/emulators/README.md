@@ -11,6 +11,7 @@ Papyrium transport (or a change to the emulator) would take them in.
 | BeebEm | [beebem.md](beebem.md) | appends to a chosen file | yes | follow the file (proposed) |
 | b2 | [b2.md](b2.md) | in-memory buffer, saved by hand | no | read a saved file as one job; or patch b2 to stream |
 | B-em | [b-em.md](b-em.md) | appends to a file, or pipes to a command | yes, but buffered | follow the file; or fix B-em's command printing |
+| jsbeeb | [jsbeeb.md](jsbeeb.md) | a text area in a pop-up window | no | none; patch jsbeeb to send its `output` events on |
 
 ## What the emulator owes Papyrium
 
@@ -48,3 +49,7 @@ translation. Each emulator note says whether its output is that.
   B-em can pipe printer output to a command (once fixed). A Papyrium
   command that forwards its standard input to a running Papyrium would
   serve any emulator that can do this, on every platform.
+- **A browser can reach Papyrium only over the web's own protocols.**
+  jsbeeb in a browser can open neither a raw TCP connection nor a file
+  of its choosing; a WebSocket (or HTTP) transport would be the way in.
+  Its Electron app, with Node in the main process, can use `raw-tcp`.
