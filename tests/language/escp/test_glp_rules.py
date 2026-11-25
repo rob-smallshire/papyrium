@@ -109,3 +109,29 @@ def test_graphics_can_go_without_underline():
     data = ESC + b"-\x01" + ESC + b"=A\x00" + ESC + b"-\x00"
     assert _underlined_xs(data, **GLP) != []
     assert _underlined_xs(data, **GLP, **UNDERLINE_RULES) == []
+
+
+def test_near_letter_quality_can_mask_scripts():
+    from test_variants import _nlq_font
+
+    options = {"nlq": True, "nlq_fonts": (_nlq_font(),)}
+    nlq = dots(ESC + b"x\x01A", **options)
+    assert dots(ESC + b"x\x01" + ESC + b"S\x00A", **options) != nlq
+    assert dots(ESC + b"x\x01" + ESC + b"S\x00A", nlq_masks_scripts=True, **options) == nlq
+    # The script is remembered, for draft.
+    draft_script = dots(ESC + b"S\x00A")
+    masked = dots(
+        ESC + b"x\x01" + ESC + b"S\x00" + ESC + b"x\x00A", nlq_masks_scripts=True, **options
+    )
+    assert masked == draft_script
+
+
+def test_a_printer_may_take_fewer_tab_stops():
+    stops = ESC + b"D" + bytes(range(2, 34)) + b"\x00"
+    # With 28 stops, the 29th argument is a 0x1E, which is ignored.
+    assert dots(stops + b"\t" * 28 + b"A", horizontal_tab_stops=28) == dots(
+        stops + b"\t" * 28 + b"A"
+    )
+    assert dots(stops + b"\t" * 29 + b"A", horizontal_tab_stops=28) != dots(
+        stops + b"\t" * 29 + b"A"
+    )

@@ -263,5 +263,7 @@ def _glp_mechanism(
         flags_by_lowest_bit=True,
         underline_trims_spaces=True,
         underline_skips_high_characters=True,
+        nlq_masks_scripts=True,
+        horizontal_tab_stops=28,
         commands=_COMMANDS if nlq else _DRAFT_COMMANDS,
     )

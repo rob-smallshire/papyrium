@@ -181,6 +181,11 @@ class EscpMechanism:
     esc_3_ignores_zero: bool = False
     #: An on/off argument is on when odd, rather than only for 1 or '1'.
     flags_by_lowest_bit: bool = False
+    #: Near letter quality masks superscript and subscript, which print
+    #: when it ends, rather than printing them in draft.
+    nlq_masks_scripts: bool = False
+    #: The horizontal tab stops ESC D sets at most.
+    horizontal_tab_stops: int = 32
     #: Underline leaves out the spaces at either end of each underlined run,
     #: a run ending where the printer prints what it has so far: at a change
     #: of underline, emphasized, double strike, script, condensed or near

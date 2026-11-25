@@ -570,9 +570,9 @@ class EscpInterpreter(Interpreter):
         character = " " if blank else self._rom_character(location)
         height = self._draft_font().rows * self._mechanism.pin_pitch
         y = self._y
-        if self._script is not None:
+        if self._printing_script() is not None:
             height = self._draft_font().rows * SCRIPT_ROW_PITCH
-            if self._script == "subscript":
+            if self._printing_script() == "subscript":
                 y += 4 * self._mechanism.pin_pitch
         return TextMark(x=self._x, y=y, width=width, height=height, character=character)
 
@@ -611,7 +611,7 @@ class EscpInterpreter(Interpreter):
         Downloaded characters and super- and subscripts print in draft.
         """
         font = self._nlq_font()
-        if not self._nlq or font is None or self._script is not None:
+        if not self._nlq or font is None or self._printing_script() is not None:
             return None
         if self._glyph_source(location)[0] != "rom":
             return None
@@ -698,7 +698,7 @@ class EscpInterpreter(Interpreter):
             step=step,
             offset=offset,
             italic=italic,
-            script=self._script,
+            script=self._printing_script(),
             emphasized=self._is_emphasized(),
             double_strike=self._is_double_strike(),
             double_width=self._is_double_width(),
@@ -732,7 +732,7 @@ class EscpInterpreter(Interpreter):
         A character with no NLQ form prints in draft struck twice, 1/216
         inch apart; those with one never come here.
         """
-        return self._double_strike or self._script is not None or self._nlq
+        return self._double_strike or self._printing_script() is not None or self._nlq
 
     def _is_double_width(self) -> bool:
         return self._double_width or self._one_line_double_width
@@ -770,6 +770,12 @@ class EscpInterpreter(Interpreter):
             self._pending_underline.clear()
             self._underline_run_started = True
         entry.dots.extend(dots)
+
+    def _printing_script(self) -> str | None:
+        """The script characters print in: none while near letter quality masks it."""
+        if self._nlq and self._mechanism.nlq_masks_scripts and self._mechanism.nlq_fonts:
+            return None
+        return self._script
 
     def _segment_modes(self) -> tuple:
         """The modes whose change makes the printer print what it has so far."""
@@ -1366,7 +1372,7 @@ class EscpInterpreter(Interpreter):
             logger.debug("ignoring vertical tabs for channel %d", channel)
 
     def _esc_horizontal_tabs(self) -> ArgumentReader:
-        columns = yield from self._read_stops(32)
+        columns = yield from self._read_stops(self._mechanism.horizontal_tab_stops)
         width = self._tab_unit()
         self._tabs = [column * width for column in columns]
 

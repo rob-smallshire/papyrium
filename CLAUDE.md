@@ -42,6 +42,10 @@ it, `docs/panasonic-kx-p1080-rom-recovery.md`; for the Schneider NLQ401,
 the first-edition Centronics GLP (Model 3101) with Schneider's NLQ,
 `docs/schneider-nlq401-firmware.md`.
 
+External sources for printers modelled or to be modelled (manuals,
+firmware, other emulations) are listed in `docs/research-resources.md`;
+add to it when one is found.
+
 How other BBC Micro emulators deliver printer output, read from their
 source, and how Papyrium might collect it, is in `docs/emulators/`, one
 note per emulator, with the patterns across them in its README.
