@@ -1,0 +1,33 @@
+{% import "package.md.j2" as common -%}
+{{ common.generated_notice() }}
+# papyrium.model.commodore_mps803
+
+The Commodore MPS-803, a 7-wire dot-matrix printer of 1984 for the
+Commodore serial bus, made by Brother on the mechanism of the first Great
+Little Printer, for Papyrium. It speaks Commodore's printer language
+through `papyrium.language.cbm`, and prints from its own characters
+(`papyrium.font.mps803`), both read from its firmware
+(`docs/commodore-mps-803-firmware.md`); `docs/commodore-mps-803.md`
+records its manuals.
+
+## Demonstration page
+
+<img src="{{ repo_url(demo_image("demo-commodore-mps-803", "commodore-mps-803", height=4.0), raw=True) }}" alt="The commodore-mps-803 demonstration page" width="100%">
+
+Print it yourself, as PNG and PDF, with `papyrium demo commodore-mps-803`;
+`-M` options set the printer up, such as `-M secondary-address=7`.
+
+Registered as `commodore-mps-803` on the `papyrium.model` axis. The
+options model the printer's switches, the job's addressing and the paper:
+
+{{ options_table("commodore-mps-803", {
+    "secondary-address": 'The secondary address the job is sent to: `0` for the graphic set, `7` for the business set',
+    "line-spacing": 'The line feed for text: `1/6` or `1/8` inch (the rear switch)',
+    "form-length": 'Form length in inches',
+    "paper-width": 'Paper width in inches; the line is centred on it',
+    "top-offset": 'Inches from the top of the sheet to the top of the first line',
+    "stationery": 'The paper: `fanfold` with the tractor feed, `sheet`, or the listing papers `green-bar`, `blue-bar`, `music-ruled`',
+    "font": "The characters: an installed dot font's name, or the path of a dot font file",
+}, defaults={"paper-width": "`9.5` with tear-off strips, else `8.5`"}) }}
+
+{{ common.licence(repo_url("LICENSE")) }}

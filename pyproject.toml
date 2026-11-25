@@ -78,13 +78,16 @@ lx800-draft = "papyrium.font.lx800:LX800DraftFont"
 lx800-nlq-roman = "papyrium.font.lx800:LX800NlqRomanFont"
 m1109-draft = "papyrium.font.m1109:M1109DraftFont"
 m1109-nlq = "papyrium.font.m1109:M1109NlqFont"
+mps803 = "papyrium.font.mps803:Mps803Font"
 
 [project.entry-points."papyrium.language"]
+cbm = "papyrium.language.cbm:CbmLanguage"
 escp = "papyrium.language.escp:EscpLanguage"
 proprinter = "papyrium.language.proprinter:ProprinterLanguage"
 
 [project.entry-points."papyrium.model"]
 brother-m1009 = "papyrium.model.centronics_glp:BrotherM1009"
+commodore-mps-803 = "papyrium.model.commodore_mps803:CommodoreMps803"
 brother-m1109 = "papyrium.model.centronics_glp_ii:BrotherM1109"
 centronics-glp = "papyrium.model.centronics_glp:CentronicsGlp"
 centronics-glp-ii = "papyrium.model.centronics_glp_ii:CentronicsGlpIi"
@@ -175,14 +178,17 @@ testpaths = [
     "tests/output/png",
     "tests/font/draft_9",
     "tests/font/m1109",
+    "tests/font/mps803",
     "tests/font/lx800",
     "tests/font/glp",
     "tests/font/lc10",
     "tests/font/kx_p1080",
+    "tests/language/cbm",
     "tests/language/escp",
     "tests/language/proprinter",
     "tests/model/epson_fx80",
     "tests/model/centronics_glp",
+    "tests/model/commodore_mps803",
     "tests/model/centronics_glp_ii",
     "tests/model/epson_lx800",
     "tests/model/star_lc10",

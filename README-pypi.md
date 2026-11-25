@@ -19,7 +19,8 @@ writes the pages as PNG images and PDF documents, dot for dot.
 The printers are 9-pin dot-matrix printers of the 1980s, the Epson FX-80
 and LX-800, the Centronics GLP II (also sold as the Brother M-1109) and the
 Star LC-10, speaking Epson's ESC/P, the first Centronics GLP and the
-Schneider NLQ401 made from it, speaking their own near relative of it, and
+Schneider NLQ401 made from it, speaking their own near relative of it, the
+Commodore MPS-803, speaking Commodore's printer language, and
 the IBM Proprinter II, speaking IBM's Proprinter language. The first client is
 Beebium, the BBC Micro emulator, but Papyrium knows nothing about the
 computer on the other end: any emulator, or real hardware behind a
@@ -35,15 +36,16 @@ itself; `papyrium demo MODEL` prints one.
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-brother-m1009.png" alt="The top of the brother-m1009 demonstration page" width="100%"></a><br><code>brother-m1009</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp.png" alt="The top of the centronics-glp demonstration page" width="100%"></a><br><code>centronics-glp</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-centronics-glp-ii.png" alt="The top of the centronics-glp-ii demonstration page" width="100%"></a><br><code>centronics-glp-ii</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/commodore_mps803/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-commodore-mps-803.png" alt="The top of the commodore-mps-803 demonstration page" width="100%"></a><br><code>commodore-mps-803</code></td>
 </tr>
 <tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-fx80.png" alt="The top of the epson-fx80 demonstration page" width="100%"></a><br><code>epson-fx80</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-epson-lx800.png" alt="The top of the epson-lx800 demonstration page" width="100%"></a><br><code>epson-lx800</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-ibm-proprinter-ii.png" alt="The top of the ibm-proprinter-ii demonstration page" width="100%"></a><br><code>ibm-proprinter-ii</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080.png" alt="The top of the panasonic-kx-p1080 demonstration page" width="100%"></a><br><code>panasonic-kx-p1080</code></td>
-<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
 </tr>
 <tr>
+<td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/panasonic_kx_p1080/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-panasonic-kx-p1080u.png" alt="The top of the panasonic-kx-p1080u demonstration page" width="100%"></a><br><code>panasonic-kx-p1080u</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-schneider-nlq401.png" alt="The top of the schneider-nlq401 demonstration page" width="100%"></a><br><code>schneider-nlq401</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10.png" alt="The top of the star-lc10 demonstration page" width="100%"></a><br><code>star-lc10</code></td>
 <td width="25%" valign="top"><a href="https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/star_lc10/"><img src="https://raw.githubusercontent.com/rob-smallshire/papyrium/master/docs/images/demo-top-star-lc10-colour.png" alt="The top of the star-lc10-colour demonstration page" width="100%"></a><br><code>star-lc10-colour</code></td>
@@ -108,6 +110,8 @@ $ papyrium list-models
 │                     │ a 9-pin dot-matrix printer of 1984.                    │
 │ centronics-glp-ii   │ Centronics GLP II (Model 3102): an 80-column, 9-pin    │
 │                     │ dot-matrix printer in its Mode I.                      │
+│ commodore-mps-803   │ Commodore MPS-803: a 7-wire dot-matrix printer for the │
+│                     │ Commodore serial bus, of 1984.                         │
 │ epson-fx80          │ Epson FX-80: an 80-column, 9-pin dot-matrix printer    │
 │                     │ speaking ESC/P.                                        │
 │ epson-lx800         │ Epson LX-800: an 80-column, 9-pin dot-matrix printer   │
@@ -191,6 +195,8 @@ $ papyrium list-fonts
 │                                      │ reconstructed from printed output.    │
 │ m1109-nlq                            │ The Brother M-1109's NLQ font,        │
 │                                      │ reconstructed from printed output.    │
+│ mps803                               │ The Commodore MPS-803's characters,   │
+│                                      │ extracted from its firmware ROM.      │
 └──────────────────────────────────────┴───────────────────────────────────────┘
 ```
 
@@ -336,12 +342,14 @@ to it, its modules joining the `papyrium` namespace beside these:
 |---|---|---|---|
 | Transports deliver bytes | `file-follow` | Follows a file as a sender writes to it, as ``tail -f`` does | [`papyrium.transport.file_follow`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/file_follow/) |
 |  | `raw-tcp` | Raw TCP printing, by default on port 9100 | [`papyrium.transport.raw_tcp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/raw_tcp/) |
-| Languages interpret them | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) |
+| Languages interpret them | `cbm` | The language of Commodore's serial bus printers, as the MPS-803 speaks it | [`papyrium.language.cbm`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/cbm/) |
+|  | `escp` | Epson ESC/P, as spoken by 9-pin dot-matrix printers such as the FX-80 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) |
 |  | `proprinter` | The IBM Proprinter's language, as the 9-wire Proprinter II speaks it | [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) |
 | Printer models are what the user chooses | `brother-m1009` | Brother M-1009: the Centronics GLP under Brother's badge, without near letter quality | [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) |
 |  | `brother-m1109` | Brother M-1109: the Centronics GLP II sold under another name | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
 |  | `centronics-glp` | Centronics GLP (Model 3101): the Great Little Printer, a 9-pin dot-matrix printer of 1984 | [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) |
 |  | `centronics-glp-ii` | Centronics GLP II (Model 3102): an 80-column, 9-pin dot-matrix printer in its Mode I | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) |
+|  | `commodore-mps-803` | Commodore MPS-803: a 7-wire dot-matrix printer for the Commodore serial bus, of 1984 | [`papyrium.model.commodore_mps803`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/commodore_mps803/) |
 |  | `epson-fx80` | Epson FX-80: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) |
 |  | `epson-lx800` | Epson LX-800: an 80-column, 9-pin dot-matrix printer speaking ESC/P | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) |
 |  | `ibm-proprinter-ii` | IBM Proprinter II: an 80-column, 9-wire dot-matrix printer speaking | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) |
@@ -375,6 +383,7 @@ to it, its modules joining the `papyrium` namespace beside these:
 |  | `lx800-nlq-roman` | The Epson LX-800's NLQ Roman font, extracted from its firmware ROM | [`papyrium.font.lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800/) |
 |  | `m1109-draft` | The Brother M-1109's draft font, reconstructed from printed output | [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) |
 |  | `m1109-nlq` | The Brother M-1109's NLQ font, reconstructed from printed output | [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) |
+|  | `mps803` | The Commodore MPS-803's characters, extracted from its firmware ROM | [`papyrium.font.mps803`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/mps803/) |
 | Outputs write pages | `pdf` | One PDF per job, one page per printed page, every dot a vector dot | [`papyrium.output.pdf`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/pdf/) |
 |  | `png` | PNG images, one per page, with each struck dot drawn as a dot | [`papyrium.output.png`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/png/) |
 | Advertisers announce printers | `mdns` | Announces printers with multicast DNS, as Bonjour and Avahi do | [`papyrium.advertiser.mdns`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/advertiser/mdns/) |
@@ -389,10 +398,12 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.core`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/core/) | Papyrium's core: the page model, printer models, jobs, spooling and the plug-in axes |
 | [`papyrium.transport.file_follow`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/file_follow/) | File-follow transport: the bytes an emulator appends to a printer file |
 | [`papyrium.transport.raw_tcp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/transport/raw_tcp/) | Raw TCP transport: the JetDirect-style port 9100 byte stream |
+| [`papyrium.language.cbm`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/cbm/) | The Commodore printers' language, as the MPS-803 speaks it over the serial bus |
 | [`papyrium.language.escp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/escp/) | The Epson ESC/P printer language for 9-pin dot-matrix printers |
 | [`papyrium.language.proprinter`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/language/proprinter/) | The IBM Proprinter's printer language, for its 9-wire printers |
 | [`papyrium.model.centronics_glp`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp/) | The Centronics GLP (Model 3101) and the printers made from it |
 | [`papyrium.model.centronics_glp_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/centronics_glp_ii/) | The Centronics GLP II (Model 3102) 9-pin dot-matrix printer, the Brother M-1109 |
+| [`papyrium.model.commodore_mps803`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/commodore_mps803/) | The Commodore MPS-803 dot-matrix printer |
 | [`papyrium.model.epson_fx80`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_fx80/) | The Epson FX-80 9-pin dot-matrix printer |
 | [`papyrium.model.epson_lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/epson_lx800/) | The Epson LX-800 9-pin dot-matrix printer |
 | [`papyrium.model.ibm_proprinter_ii`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/model/ibm_proprinter_ii/) | The IBM Proprinter II 9-wire dot-matrix printer |
@@ -404,6 +415,7 @@ and their tests under `tests/`, in the same arrangement:
 | [`papyrium.font.lc10`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lc10/) | The Star LC-10's draft and near letter quality fonts, from its firmware |
 | [`papyrium.font.lx800`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/lx800/) | The Epson LX-800's draft and near letter quality Roman fonts, from its firmware |
 | [`papyrium.font.m1109`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/m1109/) | The Brother M-1109's draft and NLQ fonts, reconstructed from its printed output |
+| [`papyrium.font.mps803`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/font/mps803/) | The Commodore MPS-803's characters, from its firmware |
 | [`papyrium.output.pdf`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/pdf/) | PDF output: each job as one document, each dot as a vector dot |
 | [`papyrium.output.png`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/output/png/) | PNG output: one greyscale raster image per page |
 | [`papyrium.advertiser.mdns`](https://github.com/rob-smallshire/papyrium/blob/master/src/papyrium/advertiser/mdns/) | Announcing Papyrium printers on the local network with multicast DNS |
