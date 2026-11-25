@@ -60,6 +60,8 @@ kx-p1080-draft = "papyrium.font.kx_p1080:KXP1080DraftFont"
 kx-p1080-draft-italic = "papyrium.font.kx_p1080:KXP1080DraftItalicFont"
 kx-p1080-nlq = "papyrium.font.kx_p1080:KXP1080NlqFont"
 kx-p1080-nlq-italic = "papyrium.font.kx_p1080:KXP1080NlqItalicFont"
+glp-draft = "papyrium.font.glp:GlpDraftFont"
+glp-graphics = "papyrium.font.glp:GlpGraphicsFont"
 lc10-block-graphics = "papyrium.font.lc10:LC10BlockGraphicsFont"
 lc10-draft = "papyrium.font.lc10:LC10DraftFont"
 lc10-draft-elite = "papyrium.font.lc10:LC10DraftEliteFont"
@@ -170,6 +172,7 @@ testpaths = [
     "tests/font/draft_9",
     "tests/font/m1109",
     "tests/font/lx800",
+    "tests/font/glp",
     "tests/font/lc10",
     "tests/font/kx_p1080",
     "tests/language/escp",
